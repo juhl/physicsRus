@@ -1,5 +1,5 @@
 function Space() {
-    this.iteration = 5;
+    this.iteration = 10;
     this.gravity = vec2.zero;
     this.damping = 1.0;
 

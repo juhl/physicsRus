@@ -62,7 +62,7 @@ App = function() {
         var shape;
 
         space = new Space();
-        space.gravity = vec2.create(0, -500);
+        space.gravity = vec2.create(0, -400);
 
         shape = new ShapeSegment(vec2.create(-400, 0), vec2.create(400, 0), 0);
         space.staticBody.addStaticShape(shape);
@@ -72,24 +72,16 @@ App = function() {
 
         shape = new ShapeSegment(vec2.create(400, 0), vec2.create(400, 600), 0);
         space.staticBody.addStaticShape(shape);
-
-        shape = new ShapeSegment(vec2.create(-50, 0), vec2.create(50, 0), 20);
+        
+        shape = new ShapeBox(140, 80);
         shape.e = 0.75;
         shape.u = 1.0;
-        body = new Body(1, shape.inertia(1));
-        body.addShape(shape);
-        body.p.set(-150, 600);
-        space.addBody(body);
-
-        shape = new ShapeBox(150, 120);
-        shape.e = 0.75;
-        shape.u = 1.0;
-        body = new Body(2, shape.inertia(2));
+        body = new Body(10, shape.inertia(10));
         body.addShape(shape);
         body.p.set(-150, 100);
         space.addBody(body);
-
-        shape = new ShapeBox(600, 15);
+        
+        shape = new ShapeBox(600, 20);
         shape.e = 0.75;
         shape.u = 1.0;
         body = new Body(4, shape.inertia(4));
@@ -97,22 +89,22 @@ App = function() {
         body.p.set(0, 180);
         space.addBody(body);
 
-        shape = new ShapeCircle(30);
+        shape = new ShapeCircle(20);
         shape.e = 0.75;
         shape.u = 0.75;
         body = new Body(1, shape.inertia(1));
         body.addShape(shape);
-        body.p.set(-150, 520);
+        body.p.set(-150, 440);
         space.addBody(body);
 
         for (var i = 0; i < 4; i++) {
             for (var j = 0; j <= i; j++) {
-                shape = new ShapeBox(50, 50);
+                shape = new ShapeBox(40, 40);
                 shape.e = 0.75;
                 shape.u = 1.0;
                 body = new Body(1, shape.inertia(1));
                 body.addShape(shape);
-                body.p.set((j - i * 0.5) * 55 - 150, 400 - i * 55);
+                body.p.set((j - i * 0.5) * 44 - 150, 400 - i * 44);
                 space.addBody(body);
             }
         }
@@ -382,7 +374,7 @@ App = function() {
             shape.u = 0.5;
             body = new Body(0.2, shape.inertia(0.2));
             body.addShape(shape);
-            body.p.set(0, 500);
+            body.p.set(0, 400);
             space.addBody(body);
 
             body.applyImpulse(vec2.create((Math.random() - 0.5) * 100, Math.random() * 100), vec2.create(0, 10)); 
