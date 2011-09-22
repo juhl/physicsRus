@@ -1,8 +1,6 @@
 App = function() {
     var canvas;
-    var canvas_back;
     var ctx;
-    var ctx_back;
     var tid_runFrame;
     var time;
     var mouseDown;
@@ -17,12 +15,6 @@ App = function() {
         }
 
         ctx = canvas.getContext("2d");
-
-        // offscreen canvas
-        canvas_back = document.createElement('canvas');
-        canvas_back.width = canvas.width;
-        canvas_back.height = canvas.height;
-        ctx_back = canvas_back.getContext("2d");
 
         canvas.addEventListener("mousedown", function(e) { onMouseDown(e) }, false);
         canvas.addEventListener("mouseup", function(e) { onMouseUp(e) }, false);
@@ -158,12 +150,8 @@ App = function() {
 
         space.step(ms / 1000);
 
-        var real_ctx = ctx;
-        ctx = ctx_back;
-
         ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // transform fundamental coordinate system
         ctx.translate(canvas.width * 0.5, canvas.height);
@@ -185,9 +173,6 @@ App = function() {
             }
         }
 
-        ctx = real_ctx;
-        ctx.drawImage(canvas_back, 0, 0);
-        
         tid_runFrame = setTimeout(function() { runFrame(ms); }, ms);
     }
 
