@@ -1,6 +1,8 @@
 App = function() {
     var canvas;
+    var canvas_back;
     var ctx;
+    var ctx_back;
     var tid_runFrame;
     var time;
     var mouseDown;
@@ -15,6 +17,12 @@ App = function() {
         }
 
         ctx = canvas.getContext("2d");
+
+        // offscreen canvas
+        canvas_back = document.createElement('canvas');
+        canvas_back.width = canvas.width;
+        canvas_back.height = canvas.height;
+        ctx_back = canvas_back.getContext("2d");
 
         canvas.addEventListener("mousedown", function(e) { onMouseDown(e) }, false);
         canvas.addEventListener("mouseup", function(e) { onMouseUp(e) }, false);
@@ -43,10 +51,6 @@ App = function() {
             document.onkeyup = onKeyUp
             document.onkeypress = onKeyPress;
         }
-
-        // transform fundamental coordinate system
-        ctx.translate(canvas.width * 0.5, canvas.height);
-        ctx.scale(1, -1);
 
         time = 0;
 
@@ -104,7 +108,7 @@ App = function() {
                 shape.u = 1.0;
                 body = new Body(1, shape.inertia(1));
                 body.addShape(shape);
-                body.p.set((j - i * 0.5) * 44 - 150, 400 - i * 44);
+                body.p.set((j - i * 0.5) * 44 - 150, 350 - i * 44);
                 space.addBody(body);
             }
         }
@@ -154,7 +158,16 @@ App = function() {
 
         space.step(ms / 1000);
 
-        clearCanvas(0, 0, canvas.width, canvas.height);
+        var real_ctx = ctx;
+        ctx = ctx_back;
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // transform fundamental coordinate system
+        ctx.translate(canvas.width * 0.5, canvas.height);
+        ctx.scale(1, -1);
 
         drawBody(space.staticBody, "#888", "#000");
         for (var i = 0; i < space.bodyArr.length; i++) {
@@ -172,14 +185,10 @@ App = function() {
             }
         }
 
+        ctx = real_ctx;
+        ctx.drawImage(canvas_back, 0, 0);
+        
         tid_runFrame = setTimeout(function() { runFrame(ms); }, ms);
-    }
-
-    function clearCanvas(x, y, w, h) {
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(x, y, w, h);
-        ctx.restore();
     }
 
     function drawBody(body, fillColor, outlineColor) {
@@ -294,8 +303,6 @@ App = function() {
     }
 
     function drawPolygon(verts, fillStyle, strokeStyle) {
-        ctx.fillStyle = fillStyle;
-        ctx.strokeStyle = strokeStyle;
         ctx.beginPath();
         ctx.moveTo(verts[0].x, verts[0].y);
         
