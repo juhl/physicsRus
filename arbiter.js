@@ -36,7 +36,7 @@ function Arbiter(shape1, shape2) {
 }
 
 Arbiter.BIAS_COEFF = 0.2;
-Arbiter.COLLISION_SLOP = 0.04;
+Arbiter.COLLISION_SLOP = 0.1;
 
 Arbiter.prototype.update = function(newContactArr) {
     for (var i = 0; i < newContactArr.length; i++) {
