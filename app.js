@@ -148,7 +148,7 @@ App = function() {
     function runFrame(ms) {
         time += ms;
 
-        space.step(ms / 1000, 5);
+        space.step(ms / 1000, 6);
 
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
