@@ -1,5 +1,5 @@
 function Space() {
-    this.gravity = vec2.zero;
+    this.gravity = new vec2(0, 0);
     this.damping = 1.0;
 
     this.staticBody = new Body(Number.MAX_VALUE, Number.MAX_VALUE);

@@ -83,10 +83,10 @@ Body.prototype.setMassDensity = function(density) {
 }
 
 Body.prototype.updateVelocity = function(gravity, damping, dt) {
-	this.v = vec2.add(vec2.scale(this.v, damping), vec2.scale(vec2.add(gravity, vec2.scale(this.f, this.m_inv)), dt));	
+	this.v = vec2.mad(vec2.scale(this.v, damping), vec2.mad(gravity, this.f, this.m_inv), dt);	
 	this.w = this.w * damping + this.t * this.i_inv * dt;
 
-    this.f = 0;
+    this.f.set(0, 0);
     this.t = 0;
 }
 
@@ -110,7 +110,7 @@ Body.prototype.applyImpulse = function(j, r) {
     if (this.isStatic())
         return;
 
-	this.v.addself(vec2.scale(j, this.m_inv));
+	this.v.mad(j, this.m_inv);
 	this.w += vec2.cross(r, j) * this.i_inv;
 }
 
@@ -122,6 +122,6 @@ Body.prototype.applyBiasImpulse = function(j, r) {
         var k = 100;
     }
 
-	this.v_bias.addself(vec2.scale(j, this.m_inv));
+	this.v_bias.mad(j, this.m_inv);
 	this.w_bias += vec2.cross(r, j) * this.i_inv;
 }

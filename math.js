@@ -11,8 +11,8 @@ function vec2(x, y) {
 vec2.zero = new vec2(0, 0);
 
 vec2.prototype.set = function(x, y) {
-    this.x = x || 0;
-    this.y = y || 0;
+    this.x = x;
+    this.y = y;
 
     return this;
 }

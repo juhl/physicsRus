@@ -70,24 +70,24 @@ App = function() {
         space.staticBody.addStaticShape(shape);
         
         shape = new ShapeBox(140, 80);
-        shape.e = 0.75;
+        shape.e = 0.0;
         shape.u = 1.0;
         body = new Body(10, shape.inertia(10));
         body.addShape(shape);
         body.p.set(-150, 80);
         space.addBody(body);
         
-        shape = new ShapeBox(600, 20);
-        shape.e = 0.75;
-        shape.u = 1.0;
-        body = new Body(2, shape.inertia(4));
+        shape = new ShapeBox(600, 10);
+        shape.e = 0.7;
+        shape.u = 0.5;
+        body = new Body(2, shape.inertia(2));
         body.addShape(shape);
         body.p.set(0, 140);
         space.addBody(body);
 
         shape = new ShapeCircle(20);
-        shape.e = 0.75;
-        shape.u = 0.75;
+        shape.e = 0.95;
+        shape.u = 0.4;
         body = new Body(1, shape.inertia(1));
         body.addShape(shape);
         body.p.set(-150, 480);
@@ -96,9 +96,9 @@ App = function() {
         for (var i = 0; i < 5; i++) {
             for (var j = 0; j <= i; j++) {
                 shape = new ShapeBox(40, 40);
-                shape.e = 0.5;
-                shape.u = 1.0;
-                body = new Body(0.5, shape.inertia(0.5));
+                shape.e = 0.0;
+                shape.u = 0.8;
+                body = new Body(0.4, shape.inertia(0.4));
                 body.addShape(shape);
                 body.p.set((j - i * 0.5) * 44 - 150, 350 - i * 44);
                 space.addBody(body);
@@ -106,22 +106,22 @@ App = function() {
         }
 
         shape = new ShapePoly([new vec2(-35, 35), new vec2(-50, 0), new vec2(-35, -35), new vec2(35, -35), new vec2(50, 0), new vec2(35, 35)]);
-        shape.e = 0.75;
-        shape.u = 0.5;
-        body = new Body(5, shape.inertia(5));
+        shape.e = 0.0;
+        shape.u = 1.0;
+        body = new Body(4, shape.inertia(4));
         body.addShape(shape);
-        body.p.set(150, 2000);
+        body.p.set(250, 2000);
         space.addBody(body);
         body.applyForce(new vec2(0, 100), new vec2(0, 100));
-
-/*      for (var i = 0; i < 9; i++) {
+/*
+        for (var i = 0; i < 8; i++) {
             for (var j = 0; j <= i; j++) {
                 shape = new ShapeBox(50, 50);
-                shape.e = 0.25;
-                shape.u = 0.8;
+                shape.e = 0.2;
+                shape.u = 1.0;
                 body = new Body(1, shape.inertia(1));
                 body.addShape(shape);
-                body.p.set((j - i * 0.5) * 55, 600 - i * 55);
+                body.p.set((j - i * 0.5) * 52, 600 - i * 52);
                 space.addBody(body);
             }
         }
@@ -148,7 +148,7 @@ App = function() {
     function runFrame(ms) {
         time += ms;
 
-        space.step(ms / 1000, 6);
+        space.step(ms / 1000, 10);
 
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
