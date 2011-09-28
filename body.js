@@ -8,13 +8,13 @@ Body = function(mass, inertia) {
     this.shapeArr = [];
 
     // force
-    this.f = vec2.create(0, 0);
+    this.f = new vec2(0, 0);
 
     // velocity
-    this.v = vec2.create(0, 0);
+    this.v = new vec2(0, 0);
 
     // position
-    this.p = vec2.create(0, 0);
+    this.p = new vec2(0, 0);
 
     // torque
     this.t = 0;
@@ -26,7 +26,7 @@ Body = function(mass, inertia) {
     this.a = 0; 
 
     // velocity for contact penetration bias
-    this.v_bias = vec2.create(0, 0);
+    this.v_bias = new vec2(0, 0);
 
     // angular velocity for contact penetration bias
     this.w_bias = 0;
@@ -47,7 +47,7 @@ Body.prototype.addStaticShape = function(shape) {
     this.shapeArr.push(shape);
     
     this.space.shapeArr.push(shape);
-    shape.cacheData(vec2.create(0, 0), 0);
+    shape.cacheData(new vec2(0, 0), 0);
 }
 
 Body.prototype.cacheData = function() {

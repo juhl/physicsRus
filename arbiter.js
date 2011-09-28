@@ -96,7 +96,7 @@ Arbiter.prototype.applyCachedImpulse = function() {
     for (var i = 0; i < this.contactArr.length; i++) {
         var con = this.contactArr[i];
 
-        var j = vec2.rotate(con.n, vec2.create(con.jn_acc, con.jt_acc));
+        var j = vec2.rotate(con.n, new vec2(con.jn_acc, con.jt_acc));
 
         body1.applyImpulse(vec2.neg(j), con.r1);
         body2.applyImpulse(j, con.r2);
@@ -153,22 +153,22 @@ Arbiter.prototype.applyImpulse = function() {
         jt = con.jt_acc - jt_old;
 
 		// apply the final impulse
-        var j = vec2.rotate(n, vec2.create(jn, jt));
+        var j = vec2.rotate(n, new vec2(jn, jt));
         body1.applyImpulse(vec2.neg(j), r1);
         body2.applyImpulse(j, r2);
     }   
 }
 
 function relative_velocity(body1, body2, r1, r2) {
-    var v1 = vec2.add(body1.v, vec2.scale(vec2.perp(r1), body1.w));
-    var v2 = vec2.add(body2.v, vec2.scale(vec2.perp(r2), body2.w));
+    var v1 = vec2.mad(body1.v, vec2.perp(r1), body1.w);
+    var v2 = vec2.mad(body2.v, vec2.perp(r2), body2.w);
 
     return vec2.sub(v2, v1);
 }
 
 function relative_bias_velocity(body1, body2, r1, r2) {
-    var vb1 = vec2.add(body1.v_bias, vec2.scale(vec2.perp(r1), body1.w_bias));
-    var vb2 = vec2.add(body2.v_bias, vec2.scale(vec2.perp(r2), body2.w_bias));
+    var vb1 = vec2.mad(body1.v_bias, vec2.perp(r1), body1.w_bias);
+    var vb2 = vec2.mad(body2.v_bias, vec2.perp(r2), body2.w_bias);
 
     return vec2.sub(vb2, vb1);
 }

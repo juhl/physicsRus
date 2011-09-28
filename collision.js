@@ -37,7 +37,7 @@ function _circle2Circle(c1, r1, c2, r2, contactArr) {
 
     var dist = Math.sqrt(distsq);
 
-    var p = vec2.add(c1, vec2.scale(t, 0.5 + (r1 - r2) * 0.5 / dist));
+    var p = vec2.mad(c1, t, 0.5 + (r1 - r2) * 0.5 / dist);
     var n = (dist != 0) ? vec2.scale(t, 1/dist) : vec2.zero;
     var d = dist - rmax;
 
@@ -82,7 +82,7 @@ function circle2Segment(circ, seg, contactArr) {
 
 	var n = (dn > 0) ? seg.tn : vec2.neg(seg.tn);
 
-    contactArr.push(new Contact(vec2.sub(circ.tc, vec2.scale(n, circ.r + dist * 0.5)), vec2.neg(n), dist, 0));
+    contactArr.push(new Contact(vec2.mad(circ.tc, n, -(circ.r + dist * 0.5)), vec2.neg(n), dist, 0));
 
 	return 1;
 }
@@ -118,7 +118,7 @@ function circle2Poly(circ, poly, contactArr) {
         return _circle2Circle(circ.tc, circ.r, b, 0, contactArr);
     }
 
-    contactArr.push(new Contact(vec2.sub(circ.tc, vec2.scale(n, circ.r + minDist * 0.5)), vec2.neg(n), minDist, 0));
+    contactArr.push(new Contact(vec2.mad(circ.tc, n, -(circ.r + minDist * 0.5)), vec2.neg(n), minDist, 0));
 
     return 1;
 }
@@ -179,8 +179,8 @@ function segment2Segment(seg1, seg2, contactArr) {
         break;
     }
 
-    var minp1 = vec2.add(seg1.ta, vec2.scale(u, s));
-    var minp2 = vec2.add(seg2.ta, vec2.scale(v, t));
+    var minp1 = vec2.mad(seg1.ta, u, s);
+    var minp2 = vec2.mad(seg2.ta, v, t);
 
     return _circle2Circle(minp1, seg1.r, minp2, seg2.r, contactArr);
 }
@@ -231,8 +231,8 @@ function segment2Poly(seg, poly, contactArr) {
     }
 
     var poly_n = vec2.neg(poly.tplanes[poly_i].n);
-	var va = vec2.add(seg.ta, vec2.scale(poly_n, seg.r));
-	var vb = vec2.add(seg.tb, vec2.scale(poly_n, seg.r));
+	var va = vec2.mad(seg.ta, poly_n, seg.r);
+	var vb = vec2.mad(seg.tb, poly_n, seg.r);
 
 	if (poly.containPoint(va)) {
         contactArr.push(new Contact(va, poly_n, poly_d, (seg.hashid << 16) | 0));

@@ -32,7 +32,7 @@ function areaForPoly(verts) {
 
 function centroidForPoly(verts) {
 	var area = 0;
-	var vsum = vec2.create(0, 0);
+	var vsum = new vec2(0, 0);
 	
 	for (var i = 0; i < verts.length; i++) {
 		var v1 = verts[i];

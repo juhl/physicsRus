@@ -58,15 +58,15 @@ App = function() {
         var shape;
 
         space = new Space();
-        space.gravity = vec2.create(0, -400);
+        space.gravity = new vec2(0, -400);
 
-        shape = new ShapeSegment(vec2.create(-400, 0), vec2.create(400, 0), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(vec2.create(-400, 0), vec2.create(-400, 600), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 600), 0);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(vec2.create(400, 0), vec2.create(400, 600), 0);
+        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 600), 0);
         space.staticBody.addStaticShape(shape);
         
         shape = new ShapeBox(140, 80);
@@ -105,14 +105,14 @@ App = function() {
             }
         }
 
-        shape = new ShapePoly([vec2.create(-35, 35), vec2.create(-50, 0), vec2.create(-35, -35), vec2.create(35, -35), vec2.create(50, 0), vec2.create(35, 35)]);
+        shape = new ShapePoly([new vec2(-35, 35), new vec2(-50, 0), new vec2(-35, -35), new vec2(35, -35), new vec2(50, 0), new vec2(35, 35)]);
         shape.e = 0.75;
         shape.u = 0.5;
         body = new Body(5, shape.inertia(5));
         body.addShape(shape);
         body.p.set(150, 2000);
         space.addBody(body);
-        body.applyForce(vec2.create(0, 100), vec2.create(0, 100));
+        body.applyForce(new vec2(0, 100), new vec2(0, 100));
 
 /*      for (var i = 0; i < 9; i++) {
             for (var j = 0; j <= i; j++) {
@@ -148,7 +148,7 @@ App = function() {
     function runFrame(ms) {
         time += ms;
 
-        space.step(ms / 1000);
+        space.step(ms / 1000, 10);
 
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -196,7 +196,7 @@ App = function() {
         }
 
         if (showBounds) {
-            var offset = vec2.create(1, 1);
+            var offset = new vec2(1, 1);
             drawBox(vec2.sub(shape.mins, offset), vec2.add(shape.maxs, offset), null, "#0A0");
         }
     }
@@ -369,7 +369,7 @@ App = function() {
             body.p.set(0, 400);
             space.addBody(body);
 
-            body.applyImpulse(vec2.create((Math.random() - 0.5) * 100, Math.random() * 100), vec2.create(0, 10)); 
+            body.applyImpulse(new vec2((Math.random() - 0.5) * 100, Math.random() * 100), new vec2(0, 10)); 
         }
 
         if (e.keyCode == 66) { // 'b'

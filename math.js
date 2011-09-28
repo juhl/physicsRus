@@ -59,6 +59,11 @@ vec2.prototype.scale = function(s) {
     return this;
 }
 
+vec2.prototype.mad = function(v, s) {
+    this.x += v.x * s;
+    this.y += v.y * s;
+}
+
 vec2.prototype.neg = function() {
     this.x *= -1;
     this.y *= -1;
@@ -75,7 +80,7 @@ vec2.prototype.length = function() {
 }
 
 vec2.prototype.normalize = function() {
-    var inv = (this.x != 0 || this.y != 0) ? 1 / this.length() : 0;
+    var inv = (this.x != 0 || this.y != 0) ? 1 / Math.sqrt(this.x * this.x + this.y * this.y) : 0;
     this.x *= inv;
     this.y *= inv;
 
@@ -95,38 +100,30 @@ vec2.prototype.toAngle = function() {
 }
 
 vec2.prototype.rotation = function(angle) {
-    return this.set(Math.cos(angle), Math.sin(angle));
+    this.x = Math.cos(angle);
+    this.y = Math.sin(angle);
+    return this;
 }
 
 vec2.prototype.rotate = function(r) {
-    var v = r;
-    if (!vec2.prototype.isPrototypeOf(r)) {
-        v = vec2.rotation(r);
-    }
-
-    return this.set(this.x * v.x - this.y * v.y, this.x * v.y + this.y * v.x);
-}
-
-vec2.create = function(x, y) {
-    return new vec2(x, y);
+    var vec = vec2.prototype.isPrototypeOf(r) ? r : new vec2(Math.cos(r), Math.sin(r));
+    return this.set(this.x * vec.x - this.y * vec.y, this.x * vec.y + this.y * vec.x);
 }
 
 vec2.add = function(v1, v2) {
-    var vec = new vec2;
-    vec.add(v1, v2);
-
-    return vec;
+    return new vec2(v1.x + v2.x, v1.y + v2.y);
 }
 
 vec2.sub = function(v1, v2) {
-    var vec = new vec2;
-    vec.sub(v1, v2);
-
-    return vec;
+    return new vec2(v1.x - v2.x, v1.y - v2.y);
 }
 
 vec2.scale = function(v, s) {
     return new vec2(v.x * s, v.y * s);
+}
+
+vec2.mad = function(v1, v2, s) {
+    return new vec2(v1.x + v2.x * s, v1.y + v2.y * s);
 }
 
 vec2.neg = function(v) {
@@ -134,56 +131,49 @@ vec2.neg = function(v) {
 }
 
 vec2.normalize = function(v) {
-    var vec = new vec2(v.x, v.y);
-    return vec.normalize();
+    var inv = (v.x != 0 || v.y != 0) ? 1 / Math.sqrt(v.x * v.x + v.y * v.y) : 0;
+    return new vec2(v.x * inv, v.y * inv);
 }
 
 vec2.dot = function(v1, v2) {
-    return v1.dot(v2);
+    return v1.x * v2.x + v1.y * v2.y;
 }
 
 vec2.cross = function(v1, v2) {
-    return v1.cross(v2);
+    return v1.x * v2.y - v1.y * v2.x;
 }
 
 vec2.toAngle = function(v) {
-    return v.toAngle();
+    return Math.atan2(v.y, v.x);
 }
 
 vec2.rotation = function(angle) {
-    var vec = new vec2;
-    return vec.rotation(angle);
+    return new vec2(Math.cos(angle), Math.sin(angle));
 }
 
 vec2.rotate = function(v, r) {
-    var vec = new vec2(v.x, v.y);
-    return vec.rotate(r);
+    var vec = vec2.prototype.isPrototypeOf(r) ? r : new vec2(Math.cos(r), Math.sin(r));
+    return new vec2(v.x * vec.x - v.y * vec.y, v.x * vec.y + v.y * vec.x);
 }
 
 // return perpendicular vector (90 degree rotation)
 vec2.perp = function(v) {
-    var vec = new vec2;
-    vec.x = -v.y;
-    vec.y = v.x;
-
-    return vec;
+    return new vec2(-v.y, v.x);
 }
 
 // return perpendicular vector (-90 degree rotation)
 vec2.rperp = function(v) {
-    var vec = new vec2;
-    vec.x = v.y;
-    vec.y = -v.x;
-
-    return vec;
+    return new vec2(v.y, -v.x);
 }
 
 vec2.dist = function(v1, v2) {
-    var vec = new vec2(v1.x - v2.x, v1.y - v2.y);
-    return vec.length();
+    var dx = v2.x - v1.x;
+    var dy = v2.y - v1.y;
+    return Math.sqrt(dx * dx + dy * dy);
 }
 
 vec2.distsq = function(v1, v2) {
-    var vec = new vec2(v1.x - v2.x, v1.y - v2.y);
-    return vec.lengthsq();
+    var dx = v2.x - v1.x;
+    var dy = v2.y - v1.y;
+    return dx * dx + dy * dy;
 }

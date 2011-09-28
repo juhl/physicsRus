@@ -1,5 +1,4 @@
 function Space() {
-    this.iteration = 10;
     this.gravity = vec2.zero;
     this.damping = 1.0;
 
@@ -33,7 +32,7 @@ Space.prototype.findArbiter = function(shape1, shape2) {
     return null;
 }
 
-Space.prototype.step = function(dt) {
+Space.prototype.step = function(dt, iteration) {
     var newArbiterArr = [];
 
     for (var i = 0; i < this.bodyArr.length; i++) {
@@ -97,7 +96,7 @@ Space.prototype.step = function(dt) {
     }
 
     // run the iterative impulse solver    
-    for (var i = 0; i < this.iteration; i++) {
+    for (var i = 0; i < iteration; i++) {
         for (var j = 0; j < this.arbiterArr.length; j++) {
             this.arbiterArr[j].applyImpulse();
         }

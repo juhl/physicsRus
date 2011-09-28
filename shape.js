@@ -13,8 +13,8 @@ Shape = function(type) {
 	this.u = 1;
 
     // axis-aligned bounding box
-    this.mins = vec2.create(0, 0);
-    this.maxs = vec2.create(0, 0);
+    this.mins = new vec2(0, 0);
+    this.maxs = new vec2(0, 0);
 }
 
 Shape.TYPE_CIRCLE = 0;
@@ -314,9 +314,9 @@ ShapePoly.prototype.containPointPartial = function(p, n) {
 
 ShapeTriangle = function(p1, p2, p3) {
     var verts = [
-        vec2.create(p1.x, p1.y),
-        vec2.create(p2.x, p2.y),
-        vec2.create(p3.x, p3.y)
+        new vec2(p1.x, p1.y),
+        new vec2(p2.x, p2.y),
+        new vec2(p3.x, p3.y)
     ];
     return new ShapePoly(verts);
 }
@@ -329,10 +329,10 @@ ShapeBox = function(w, h) {
     var hw = w * 0.5;
     var hh = h * 0.5;
     var verts = [
-        vec2.create(-hw, +hh),
-        vec2.create(-hw, -hh),
-        vec2.create(+hw, -hh),
-        vec2.create(+hw, +hh)
+        new vec2(-hw, +hh),
+        new vec2(-hw, -hh),
+        new vec2(+hw, -hh),
+        new vec2(+hw, +hh)
     ];
 
     return new ShapePoly(verts);
