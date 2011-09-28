@@ -58,7 +58,7 @@ App = function() {
         var shape;
 
         space = new Space();
-        space.gravity = new vec2(0, -400);
+        space.gravity = new vec2(0, -600);
 
         shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
         space.staticBody.addStaticShape(shape);
@@ -74,15 +74,15 @@ App = function() {
         shape.u = 1.0;
         body = new Body(10, shape.inertia(10));
         body.addShape(shape);
-        body.p.set(-150, 100);
+        body.p.set(-150, 80);
         space.addBody(body);
         
         shape = new ShapeBox(600, 20);
         shape.e = 0.75;
         shape.u = 1.0;
-        body = new Body(4, shape.inertia(4));
+        body = new Body(2, shape.inertia(4));
         body.addShape(shape);
-        body.p.set(0, 180);
+        body.p.set(0, 140);
         space.addBody(body);
 
         shape = new ShapeCircle(20);
@@ -90,15 +90,15 @@ App = function() {
         shape.u = 0.75;
         body = new Body(1, shape.inertia(1));
         body.addShape(shape);
-        body.p.set(-150, 440);
+        body.p.set(-150, 480);
         space.addBody(body);
 
-        for (var i = 0; i < 4; i++) {
+        for (var i = 0; i < 5; i++) {
             for (var j = 0; j <= i; j++) {
                 shape = new ShapeBox(40, 40);
-                shape.e = 0.75;
+                shape.e = 0.5;
                 shape.u = 1.0;
-                body = new Body(1, shape.inertia(1));
+                body = new Body(0.5, shape.inertia(0.5));
                 body.addShape(shape);
                 body.p.set((j - i * 0.5) * 44 - 150, 350 - i * 44);
                 space.addBody(body);
@@ -148,7 +148,7 @@ App = function() {
     function runFrame(ms) {
         time += ms;
 
-        space.step(ms / 1000, 10);
+        space.step(ms / 1000, 5);
 
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
