@@ -8,6 +8,7 @@ App = function() {
     var clearBounds;
     var showBounds = false;
     var showContacts = false;
+    var randomColor;
     var space;
 
     function main() {
@@ -28,7 +29,7 @@ App = function() {
         canvas.addEventListener("touchcancel", touchHandler, false);
         
         // prevent elastic scrolling on iOS
-        document.body.addEventListener('touchmove', function(event) { event.preventDefault(); }, false);
+        //document.body.addEventListener('touchmove', function(event) { event.preventDefault(); }, false);
 
         if (document.addEventListener)
         {
@@ -48,6 +49,8 @@ App = function() {
             document.onkeyup = onKeyUp
             document.onkeypress = onKeyPress;
         }
+
+        randomColor = ["#57C", "#888", "DFC", "#7CF", "#A8F", "#FAF", "#FC7", "#9E0", "#8AD", "#FF8", "#DBB", "CDE"];
 
         time = 0;
 
@@ -98,7 +101,7 @@ App = function() {
         space.addBody(body);
 
         shape = new ShapeCircle(20);
-        shape.e = 0.95;
+        shape.e = 0.5;
         shape.u = 0.4;
         body = new Body(1, shape.inertia(1));
         body.addShape(shape);
@@ -147,20 +150,14 @@ App = function() {
         space.addBody(body);*/
     }
 
-    function bodyColor(index) {
-        var iarr = [80, 120, 155, 185, 210, 230, 245, 255];
-
-        var r = iarr[((index + 1) * 17) % iarr.length];
-        var g = iarr[((index + 1) * 43) % iarr.length];
-        var b = iarr[((index + 1) * 87) % iarr.length];
-
-        return "rgb(" + r + "," + g + "," + b + ")";
+    function bodyColor(index) {        
+        return randomColor[(index) % randomColor.length];
     }
 
     function runFrame(ms) {
         time += ms;
 
-        space.step(ms / 1000, 8);
+        space.step(ms / 1000, 10);
 
         ctx.clearRect(clearBounds.mins.x - 2, clearBounds.mins.y - 2, clearBounds.maxs.x - clearBounds.mins.x + 4, clearBounds.maxs.y - clearBounds.mins.y + 4);
         clearBounds.clear();
@@ -336,6 +333,14 @@ App = function() {
     function onMouseDown(e) {
         mouseDown = true;
         var point = getMousePoint(e);
+
+        shape = new ShapeCircle(20);
+        shape.e = 0.75;
+        shape.u = 0.5;
+        body = new Body(0.1, shape.inertia(0.1));
+        body.addShape(shape);
+        body.p.set(point.x - canvas.width * 0.5, canvas.height - point.y);
+        space.addBody(body);
     }
 
     function onMouseUp(e) { 
@@ -380,16 +385,7 @@ App = function() {
             e = event;
         }
 
-        if (e.keyCode == 32) {
-            shape = new ShapeCircle(20);
-            shape.e = 0.5;
-            shape.u = 0.5;
-            body = new Body(0.2, shape.inertia(0.2));
-            body.addShape(shape);
-            body.p.set(0, 400);
-            space.addBody(body);
-
-            body.applyImpulse(new vec2((Math.random() - 0.5) * 100, Math.random() * 100), new vec2(0, 10)); 
+        if (e.keyCode == 32) { // 'space'
         }
 
         if (e.keyCode == 66) { // 'b'
