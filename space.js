@@ -48,7 +48,7 @@ Space.prototype.step = function(dt, iteration) {
             if (shape1.body == this.staticBody && shape2.body == this.staticBody)
                 continue;
             
-            if (!shape1.intersectsBounds(shape2.mins, shape2.maxs))
+            if (!shape1.bounds.intersectsBounds(shape2.bounds))
                 continue;
 
             var contactArr = [];

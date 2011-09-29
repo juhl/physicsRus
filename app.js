@@ -4,6 +4,8 @@ App = function() {
     var tid_runFrame;
     var time;
     var mouseDown;
+    var canvasBounds;
+    var clearBounds;
     var showBounds = false;
     var showContacts = false;
     var space;
@@ -24,6 +26,9 @@ App = function() {
         canvas.addEventListener("touchend", touchHandler, false);
         canvas.addEventListener("touchmove", touchHandler, false);
         canvas.addEventListener("touchcancel", touchHandler, false);
+        
+        // prevent elastic scrolling on iOS
+        document.body.addEventListener('touchmove', function(event) { event.preventDefault(); }, false);
 
         if (document.addEventListener)
         {
@@ -46,11 +51,18 @@ App = function() {
 
         time = 0;
 
-		tid_runFrame = setTimeout(function() { runFrame(1000/60); }, 1000/60);
-
         Collision.init();
 
+        // transform fundamental coordinate system
+        ctx.translate(canvas.width * 0.5, canvas.height);
+        ctx.scale(1, -1);
+
+        canvasBounds = new Bounds(new vec2(-canvas.width * 0.5, 0), new vec2(canvas.width * 0.5, canvas.height));
+        clearBounds = new Bounds;
+
         init();
+
+		tid_runFrame = setTimeout(function() { runFrame(1000/60); }, 1000/60);
     }
 
     function init() {
@@ -148,19 +160,17 @@ App = function() {
     function runFrame(ms) {
         time += ms;
 
-        space.step(ms / 1000, 10);
+        space.step(ms / 1000, 8);
 
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // transform fundamental coordinate system
-        ctx.translate(canvas.width * 0.5, canvas.height);
-        ctx.scale(1, -1);
+        ctx.clearRect(clearBounds.mins.x - 2, clearBounds.mins.y - 2, clearBounds.maxs.x - clearBounds.mins.x + 4, clearBounds.maxs.y - clearBounds.mins.y + 4);
+        clearBounds.clear();
 
         drawBody(space.staticBody, "#888", "#000");
         for (var i = 0; i < space.bodyArr.length; i++) {
             drawBody(space.bodyArr[i], bodyColor(i), "#000");
         }
+
+        //drawBox(clearBounds.mins, clearBounds.maxs, null, "#F00");
 
         if (showContacts) {
             for (var i = 0; i < space.arbiterArr.length; i++) {
@@ -178,7 +188,17 @@ App = function() {
 
     function drawBody(body, fillColor, outlineColor) {
         for (var i = 0; i < body.shapeArr.length; i++) {
-            drawBodyShape(body, body.shapeArr[i], fillColor, outlineColor);
+            var shape = body.shapeArr[i];
+
+            if (!canvasBounds.intersectsBounds(shape.bounds)) {
+                continue;
+            }
+
+            if (!body.isStatic()) {
+                clearBounds.addBounds(shape.bounds);
+            }
+
+            drawBodyShape(body, shape, fillColor, outlineColor);
         }
     }
 
@@ -197,7 +217,7 @@ App = function() {
 
         if (showBounds) {
             var offset = new vec2(1, 1);
-            drawBox(vec2.sub(shape.mins, offset), vec2.add(shape.maxs, offset), null, "#0A0");
+            drawBox(vec2.sub(shape.bounds.mins, offset), vec2.add(shape.bounds.maxs, offset), null, "#0A0");
         }
     }
 

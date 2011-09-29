@@ -177,3 +177,51 @@ vec2.distsq = function(v1, v2) {
     var dy = v2.y - v1.y;
     return dx * dx + dy * dy;
 }
+
+//-----------------------------------
+
+Bounds = function(mins, maxs) {
+    this.mins = mins || new vec2(+99999, +99999);
+    this.maxs = maxs || new vec2(-99999, -99999);
+}
+
+Bounds.prototype.clear = function() {
+    this.mins.set(+99999, +99999);
+    this.maxs.set(-99999, -99999);
+}
+
+Bounds.prototype.addPoint = function(p) {
+    if (this.mins.x > p.x)
+        this.mins.x = p.x;
+    if (this.maxs.x < p.x)
+        this.maxs.x = p.x;
+    if (this.mins.y > p.y)
+        this.mins.y = p.y;
+    if (this.maxs.y < p.y)
+        this.maxs.y = p.y;
+}
+
+Bounds.prototype.addBounds = function(b) {
+    if (this.mins.x > b.mins.x)
+        this.mins.x = b.mins.x;
+    if (this.maxs.x < b.maxs.x)
+        this.maxs.x = b.maxs.x;
+    if (this.mins.y > b.mins.y)
+        this.mins.y = b.mins.y;
+    if (this.maxs.y < b.maxs.y)
+        this.maxs.y = b.maxs.y;
+}
+
+Bounds.prototype.containPoint = function(p) {
+    if (p.x < this.mins.x || p.x > this.maxs.x || p.y < this.mins.y || p.y > this.maxs.y)
+        return false;
+
+    return true;
+}
+
+Bounds.prototype.intersectsBounds = function(b) {
+    if (this.mins.x > b.maxs.x || this.maxs.x < b.mins.x || this.mins.y > b.maxs.y || this.maxs.y < b.mins.y)
+        return false;
+
+    return true;
+}

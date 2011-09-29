@@ -13,48 +13,13 @@ Shape = function(type) {
 	this.u = 1;
 
     // axis-aligned bounding box
-    this.mins = new vec2(0, 0);
-    this.maxs = new vec2(0, 0);
+    this.bounds = new Bounds;
 }
 
 Shape.TYPE_CIRCLE = 0;
 Shape.TYPE_SEGMENT = 1;
 Shape.TYPE_POLY = 2;
 Shape.NUM_TYPES = 3;
-
-Shape.prototype.clearBounds = function() {
-    this.mins.set(+99999, +99999);
-    this.maxs.set(-99999, -99999);
-}
-
-Shape.prototype.addPointToBounds = function(p) {
-    if (this.mins.x > p.x)
-        this.mins.x = p.x;
-    if (this.maxs.x < p.x)
-        this.maxs.x = p.x;
-
-    if (this.mins.y > p.y)
-        this.mins.y = p.y;
-    if (this.maxs.y < p.y)
-        this.maxs.y = p.y;
-}
-
-Shape.prototype.intersectsBounds = function(mins, maxs) {
-    if (this.mins.x > maxs.x || this.maxs.x < mins.x)
-        return false;
-    if (this.mins.y > maxs.y || this.maxs.y < mins.y)
-        return false;
-
-    return true;
-}
-
-Shape.prototype.containPointBounds = function(p) {
-    if (p.x < this.mins.x || p.x > this.maxs.x || p.y < this.mins.y || p.y > this.maxs.y) {
-        return false;
-    }
-
-    return true;
-}
 
 //------------------------------------------
 // Circle
@@ -65,7 +30,7 @@ ShapeCircle = function(radius, offset) {
     this.c = offset || vec2.zero;
     this.r = radius;
 
-    this.tc = vec2.zero;
+    this.tc = vec2.zero;    
 }
 
 ShapeCircle.prototype = new Shape;
@@ -85,8 +50,8 @@ ShapeCircle.prototype.inertia = function(mass) {
 
 ShapeCircle.prototype.cacheData = function(pos, angle) {
     this.tc = vec2.add(pos, vec2.rotate(this.c, angle));
-    this.mins.set(this.tc.x - this.r, this.tc.y - this.r);
-    this.maxs.set(this.tc.x + this.r, this.tc.y + this.r);
+    this.bounds.mins.set(this.tc.x - this.r, this.tc.y - this.r);
+    this.bounds.maxs.set(this.tc.x + this.r, this.tc.y + this.r);
 }
 
 ShapeCircle.prototype.pointQuery = function(p) {
@@ -153,8 +118,8 @@ ShapeSegment.prototype.cacheData = function(pos, angle) {
 		t = this.ta.y;
 	}
 
-    this.mins.set(l - this.r, b - this.r);
-    this.maxs.set(r + this.r, t + this.r);
+    this.bounds.mins.set(l - this.r, b - this.r);
+    this.bounds.maxs.set(r + this.r, t + this.r);
 }
 
 ShapeSegment.prototype.pointQuery = function(p) {
@@ -260,9 +225,9 @@ ShapePoly.prototype.cacheData = function(pos, angle) {
         this.tplanes[i].d = vec2.dot(n, a);
     }
 
-    this.clearBounds();
+    this.bounds.clear();
     for (var i = 0; i < this.verts.length; i++) {
-		this.addPointToBounds(this.tverts[i]);	
+		this.bounds.addPoint(this.tverts[i]);
 	}
 }
 
