@@ -35,11 +35,6 @@ Space.prototype.findArbiter = function(shape1, shape2) {
 Space.prototype.step = function(dt, iteration) {
     var newArbiterArr = [];
 
-    // intergrate position
-    for (var i = 0; i < this.bodyArr.length; i++) {
-        this.bodyArr[i].updatePosition(dt);
-    }
-
     for (var i = 0; i < this.bodyArr.length; i++) {
         body = this.bodyArr[i].cacheData();
     }
@@ -105,6 +100,12 @@ Space.prototype.step = function(dt, iteration) {
         for (var j = 0; j < this.arbiterArr.length; j++) {
             this.arbiterArr[j].applyImpulse();
         }
+    }
+
+    // intergrate position
+    // semi-implicit method
+    for (var i = 0; i < this.bodyArr.length; i++) {
+        this.bodyArr[i].updatePosition(dt);
     }
 }
 

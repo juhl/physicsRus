@@ -15,4 +15,4 @@ Todo
 --------------
 
 - Broad phase collision detection
-- Resting bodies
+- Freezing bodies

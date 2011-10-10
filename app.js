@@ -73,7 +73,7 @@ App = function() {
         var shape;
 
         space = new Space();
-        space.gravity = new vec2(0, -600);
+        space.gravity = new vec2(0, -700);
 
         shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
         space.staticBody.addStaticShape(shape);
