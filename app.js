@@ -108,7 +108,7 @@ App = function() {
         body.p.set(0, 140);
         space.addBody(body);
 
-        for (var i = 0; i < 4; i++) {
+        for (var i = 0; i < 5; i++) {
             for (var j = 0; j <= i; j++) {
                 shape = new ShapeBox(40, 40);
                 shape.e = 0.3;
@@ -181,20 +181,20 @@ App = function() {
         timeOffset += frameTime;
 
         if (timeOffset >= 1000 / 60) {
-            var frame = 0;
+            var step = 0;
 
-            while (timeOffset >= 1000 / 60) {
+            while (timeOffset >= 1000 / 60 && step < 10) {
                 space.step(1 / 60, 10);
                 timeOffset -= 1000 / 60;
-                frame++;
-            }            
-            
-            if (frame <= 1 || frameSkip >= 6) {
+                step++;
+            }
+
+            if (step <= 1 || frameSkip >= 10) {
                 drawFrame(frameTime);
                 frameSkip = 0;
             }
             else {
-                frameSkip++;
+                frameSkip += step - 1;
             }
         }
 
