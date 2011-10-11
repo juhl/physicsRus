@@ -8,6 +8,7 @@ function Space() {
     this.bodyArr = [];
     this.shapeArr = [];
     this.arbiterArr = [];
+    this.constraintArr = [];
 }
 
 Space.prototype.addBody = function(body) {
@@ -19,6 +20,10 @@ Space.prototype.addBody = function(body) {
 
     body.space = this;
     body.cacheData();
+}
+
+Space.prototype.addConstraint = function(constraint) {
+    this.constraintArr.push(constraint);
 }
 
 Space.prototype.findArbiter = function(shape1, shape2) {
@@ -84,6 +89,11 @@ Space.prototype.step = function(dt, iteration) {
         this.arbiterArr[i].preStep(1 / dt);
     }
 
+    // constraint prestep
+    for (var i = 0; i < this.constraintArr.length; i++) {
+        this.constraintArr[i].preStep(1 / dt);
+    }
+
     // intergrate velocity
     var damping = Math.pow(this.damping, dt);
     for (var i = 0; i < this.bodyArr.length; i++) {
@@ -95,10 +105,14 @@ Space.prototype.step = function(dt, iteration) {
         this.arbiterArr[i].applyCachedImpulse();
     }
 
-    // run the iterative impulse solver    
+    // run the iterative impulse solver        
     for (var i = 0; i < iteration; i++) {
         for (var j = 0; j < this.arbiterArr.length; j++) {
             this.arbiterArr[j].applyImpulse();
+        }
+        
+        for (var j = 0; j < this.constraintArr.length; j++) {
+            this.constraintArr[j].applyImpulse();
         }
     }
 

@@ -1,8 +1,8 @@
 App = function() {
     var canvas;
     var ctx;
-    var tid_runFrame;
-    var time;
+    var lastMsec;
+    var frameSkip;
     var mouseDown;
     var canvasBounds;
     var clearBounds;
@@ -52,8 +52,6 @@ App = function() {
 
         randomColor = ["#57C", "#888", "DFC", "#7CF", "#A8F", "#FAF", "#FC7", "#9E0", "#8AD", "#FF8", "#DBB", "CDE"];
 
-        time = 0;
-
         Collision.init();
 
         // transform fundamental coordinate system
@@ -65,11 +63,19 @@ App = function() {
 
         init();
 
-		tid_runFrame = setTimeout(function() { runFrame(1000/60); }, 1000/60);
+        window.requestAnimFrame = (function() {
+            return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || 
+                function(callback, element) { window.setTimeout(callback, 1000 / 60); };
+        })();
+
+        frameSkip = 0;
+        lastMsec = (new Date).getTime();
+
+		window.requestAnimFrame(function() { runFrame(); });        
     }
 
     function init() {
-        var body;
+        var body, body1, body2;
         var shape;
 
         space = new Space();
@@ -85,7 +91,7 @@ App = function() {
         space.staticBody.addStaticShape(shape);
         
         shape = new ShapeBox(140, 80);
-        shape.e = 0.0;
+        shape.e = 0.1;
         shape.u = 1.0;
         body = new Body(10, shape.inertia(10));
         body.addShape(shape);
@@ -100,18 +106,10 @@ App = function() {
         body.p.set(0, 140);
         space.addBody(body);
 
-        shape = new ShapeCircle(20);
-        shape.e = 0.5;
-        shape.u = 0.4;
-        body = new Body(1, shape.inertia(1));
-        body.addShape(shape);
-        body.p.set(-150, 480);
-        space.addBody(body);
-
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < 4; i++) {
             for (var j = 0; j <= i; j++) {
                 shape = new ShapeBox(40, 40);
-                shape.e = 0.0;
+                shape.e = 0.3;
                 shape.u = 0.8;
                 body = new Body(0.4, shape.inertia(0.4));
                 body.addShape(shape);
@@ -120,8 +118,26 @@ App = function() {
             }
         }
 
+        shape = new ShapeCircle(15);
+        shape.e = 0.5;
+        shape.u = 0.4;
+        body1 = new Body(0.2, shape.inertia(0.2));
+        body1.addShape(shape);
+        body1.p.set(0, 400);
+        space.addBody(body1);
+
+        shape = new ShapeCircle(15);
+        shape.e = 0.5;
+        shape.u = 0.4;
+        body2 = new Body(0.2, shape.inertia(0.2));
+        body2.addShape(shape);
+        body2.p.set(0, 350);
+        space.addBody(body2);
+
+        space.addConstraint(new DampedSpring(body1, body2, new vec2(0, 0), new vec2(0, 0)));
+
         shape = new ShapePoly([new vec2(-35, 35), new vec2(-50, 0), new vec2(-35, -35), new vec2(35, -35), new vec2(50, 0), new vec2(35, 35)]);
-        shape.e = 0.0;
+        shape.e = 0.1;
         shape.u = 1.0;
         body = new Body(4, shape.inertia(4));
         body.addShape(shape);
@@ -154,11 +170,27 @@ App = function() {
         return randomColor[(index) % randomColor.length];
     }
 
-    function runFrame(ms) {
-        time += ms;
+    function runFrame() {
+        var time = (new Date).getTime();
+        var frameMsec = time - lastMsec;
 
-        space.step(ms / 1000, 10);
+        if (frameMsec > 1000 / 60) {
+            lastMsec = time;
 
+            space.step(1 / 60, 10);
+
+            if (frameMsec - 1000 / 60 + (new Date).getTime() - time < 1000 / 60 || frameSkip < 10) {
+                drawFrame(frameMsec);
+            }
+            else {
+                frameSkip++;
+            }
+        }        
+
+        window.requestAnimFrame(function() { runFrame(); });   
+    }
+
+    function drawFrame(ms) {
         ctx.clearRect(clearBounds.mins.x - 2, clearBounds.mins.y - 2, clearBounds.maxs.x - clearBounds.mins.x + 4, clearBounds.maxs.y - clearBounds.mins.y + 4);
         clearBounds.clear();
 
@@ -179,8 +211,6 @@ App = function() {
                 }
             }
         }
-
-        tid_runFrame = setTimeout(function() { runFrame(ms); }, ms);
     }
 
     function drawBody(body, fillColor, outlineColor) {
@@ -335,7 +365,7 @@ App = function() {
         var point = getMousePoint(e);
 
         shape = new ShapeCircle(20);
-        shape.e = 0.75;
+        shape.e = 0.8;
         shape.u = 0.5;
         body = new Body(0.1, shape.inertia(0.1));
         body.addShape(shape);
