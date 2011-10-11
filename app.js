@@ -1,7 +1,8 @@
 App = function() {
     var canvas;
     var ctx;
-    var lastMsec;
+    var lastTime;
+    var timeOffset;
     var frameSkip;
     var mouseDown;
     var canvasBounds;
@@ -68,8 +69,9 @@ App = function() {
                 function(callback, element) { window.setTimeout(callback, 1000 / 60); };
         })();
 
+        timeOffset = 0;
         frameSkip = 0;
-        lastMsec = (new Date).getTime();
+        lastTime = (new Date).getTime();
 
 		window.requestAnimFrame(function() { runFrame(); });        
     }
@@ -172,20 +174,29 @@ App = function() {
 
     function runFrame() {
         var time = (new Date).getTime();
-        var frameMsec = time - lastMsec;
+        var frameTime = time - lastTime;
 
-        if (frameMsec > 1000 / 60) {
-            lastMsec = time;
+        lastTime = time;
 
-            space.step(1 / 60, 10);
+        timeOffset += frameTime;
 
-            if (frameMsec - 1000 / 60 + (new Date).getTime() - time < 1000 / 60 || frameSkip < 10) {
-                drawFrame(frameMsec);
+        if (timeOffset >= 1000 / 60) {
+            var frame = 0;
+
+            while (timeOffset >= 1000 / 60) {
+                space.step(1 / 60, 10);
+                timeOffset -= 1000 / 60;
+                frame++;
+            }            
+            
+            if (frame <= 1 || frameSkip >= 6) {
+                drawFrame(frameTime);
+                frameSkip = 0;
             }
             else {
                 frameSkip++;
             }
-        }        
+        }
 
         window.requestAnimFrame(function() { runFrame(); });   
     }
