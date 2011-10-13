@@ -38,6 +38,7 @@ Space.prototype.findArbiter = function(shape1, shape2) {
 }
 
 Space.prototype.step = function(dt, iteration) {
+    var dt_inv = 1 / dt;
     var newArbiterArr = [];
 
     for (var i = 0; i < this.bodyArr.length; i++) {
@@ -75,8 +76,8 @@ Space.prototype.step = function(dt, iteration) {
             else {
                 var newArbiter = new Arbiter(shape1, shape2);
                 newArbiter.contactArr = contactArr;
-                newArbiter.e = shape1.e * shape2.e;
-                newArbiter.u = shape1.u * shape2.u;
+                newArbiter.e = Math.max(shape1.e, shape2.e);
+                newArbiter.u = Math.sqrt(shape1.u * shape2.u);
                 newArbiterArr.push(newArbiter);
             }
         }
@@ -86,16 +87,16 @@ Space.prototype.step = function(dt, iteration) {
 
     // arbiter prestep
     for (var i = 0; i < this.arbiterArr.length; i++) {
-        this.arbiterArr[i].preStep(1 / dt);
+        this.arbiterArr[i].preStep(dt_inv);
     }
 
     // constraint prestep
     for (var i = 0; i < this.constraintArr.length; i++) {
-        this.constraintArr[i].preStep(1 / dt);
+        this.constraintArr[i].preStep(dt_inv);
     }
 
-    // intergrate velocity
-    var damping = Math.pow(this.damping, dt);
+    // intergrate velocity    
+    var damping = this.damping < 1 ? Math.pow(this.damping, dt) : 1;
     for (var i = 0; i < this.bodyArr.length; i++) {
         this.bodyArr[i].updateVelocity(this.gravity, damping, dt);
     }
@@ -105,7 +106,7 @@ Space.prototype.step = function(dt, iteration) {
         this.arbiterArr[i].applyCachedImpulse();
     }
 
-    // run the iterative impulse solver        
+    // run the iterative impulse solver
     for (var i = 0; i < iteration; i++) {
         for (var j = 0; j < this.arbiterArr.length; j++) {
             this.arbiterArr[j].applyImpulse();

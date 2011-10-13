@@ -16,8 +16,8 @@ function Contact(p, n, d, hash) {
     // accumulated tangential impulse
     this.jt_acc = 0; 
 
-    // accumulated normal impulse bias
-    this.jbn_acc = 0; 
+    // accumulated separation impulse
+    this.js_acc = 0; 
 }
 
 function Arbiter(shape1, shape2) {
@@ -35,8 +35,8 @@ function Arbiter(shape1, shape2) {
     this.u = 1; 
 }
 
-Arbiter.BIAS_COEFF = 0.2;
-Arbiter.COLLISION_SLOP = 0.1;
+Arbiter.SEPARATION_COEFF = 0.32;
+Arbiter.COLLISION_SLOP = 0.18;
 
 Arbiter.prototype.update = function(newContactArr) {
     for (var i = 0; i < newContactArr.length; i++) {
@@ -52,7 +52,7 @@ Arbiter.prototype.update = function(newContactArr) {
         if (k > -1) {
             newContact.jn_acc = this.contactArr[k].jn_acc;
             newContact.jt_acc = this.contactArr[k].jt_acc;
-            newContact.jbn_acc = this.contactArr[k].jbn_acc;
+            newContact.js_acc = this.contactArr[k].js_acc;
         }
     }
 
@@ -76,15 +76,15 @@ Arbiter.prototype.preStep = function(dt_inv) {
         con.kn_inv = 1 / k_scalar(body1, body2, con.r1, con.r2, con.n);
         con.kt_inv = 1 / k_scalar(body1, body2, con.r1, con.r2, vec2.perp(con.n));
 
-        // velocity bias
-        con.v_bias = -Arbiter.BIAS_COEFF * dt_inv * Math.min(0, con.d + Arbiter.COLLISION_SLOP);
+        // separation velocity dot n
+        con.separation = -Arbiter.SEPARATION_COEFF * Math.min(con.d + Arbiter.COLLISION_SLOP, 0) * dt_inv;
 
-        con.jbn_acc = 0;
+        con.js_acc = 0;
         
-        // Relative velocity at contact
+        // relative velocity at contact
         var dv = relative_velocity(body1, body2, con.r1, con.r2);
 
-        // bounce velocity
+        // bounce velocity dot n
         con.bounce = vec2.dot(dv, con.n) * this.e;
     }
 }
@@ -120,19 +120,19 @@ Arbiter.prototype.applyImpulse = function() {
         var r1 = con.r1;
         var r2 = con.r2;
 
-        // relative bias velocity at contact
-        var dvb = relative_bias_velocity(body1, body2, r1, r2);
+        // relative separation velocity at contact
+        var dvs = relative_bias_velocity(body1, body2, r1, r2);
 
-		// bias impulse.
-		var dvbn = vec2.dot(dvb, n);
-		var jbn = (-dvbn + con.v_bias) * con.kn_inv;
-        var jbn_old = con.jbn_acc;
-        con.jbn_acc = Math.max(jbn_old + jbn, 0);
-        jbn = con.jbn_acc - jbn_old;
+		// separation impulse.
+		var dvs = vec2.dot(dvs, n);
+		var js = (-dvs + con.separation) * con.kn_inv;
+        var js_old = con.js_acc;
+        con.js_acc = Math.max(js_old + js, 0);
+        js = con.js_acc - js_old;
 		
-		// apply bias impulse.
-		body1.applyBiasImpulse(vec2.scale(n, -jbn), r1);
-		body2.applyBiasImpulse(vec2.scale(n, +jbn), r2);
+		// apply separation impulse.
+		body1.applyBiasImpulse(vec2.scale(n, -js), r1);
+		body2.applyBiasImpulse(vec2.scale(n, +js), r2);
 
 		// relative velocity at contact
         var dv = relative_velocity(body1, body2, r1, r2);
@@ -157,26 +157,4 @@ Arbiter.prototype.applyImpulse = function() {
         body1.applyImpulse(vec2.neg(j), r1);
         body2.applyImpulse(j, r2);
     }   
-}
-
-function relative_velocity(body1, body2, r1, r2) {
-    var v1 = vec2.mad(body1.v, vec2.perp(r1), body1.w);
-    var v2 = vec2.mad(body2.v, vec2.perp(r2), body2.w);
-
-    return vec2.sub(v2, v1);
-}
-
-function relative_bias_velocity(body1, body2, r1, r2) {
-    var vb1 = vec2.mad(body1.v_bias, vec2.perp(r1), body1.w_bias);
-    var vb2 = vec2.mad(body2.v_bias, vec2.perp(r2), body2.w_bias);
-
-    return vec2.sub(vb2, vb1);
-}
-
-function k_scalar(body1, body2, r1, r2, n) {
-    var m_inv_sum = body1.m_inv + body2.m_inv;
-    var r1cn = vec2.cross(r1, n);
-    var r2cn = vec2.cross(r2, n);
-            
-    return m_inv_sum + body1.i_inv * r1cn * r1cn + body2.i_inv * r2cn * r2cn;
 }

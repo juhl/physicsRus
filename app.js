@@ -1,16 +1,19 @@
 App = function() {
     var canvas;
     var ctx;
+
     var lastTime;
     var timeOffset;
-    var frameSkip;
     var mouseDown;
     var canvasBounds;
     var clearBounds;
+    var randomColor;
+
+    var space;
+    var sceneNumber = 1;
+
     var showBounds = false;
     var showContacts = false;
-    var randomColor;
-    var space;
 
     function main() {
         canvas = document.getElementById("canvas");
@@ -18,7 +21,12 @@ App = function() {
             alert("Couldn't get canvas object !");
         }
 
+        // main canvas context
         ctx = canvas.getContext("2d");
+
+        // transform coordinate system
+        ctx.translate(canvas.width * 0.5, canvas.height);
+        ctx.scale(1, -1);
 
         canvas.addEventListener("mousedown", function(e) { onMouseDown(e) }, false);
         canvas.addEventListener("mouseup", function(e) { onMouseUp(e) }, false);
@@ -32,52 +40,63 @@ App = function() {
         // prevent elastic scrolling on iOS
         //document.body.addEventListener('touchmove', function(event) { event.preventDefault(); }, false);
 
-        if (document.addEventListener)
-        {
+        if (document.addEventListener) {
             document.addEventListener("keydown", onKeyDown, false);
             document.addEventListener("keyup", onKeyUp, false);
             document.addEventListener("keypress", onKeyPress, false);
         }
-        else if (document.attachEvent)
-        {
+        else if (document.attachEvent) {
             document.attachEvent("onkeydown", onKeyDown);
             document.attachEvent("onkeyup", onKeyUp);
             document.attachEvent("onkeypress", onKeyPress);
         }
-        else
-        {
+        else {
             document.onkeydown = onKeyDown;
             document.onkeyup = onKeyUp
             document.onkeypress = onKeyPress;
         }
+                
+        window.requestAnimFrame = (function() {
+            return window.requestAnimationFrame || 
+                window.webkitRequestAnimationFrame || 
+                window.mozRequestAnimationFrame || 
+                window.oRequestAnimationFrame || 
+                window.msRequestAnimationFrame || 
+                function(callback, element) { window.setTimeout(callback, 1000 / 60); };
+        })();
 
-        randomColor = ["#57C", "#888", "DFC", "#7CF", "#A8F", "#FAF", "#FC7", "#9E0", "#8AD", "#FF8", "#DBB", "CDE"];
-
-        Collision.init();
-
-        // transform fundamental coordinate system
-        ctx.translate(canvas.width * 0.5, canvas.height);
-        ctx.scale(1, -1);
+        randomColor = ["#57C", "#888", "DFC", "#7CF", "#A8F", "#FAF", "#FC7", "#9E0", "#8AD", "#FF8", "#DBB", "CDE"];        
 
         canvasBounds = new Bounds(new vec2(-canvas.width * 0.5, 0), new vec2(canvas.width * 0.5, canvas.height));
         clearBounds = new Bounds;
 
-        init();
+        Collision.init();
 
-        window.requestAnimFrame = (function() {
-            return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || 
-                function(callback, element) { window.setTimeout(callback, 1000 / 60); };
-        })();
-
-        timeOffset = 0;
-        frameSkip = 0;
-        lastTime = (new Date).getTime();
+        initScene();
 
 		window.requestAnimFrame(function() { runFrame(); });        
     }
 
-    function init() {
-        var body, body1, body2;
+    function initScene() {
+        switch (sceneNumber) {
+        case 1:
+            initScene1();
+            break;
+        case 2:
+            initScene2();
+            break;
+        case 3:
+            initScene3();
+            break;
+        }
+        
+        timeOffset = 0;
+        frameSkip = 0;
+        lastTime = (new Date).getTime();
+    }
+
+    function initScene1() {
+        var body;
         var shape;
 
         space = new Space();
@@ -101,8 +120,8 @@ App = function() {
         space.addBody(body);
         
         shape = new ShapeBox(600, 10);
-        shape.e = 0.7;
-        shape.u = 0.5;
+        shape.e = 0.4;
+        shape.u = 0.7;
         body = new Body(2, shape.inertia(2));
         body.addShape(shape);
         body.p.set(0, 140);
@@ -120,52 +139,86 @@ App = function() {
             }
         }
 
-        shape = new ShapeCircle(15);
-        shape.e = 0.5;
-        shape.u = 0.4;
-        body1 = new Body(0.2, shape.inertia(0.2));
-        body1.addShape(shape);
-        body1.p.set(0, 400);
-        space.addBody(body1);
-
-        shape = new ShapeCircle(15);
-        shape.e = 0.5;
-        shape.u = 0.4;
-        body2 = new Body(0.2, shape.inertia(0.2));
-        body2.addShape(shape);
-        body2.p.set(0, 350);
-        space.addBody(body2);
-
-        space.addConstraint(new DampedSpring(body1, body2, new vec2(0, 0), new vec2(0, 0)));
-
         shape = new ShapePoly([new vec2(-35, 35), new vec2(-50, 0), new vec2(-35, -35), new vec2(35, -35), new vec2(50, 0), new vec2(35, 35)]);
-        shape.e = 0.1;
+        shape.e = 0.4;
         shape.u = 1.0;
         body = new Body(4, shape.inertia(4));
         body.addShape(shape);
-        body.p.set(250, 2000);
+        body.p.set(250, 1500);
         space.addBody(body);
         body.applyForce(new vec2(0, 100), new vec2(0, 100));
-/*
-        for (var i = 0; i < 8; i++) {
+    }
+
+    function initScene2() {
+        var body;
+        var shape;
+
+        space = new Space();
+        space.gravity = new vec2(0, -700);
+
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
+        space.staticBody.addStaticShape(shape);
+
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 600), 0);
+        space.staticBody.addStaticShape(shape);
+
+        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 600), 0);
+        space.staticBody.addStaticShape(shape);
+
+        for (var i = 0; i < 10; i++) {
             for (var j = 0; j <= i; j++) {
-                shape = new ShapeBox(50, 50);
+                shape = new ShapeBox(42, 42);
                 shape.e = 0.2;
                 shape.u = 1.0;
                 body = new Body(1, shape.inertia(1));
                 body.addShape(shape);
-                body.p.set((j - i * 0.5) * 52, 600 - i * 52);
+                body.p.set((j - i * 0.5) * 45, 600 - i * 45);
                 space.addBody(body);
             }
         }
 
-        shape = new ShapeCircle(25);
-        shape.e = 0.5;
-        shape.u = 1;
-        body = new Body(1, shape.inertia(1));
+        shape = new ShapeCircle(21);
+        shape.e = 0.2;
+        shape.u = 1.0;
+        body = new Body(4, shape.inertia(4));
         body.addShape(shape);
         body.p.set(0, 25);
-        space.addBody(body);*/
+        space.addBody(body);
+    }
+
+    function initScene3() {
+        var body, body1, body2;
+        var shape;
+
+        space = new Space();
+        space.gravity = new vec2(0, -700);
+
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
+        space.staticBody.addStaticShape(shape);
+
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 600), 0);
+        space.staticBody.addStaticShape(shape);
+
+        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 600), 0);
+        space.staticBody.addStaticShape(shape);
+
+        shape = new ShapeCircle(20);
+        shape.e = 0.8;
+        shape.u = 0.5;
+        body1 = new Body(0.2, shape.inertia(0.2));
+        body1.addShape(shape);
+        body1.p.set(-50, 250);
+        space.addBody(body1);
+
+        shape = new ShapeCircle(20);
+        shape.e = 0.8;
+        shape.u = 0.5;
+        body2 = new Body(0.2, shape.inertia(0.2));
+        body2.addShape(shape);
+        body2.p.set(50, 250);
+        space.addBody(body2);
+
+        space.addConstraint(new PinJoint(body1, body2, new vec2(0, 0), new vec2(0, 0)));
     }
 
     function bodyColor(index) {        
@@ -189,13 +242,7 @@ App = function() {
                 step++;
             }
 
-            if (step <= 1 || frameSkip >= 10) {
-                drawFrame(frameTime);
-                frameSkip = 0;
-            }
-            else {
-                frameSkip += step - 1;
-            }
+            drawFrame(frameTime);
         }
 
         window.requestAnimFrame(function() { runFrame(); });   
@@ -210,6 +257,10 @@ App = function() {
             drawBody(space.bodyArr[i], bodyColor(i), "#000");
         }
 
+        for (var i = 0; i < space.constraintArr.length; i++) {
+            drawConstraint(space.constraintArr[i], "#F33");
+        }
+
         //drawBox(clearBounds.mins, clearBounds.maxs, null, "#F00");
 
         if (showContacts) {
@@ -222,6 +273,19 @@ App = function() {
                 }
             }
         }
+    }
+
+    function drawConstraint(constraint, strokeStyle) {
+        var p1 = constraint.anchor1;
+        var p2 = constraint.anchor2;
+
+        ctx.strokeStyle = strokeStyle;
+        ctx.beginPath();
+
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+
+        ctx.stroke();        
     }
 
     function drawBody(body, fillColor, outlineColor) {
@@ -281,7 +345,7 @@ App = function() {
         ctx.lineJoint = "miter"
         ctx.stroke();
         ctx.restore();
-    }
+    }    
 
     function drawBox(mins, maxs, fillStyle, strokeStyle) {
         ctx.beginPath();
@@ -375,10 +439,10 @@ App = function() {
         mouseDown = true;
         var point = getMousePoint(e);
 
-        shape = new ShapeCircle(20);
+        var shape = new ShapeCircle(20);
         shape.e = 0.8;
         shape.u = 0.5;
-        body = new Body(0.1, shape.inertia(0.1));
+        var body = new Body(0.5, shape.inertia(0.5));
         body.addShape(shape);
         body.p.set(point.x - canvas.width * 0.5, canvas.height - point.y);
         space.addBody(body);
@@ -426,19 +490,32 @@ App = function() {
             e = event;
         }
 
-        if (e.keyCode == 32) { // 'space'
-        }
-
-        if (e.keyCode == 66) { // 'b'
+        switch (e.keyCode) {
+        case 66: // 'b'
             showBounds = !showBounds;
-        }
-
-        if (e.keyCode == 67) { // 'c'
+            break;        
+        case 67: // 'c'
             showContacts = !showContacts;
-        }
-
-        if (e.keyCode == 82) { // 'r'
-            init();
+            break;        
+        case 49: // '1'
+            sceneNumber = 1;
+            initScene();
+            break;
+        case 50: // '2'
+            sceneNumber = 2;
+            initScene();
+            break;
+        case 51: // '3'
+            sceneNumber = 3;
+            initScene();
+            break;
+        case 52: // '4'
+            break;        
+        case 82: // 'r'
+            initScene();
+            break;
+        case 32: // 'space'
+            break;
         }
     }
 

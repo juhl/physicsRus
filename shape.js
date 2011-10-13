@@ -7,7 +7,7 @@ Shape = function(type) {
     this.type = type;
 
     // coefficient of restitution (elasticity)
-	this.e = 1;
+	this.e = 0;
 
     // frictional coefficient
 	this.u = 1;

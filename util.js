@@ -67,3 +67,25 @@ function inertiaForPoly(mass, verts, offset) {
 function inertiaForBox(mass, w, h) {
 	return mass * (w * w + h * h) / 12;
 }
+
+function relative_velocity(body1, body2, r1, r2) {
+    var v1 = vec2.mad(body1.v, vec2.perp(r1), body1.w);
+    var v2 = vec2.mad(body2.v, vec2.perp(r2), body2.w);
+
+    return vec2.sub(v2, v1);
+}
+
+function relative_bias_velocity(body1, body2, r1, r2) {
+    var vb1 = vec2.mad(body1.v_bias, vec2.perp(r1), body1.w_bias);
+    var vb2 = vec2.mad(body2.v_bias, vec2.perp(r2), body2.w_bias);
+
+    return vec2.sub(vb2, vb1);
+}
+
+function k_scalar(body1, body2, r1, r2, n) {
+    var m_inv_sum = body1.m_inv + body2.m_inv;
+    var r1cn = vec2.cross(r1, n);
+    var r2cn = vec2.cross(r2, n);
+            
+    return m_inv_sum + body1.i_inv * r1cn * r1cn + body2.i_inv * r2cn * r2cn;
+}
