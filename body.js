@@ -32,6 +32,14 @@ Body = function(mass, inertia) {
     this.w_bias = 0;
 }
 
+Body.prototype.localToWorld = function(vec) {
+    return vec2.add(this.p, vec2.rotate(vec, this.a));
+}
+
+Body.prototype.worldToLocal = function(vec) {
+    return vec2.rotate(vec2.sub(vec, this.p), -this.a);
+}
+
 Body.prototype.isStatic = function() {
     return this.m == Number.MAX_VALUE ? true : false;
 }

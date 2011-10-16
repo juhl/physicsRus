@@ -10,6 +10,10 @@ App = function() {
     var randomColor;
 
     var space;
+    var mouseBody;
+    var mousePoint;
+    var mousePoint_old;
+    var mouseJoint;
     var sceneNumber = 1;
 
     var showBounds = false;
@@ -31,6 +35,7 @@ App = function() {
         canvas.addEventListener("mousedown", function(e) { onMouseDown(e) }, false);
         canvas.addEventListener("mouseup", function(e) { onMouseUp(e) }, false);
         canvas.addEventListener("mousemove", function(e) { onMouseMove(e) }, false);
+        canvas.addEventListener("mouseout", function(e) { onMouseOut(e) }, false);
 
         canvas.addEventListener("touchstart", touchHandler, false);
         canvas.addEventListener("touchend", touchHandler, false);
@@ -72,6 +77,8 @@ App = function() {
 
         Collision.init();
 
+        mouseBody = new Body(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+
         initScene();
 
 		window.requestAnimFrame(function() { runFrame(); });        
@@ -89,6 +96,8 @@ App = function() {
             initScene3();
             break;
         }
+
+        clearBounds.copy(canvasBounds);
         
         timeOffset = 0;
         frameSkip = 0;
@@ -137,7 +146,7 @@ App = function() {
                 body.p.set((j - i * 0.5) * 44 - 150, 350 - i * 44);
                 space.addBody(body);
             }
-        }
+        }        
 
         shape = new ShapePoly([new vec2(-35, 35), new vec2(-50, 0), new vec2(-35, -35), new vec2(35, -35), new vec2(50, 0), new vec2(35, 35)]);
         shape.e = 0.4;
@@ -167,31 +176,33 @@ App = function() {
 
         for (var i = 0; i < 10; i++) {
             for (var j = 0; j <= i; j++) {
-                shape = new ShapeBox(42, 42);
+                shape = new ShapeBox(40, 40);
                 shape.e = 0.2;
                 shape.u = 1.0;
                 body = new Body(1, shape.inertia(1));
                 body.addShape(shape);
-                body.p.set((j - i * 0.5) * 45, 600 - i * 45);
+                body.p.set((j - i * 0.5) * 42, 500 - i * 42);
                 space.addBody(body);
             }
         }
 
         shape = new ShapeCircle(21);
-        shape.e = 0.2;
+        shape.e = 0.1;
         shape.u = 1.0;
-        body = new Body(4, shape.inertia(4));
+        body = new Body(10, shape.inertia(10));
         body.addShape(shape);
-        body.p.set(0, 25);
+        body.p.set(0, 50);
         space.addBody(body);
     }
 
     function initScene3() {
         var body, body1, body2;
+        var body_prev;
         var shape;
 
         space = new Space();
         space.gravity = new vec2(0, -700);
+        space.damping = 0.75;
 
         shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
         space.staticBody.addStaticShape(shape);
@@ -202,23 +213,97 @@ App = function() {
         shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 600), 0);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeCircle(20);
-        shape.e = 0.8;
+        shape = new ShapeTriangle(new vec2(-400, 160), new vec2(-400, 0), new vec2(400, 0));
+        space.staticBody.addStaticShape(shape);
+
+        for (var i = 0; i < 5; i++) {
+            shape = new ShapeBox(40, 20);
+            shape.e = 0.5;
+            shape.u = 0.8;
+            body = new Body(0.1, shape.inertia(0.1));
+            body.addShape(shape);
+            body.p.set(0, 300 - 30 * i);
+            space.addBody(body);
+
+            if (i == 0) {
+                space.addConstraint(new PinJoint(space.staticBody, body, new vec2(0, 320), new vec2(0, 10)));
+            }
+            else {
+                space.addConstraint(new PinJoint(body_prev, body, new vec2(0, -10), new vec2(0, 10)));
+            }
+
+            body_prev = body;
+        }
+
+        for (var i = 0; i < 5; i++) {
+            shape = new ShapeBox(40, 20);
+            shape.e = 0.5;
+            shape.u = 0.8;
+            body = new Body(0.1, shape.inertia(0.1));
+            body.addShape(shape);
+            body.p.set(100, 280 - 30 * i);
+            space.addBody(body);
+
+            if (i == 0) {
+                space.addConstraint(new PivotJoint(space.staticBody, body, new vec2(100, 300)));
+            }
+            else {
+                space.addConstraint(new PivotJoint(body_prev, body, new vec2(100, 280 - 30 * i + 20)));
+            }
+
+            body_prev = body;
+        }
+
+        for (var i = 0; i < 5; i++) {
+            shape = new ShapeBox(40, 20);
+            shape.e = 0.5;
+            shape.u = 0.8;
+            body = new Body(0.1, shape.inertia(0.1));
+            body.addShape(shape);
+            body.p.set(200, 260 - 30 * i);
+            space.addBody(body);
+
+            if (i == 0) {
+                space.addConstraint(new DampedSpring(space.staticBody, body, new vec2(200, 280), new vec2(0, 10), 10, 1000, 1));
+            }
+            else {
+                space.addConstraint(new DampedSpring(body_prev, body, new vec2(0, -10), new vec2(0, 10), 10, 1000, 1));
+            }
+
+            body_prev = body;
+        }
+
+        shape = new ShapeBox(150, 20);
+        shape.e = 0.5;
         shape.u = 0.5;
-        body1 = new Body(0.2, shape.inertia(0.2));
+        body1 = new Body(1, shape.inertia(1));
         body1.addShape(shape);
-        body1.p.set(-50, 250);
+        shape = new ShapeBox(80, 40, 0, 30);
+        shape.e = 0.5;
+        shape.u = 0.5;
+        body1.addShape(shape);
+        body1.p.set(-300, 262);
         space.addBody(body1);
 
         shape = new ShapeCircle(20);
-        shape.e = 0.8;
-        shape.u = 0.5;
+        shape.e = 0.5;
+        shape.u = 1.0;
         body2 = new Body(0.2, shape.inertia(0.2));
         body2.addShape(shape);
-        body2.p.set(50, 250);
+        body2.p.set(-350, 230);
         space.addBody(body2);
 
-        space.addConstraint(new PinJoint(body1, body2, new vec2(0, 0), new vec2(0, 0)));
+        space.addConstraint(new PivotJoint(body1, body2, new vec2(-350, 230)));       
+
+        shape = new ShapeCircle(20);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        body2 = new Body(0.2, shape.inertia(0.2));
+        body2.addShape(shape);
+        body2.p.set(-250, 230);
+        space.addBody(body2);
+
+        space.addConstraint(new PivotJoint(body1, body2, new vec2(-250, 230)));        
     }
 
     function bodyColor(index) {        
@@ -233,13 +318,17 @@ App = function() {
 
         timeOffset += frameTime;
 
-        if (timeOffset >= 1000 / 60) {
-            var step = 0;
+        if (mouseJoint) {
+            mouseBody.p = vec2.lerp(mousePoint, mousePoint_old, 0.25);
+            //mouseBody.v = vec2.scale(vec2.sub(mouseBody.p, mousePoint_old), frameTime);
+            mousePoint_old = mouseBody.p;
+        }
 
-            while (timeOffset >= 1000 / 60 && step < 10) {
-                space.step(1 / 60, 10);
+        if (timeOffset >= 1000 / 60) {
+            while (timeOffset >= 1000 / 60) {
+                space.step(1 / 120, 8);
+                space.step(1 / 120, 8);
                 timeOffset -= 1000 / 60;
-                step++;
             }
 
             drawFrame(frameTime);
@@ -258,7 +347,7 @@ App = function() {
         }
 
         for (var i = 0; i < space.constraintArr.length; i++) {
-            drawConstraint(space.constraintArr[i], "#F33");
+            drawConstraint(space.constraintArr[i], "#F0F");
         }
 
         //drawBox(clearBounds.mins, clearBounds.maxs, null, "#F00");
@@ -276,8 +365,11 @@ App = function() {
     }
 
     function drawConstraint(constraint, strokeStyle) {
-        var p1 = constraint.anchor1;
-        var p2 = constraint.anchor2;
+        var body1 = constraint.body1;
+        var body2 = constraint.body2;
+
+        var p1 = vec2.add(body1.p, vec2.rotate(constraint.anchor1, body1.a));
+        var p2 = vec2.add(body2.p, vec2.rotate(constraint.anchor2, body2.a));
 
         ctx.strokeStyle = strokeStyle;
         ctx.beginPath();
@@ -285,7 +377,20 @@ App = function() {
         ctx.moveTo(p1.x, p1.y);
         ctx.lineTo(p2.x, p2.y);
 
-        ctx.stroke();        
+        ctx.save();
+        ctx.stroke();
+        ctx.restore();
+
+        bounds = new Bounds;
+        bounds.addPoint(p1);
+        bounds.addPoint(p2);
+        clearBounds.addBounds(bounds);
+
+        drawCircle(p1, 3, 0, "#808");
+        clearBounds.addBounds(new Bounds(new vec2(p1.x - 3, p1.y - 3), new vec2(p1.x + 3, p1.y + 3)));
+
+        drawCircle(p2, 3, 0, "#808");
+        clearBounds.addBounds(new Bounds(new vec2(p2.x - 3, p2.y - 3), new vec2(p2.x + 3, p2.y + 3)));
     }
 
     function drawBody(body, fillColor, outlineColor) {
@@ -438,26 +543,57 @@ App = function() {
     function onMouseDown(e) {
         mouseDown = true;
         var point = getMousePoint(e);
+                
+        var p = new vec2(point.x - canvas.width * 0.5, canvas.height - point.y);
+        var shape = space.findShapeByPoint(p);
+        if (shape) {
+            mouseBody.p = p;
+            mousePoint = mouseBody.p;
+            mousePoint_old = mouseBody.p;
 
-        var shape = new ShapeCircle(20);
-        shape.e = 0.8;
-        shape.u = 0.5;
-        var body = new Body(0.5, shape.inertia(0.5));
-        body.addShape(shape);
-        body.p.set(point.x - canvas.width * 0.5, canvas.height - point.y);
-        space.addBody(body);
+            var body = shape.body;
+            mouseJoint = new PivotJointLocal(mouseBody, body, new vec2(0, 0), body.worldToLocal(p));
+            mouseJoint.max_force = 40000;
+            mouseJoint.bias_coeff = 0.15;
+            space.addConstraint(mouseJoint);
+        }
+
+        e.preventDefault();
     }
 
     function onMouseUp(e) { 
 	    if (mouseDown) {
             mouseDown = false;
+            
+            if (mouseJoint) {
+                space.removeConstraint(mouseJoint);
+                mouseJoint = null;
+            }
 		}
+
+        e.preventDefault();
 	}
 
     function onMouseMove(e) {
         var point = getMousePoint(e);
         if (mouseDown) {
+            mousePoint = new vec2(point.x - canvas.width * 0.5, canvas.height - point.y);
         }
+
+        e.preventDefault();
+    }
+
+    function onMouseOut(e) {
+        if (mouseDown) {
+            mouseDown = false;
+
+            if (mouseJoint) {
+                space.removeConstraint(mouseJoint);
+                mouseJoint = null;
+            }            
+        }        
+
+        e.preventDefault();
     }
 
     function touchHandler(e) {
@@ -467,7 +603,7 @@ App = function() {
 
         switch (e.type) {
         case "touchstart": type = "mousedown"; break;
-        case "touchmove":  type = "mousemove"; break;        
+        case "touchmove":  type = "mousemove"; break;
         case "touchend":   type = "mouseup"; break;
         default: return;
         }
@@ -514,7 +650,7 @@ App = function() {
         case 82: // 'r'
             initScene();
             break;
-        case 32: // 'space'
+        case 32: // 'space'            
             break;
         }
     }

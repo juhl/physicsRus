@@ -3,6 +3,10 @@ Math.clamp = function(v, min, max) { return v < min ? min : (v > max ? max : v);
 function deg2rad(deg) { return (deg / 180) * Math.PI; }
 function rad2deg(rad) { return (rad / Math.PI) * 180; }
 
+//-----------------------------------
+// 2D Vector
+//-----------------------------------
+
 function vec2(x, y) {
     this.x = x || 0;
     this.y = y || 0;
@@ -22,6 +26,10 @@ vec2.prototype.copy = function(v) {
     this.y = v.y;
     
     return this;
+}
+
+vec2.prototype.duplicate = function() {
+    return new vec2(this.x, this.y);
 }
 
 vec2.prototype.add = function(v1, v2) {
@@ -110,6 +118,10 @@ vec2.prototype.rotate = function(r) {
     return this.set(this.x * vec.x - this.y * vec.y, this.x * vec.y + this.y * vec.x);
 }
 
+vec2.prototype.lerp = function(v1, v2, t) {
+    return this.add(vec2.scale(v1, 1 - t), vec2.scale(v2, t));
+}
+
 vec2.add = function(v1, v2) {
     return new vec2(v1.x + v2.x, v1.y + v2.y);
 }
@@ -178,11 +190,32 @@ vec2.distsq = function(v1, v2) {
     return dx * dx + dy * dy;
 }
 
+vec2.lerp = function(v1, v2, t) {
+    return vec2.add(vec2.scale(v1, 1 - t), vec2.scale(v2, t));
+}
+
+vec2.truncate = function(v, length) {
+    var ret = v.duplicate();
+    var length_sq = v.x * v.x + v.y * v.y;
+    if (length_sq > length * length) {
+        ret.scale(length / Math.sqrt(length_sq));
+    }
+
+    return ret;
+}
+
+//-----------------------------------
+// 2D AABB
 //-----------------------------------
 
 Bounds = function(mins, maxs) {
     this.mins = mins || new vec2(+99999, +99999);
     this.maxs = maxs || new vec2(-99999, -99999);
+}
+
+Bounds.prototype.copy = function(b) {
+    this.mins.copy(b.mins);
+    this.maxs.copy(b.maxs);
 }
 
 Bounds.prototype.clear = function() {

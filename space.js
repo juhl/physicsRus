@@ -2,13 +2,14 @@ function Space() {
     this.gravity = new vec2(0, 0);
     this.damping = 1.0;
 
-    this.staticBody = new Body(Number.MAX_VALUE, Number.MAX_VALUE);
+    this.staticBody = new Body(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
     this.staticBody.space = this;
 
-    this.bodyArr = [];
     this.shapeArr = [];
-    this.arbiterArr = [];
+    this.bodyArr = [];    
     this.constraintArr = [];
+
+    this.arbiterArr = [];
 }
 
 Space.prototype.addBody = function(body) {
@@ -22,8 +23,42 @@ Space.prototype.addBody = function(body) {
     body.cacheData();
 }
 
+Space.prototype.removeBody = function(body) {
+    for (var i = 0; i < this.bodyArr.length; i++) {
+        if (this.bodyArr[i] == body) {            
+            for (var j = 0; j < this.shapeArr.length; j++) {
+                if (body.shapeArr[0] == this.shapeArr[j]) {
+                    this.shapeArr.splice(j, body.shapeArr.length);
+                    break;
+                }
+            }
+
+            body.space = null;
+            this.bodyArr.splice(i, 1);
+            break;
+        }
+    }
+}
+
 Space.prototype.addConstraint = function(constraint) {
     this.constraintArr.push(constraint);
+}
+
+Space.prototype.removeConstraint = function(constraint) {
+    for (var i = 0; i < this.constraintArr.length; i++) {
+        if (this.constraintArr[i] == constraint) {
+            this.constraintArr.splice(i, 1);
+            break;
+        }
+    }
+}
+
+Space.prototype.findShapeByPoint = function(p) {
+    for (var i = 0; i < this.shapeArr.length; i++) {
+        if (this.shapeArr[i].pointQuery(p)) {
+            return this.shapeArr[i];
+        }
+    }
 }
 
 Space.prototype.findArbiter = function(shape1, shape2) {
@@ -41,6 +76,12 @@ Space.prototype.step = function(dt, iteration) {
     var dt_inv = 1 / dt;
     var newArbiterArr = [];
 
+    // intergrate position
+    // semi-implicit method
+    for (var i = 0; i < this.bodyArr.length; i++) {
+        this.bodyArr[i].updatePosition(dt);
+    }
+
     for (var i = 0; i < this.bodyArr.length; i++) {
         body = this.bodyArr[i].cacheData();
     }
@@ -52,6 +93,9 @@ Space.prototype.step = function(dt, iteration) {
             var shape2 = this.shapeArr[j];
 
             if (shape1.body == this.staticBody && shape2.body == this.staticBody)
+                continue;
+
+            if (shape1.body == shape2.body)
                 continue;
             
             if (!shape1.bounds.intersectsBounds(shape2.bounds))
@@ -85,14 +129,14 @@ Space.prototype.step = function(dt, iteration) {
 
     this.arbiterArr = newArbiterArr;
 
-    // arbiter prestep
+    // prestep arbiters
     for (var i = 0; i < this.arbiterArr.length; i++) {
         this.arbiterArr[i].preStep(dt_inv);
     }
 
-    // constraint prestep
+    // prestep constraints
     for (var i = 0; i < this.constraintArr.length; i++) {
-        this.constraintArr[i].preStep(dt_inv);
+        this.constraintArr[i].preStep(dt, dt_inv);
     }
 
     // intergrate velocity    
@@ -115,12 +159,6 @@ Space.prototype.step = function(dt, iteration) {
         for (var j = 0; j < this.constraintArr.length; j++) {
             this.constraintArr[j].applyImpulse();
         }
-    }
-
-    // intergrate position
-    // semi-implicit method
-    for (var i = 0; i < this.bodyArr.length; i++) {
-        this.bodyArr[i].updatePosition(dt);
-    }
+    }    
 }
 

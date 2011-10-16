@@ -89,3 +89,59 @@ function k_scalar(body1, body2, r1, r2, n) {
             
     return m_inv_sum + body1.i_inv * r1cn * r1cn + body2.i_inv * r2cn * r2cn;
 }
+
+function k_tensor(body1, body2, r1, r2) {
+	var m_inv_sum = body1.m_inv + body2.m_inv;
+
+	// m_inv_sum * I
+	var k_11 = m_inv_sum;
+	var k_12 = 0;
+	var k_21 = 0;
+	var k_22 = m_inv_sum;
+
+	var i_inv1 = body1.i_inv;
+	var i_inv2 = body2.i_inv;
+
+	// add influence from r1
+	var r1_xx =  r1.x * r1.x * i_inv1;
+	var r1_yy =  r1.y * r1.y * i_inv1;
+	var r1_xy = -r1.x * r1.y * i_inv1;
+
+	k_11 += r1_yy;
+	k_12 += r1_xy;
+	k_21 += r1_xy;
+	k_22 += r1_xx;
+
+	// add influence from r2
+	var r2_xx =  r2.x * r2.x * i_inv2;
+	var r2_yy =  r2.y * r2.y * i_inv2;
+	var r2_xy = -r2.x * r2.y * i_inv2;
+
+	k_11 += r2_yy;
+	k_12 += r2_xy;
+	k_21 += r2_xy;
+	k_22 += r2_xx;
+
+	// invert
+	var det = k_11 * k_22 - k_12 * k_21;
+	var det_inv = 1 / det;
+
+	var k1 = new vec2( k_22 * det_inv, -k_12 * det_inv);
+	var k2 = new vec2(-k_21 * det_inv,  k_11 * det_inv);
+
+	return { k1: k1, k2: k2 };
+}
+
+function mul_k(dv, k1, k2) {
+	return new vec2(k1.dot(dv), k2.dot(dv));
+}
+
+function applyImpulses(body1, body2, r1, r2, j) {
+	body1.applyImpulse(vec2.neg(j), r1);
+    body2.applyImpulse(j, r2);
+}
+
+function applyBiasImpulses(body1, body2, r1, r2, j) {
+	body1.applyBiasImpulse(vec2.neg(j), r1);
+    body2.applyBiasImpulse(j, r2);
+}

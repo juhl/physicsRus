@@ -123,7 +123,7 @@ ShapeSegment.prototype.cacheData = function(pos, angle) {
 }
 
 ShapeSegment.prototype.pointQuery = function(p) {
-    if (!this.containPointBounds(p)) {
+    if (!this.bounds.containPoint(p)) {
         return false;
     }
     
@@ -232,7 +232,7 @@ ShapePoly.prototype.cacheData = function(pos, angle) {
 }
 
 ShapePoly.prototype.pointQuery = function(p) {
-    if (!this.containPointBounds(p)) {
+    if (!this.bounds.containPoint(p)) {
         return false;
     }
 
@@ -290,14 +290,17 @@ ShapeTriangle = function(p1, p2, p3) {
 // Box
 //--------------------------------
 
-ShapeBox = function(w, h) {
+ShapeBox = function(w, h, offset_x, offset_y) {
+    offset_x = offset_x || 0;
+    offset_y = offset_y || 0;
+
     var hw = w * 0.5;
     var hh = h * 0.5;
     var verts = [
-        new vec2(-hw, +hh),
-        new vec2(-hw, -hh),
-        new vec2(+hw, -hh),
-        new vec2(+hw, +hh)
+        new vec2(-hw + offset_x, +hh + offset_y),
+        new vec2(-hw + offset_x, -hh + offset_y),
+        new vec2(+hw + offset_x, -hh + offset_y),
+        new vec2(+hw + offset_x, +hh + offset_y)
     ];
 
     return new ShapePoly(verts);

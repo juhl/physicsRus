@@ -36,7 +36,7 @@ function Arbiter(shape1, shape2) {
 }
 
 Arbiter.SEPARATION_COEFF = 0.32;
-Arbiter.COLLISION_SLOP = 0.18;
+Arbiter.COLLISION_SLOP = 0.1;
 
 Arbiter.prototype.update = function(newContactArr) {
     for (var i = 0; i < newContactArr.length; i++) {
@@ -79,7 +79,7 @@ Arbiter.prototype.preStep = function(dt_inv) {
         // separation velocity dot n
         con.separation = -Arbiter.SEPARATION_COEFF * Math.min(con.d + Arbiter.COLLISION_SLOP, 0) * dt_inv;
 
-        con.js_acc = 0;
+        //con.js_acc = 0;
         
         // relative velocity at contact
         var dv = relative_velocity(body1, body2, con.r1, con.r2);
@@ -97,9 +97,7 @@ Arbiter.prototype.applyCachedImpulse = function() {
         var con = this.contactArr[i];
 
         var j = vec2.rotate(con.n, new vec2(con.jn_acc, con.jt_acc));
-
-        body1.applyImpulse(vec2.neg(j), con.r1);
-        body2.applyImpulse(j, con.r2);
+        applyImpulses(body1, body2, con.r1, con.r2, j);
     }
 }
 
@@ -123,16 +121,15 @@ Arbiter.prototype.applyImpulse = function() {
         // relative separation velocity at contact
         var dvs = relative_bias_velocity(body1, body2, r1, r2);
 
-		// separation impulse.
+		// separation impulse
 		var dvs = vec2.dot(dvs, n);
 		var js = (-dvs + con.separation) * con.kn_inv;
         var js_old = con.js_acc;
         con.js_acc = Math.max(js_old + js, 0);
         js = con.js_acc - js_old;
 		
-		// apply separation impulse.
-		body1.applyBiasImpulse(vec2.scale(n, -js), r1);
-		body2.applyBiasImpulse(vec2.scale(n, +js), r2);
+		// apply separation impulse
+        applyBiasImpulses(body1, body2, r1, r2, vec2.scale(n, js));
 
 		// relative velocity at contact
         var dv = relative_velocity(body1, body2, r1, r2);
@@ -152,9 +149,8 @@ Arbiter.prototype.applyImpulse = function() {
         con.jt_acc = Math.clamp(jt_old + jt, -jt_max, jt_max);
         jt = con.jt_acc - jt_old;
 
-		// apply the final impulse
+		// apply the final impulses
         var j = vec2.rotate(n, new vec2(jn, jt));
-        body1.applyImpulse(vec2.neg(j), r1);
-        body2.applyImpulse(j, r2);
+        applyImpulses(body1, body2, r1, r2, j);
     }   
 }
