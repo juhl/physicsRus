@@ -325,10 +325,13 @@ App = function() {
         }
 
         if (timeOffset >= 1000 / 60) {
-            while (timeOffset >= 1000 / 60) {
+            var steps = 0;
+            
+            while (timeOffset >= 1000 / 60 && steps < 10) {
                 space.step(1 / 120, 8);
                 space.step(1 / 120, 8);
                 timeOffset -= 1000 / 60;
+                steps++;
             }
 
             drawFrame(frameTime);
