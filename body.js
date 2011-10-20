@@ -23,7 +23,7 @@ Body = function(mass, inertia) {
     this.w = 0;
 
     // orientation (angle)
-    this.a = 0; 
+    this.a = 0;
 
     // velocity for contact penetration bias
     this.v_bias = new vec2(0, 0);
@@ -41,7 +41,7 @@ Body.prototype.worldToLocal = function(vec) {
 }
 
 Body.prototype.isStatic = function() {
-    return this.m == Number.MAX_VALUE ? true : false;
+    return this.m == Number.POSITIVE_INFINITY ? true : false;
 }
 
 Body.prototype.addShape = function(shape) {

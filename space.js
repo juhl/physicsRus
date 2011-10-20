@@ -7,7 +7,7 @@ function Space() {
 
     this.shapeArr = [];
     this.bodyArr = [];    
-    this.constraintArr = [];
+    this.jointArr = [];
 
     this.arbiterArr = [];
 }
@@ -40,14 +40,14 @@ Space.prototype.removeBody = function(body) {
     }
 }
 
-Space.prototype.addConstraint = function(constraint) {
-    this.constraintArr.push(constraint);
+Space.prototype.addJoint = function(joint) {
+    this.jointArr.push(joint);
 }
 
-Space.prototype.removeConstraint = function(constraint) {
-    for (var i = 0; i < this.constraintArr.length; i++) {
-        if (this.constraintArr[i] == constraint) {
-            this.constraintArr.splice(i, 1);
+Space.prototype.removeJoint = function(joint) {
+    for (var i = 0; i < this.jointArr.length; i++) {
+        if (this.jointArr[i] == joint) {
+            this.jointArr.splice(i, 1);
             break;
         }
     }
@@ -75,16 +75,6 @@ Space.prototype.findArbiter = function(shape1, shape2) {
 Space.prototype.step = function(dt, iteration) {
     var dt_inv = 1 / dt;
     var newArbiterArr = [];
-
-    // intergrate position
-    // semi-implicit method
-    for (var i = 0; i < this.bodyArr.length; i++) {
-        this.bodyArr[i].updatePosition(dt);
-    }
-
-    for (var i = 0; i < this.bodyArr.length; i++) {
-        body = this.bodyArr[i].cacheData();
-    }
 
     // generate contact & arbiter
     for (var i = 0; i < this.shapeArr.length; i++) {
@@ -134,12 +124,12 @@ Space.prototype.step = function(dt, iteration) {
         this.arbiterArr[i].preStep(dt_inv);
     }
 
-    // prestep constraints
-    for (var i = 0; i < this.constraintArr.length; i++) {
-        this.constraintArr[i].preStep(dt, dt_inv);
+    // prestep Joints
+    for (var i = 0; i < this.jointArr.length; i++) {
+        this.jointArr[i].preStep(dt, dt_inv);
     }
 
-    // intergrate velocity    
+    // intergrate velocity
     var damping = this.damping < 1 ? Math.pow(this.damping, dt) : 1;
     for (var i = 0; i < this.bodyArr.length; i++) {
         this.bodyArr[i].updateVelocity(this.gravity, damping, dt);
@@ -156,9 +146,19 @@ Space.prototype.step = function(dt, iteration) {
             this.arbiterArr[j].applyImpulse();
         }
         
-        for (var j = 0; j < this.constraintArr.length; j++) {
-            this.constraintArr[j].applyImpulse();
+        for (var j = 0; j < this.jointArr.length; j++) {
+            this.jointArr[j].applyImpulse();
         }
     }    
+
+    // intergrate position
+    // semi-implicit method
+    for (var i = 0; i < this.bodyArr.length; i++) {
+        this.bodyArr[i].updatePosition(dt);
+    }
+
+    for (var i = 0; i < this.bodyArr.length; i++) {
+        body = this.bodyArr[i].cacheData();
+    }
 }
 

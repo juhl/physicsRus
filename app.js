@@ -217,57 +217,63 @@ App = function() {
         space.staticBody.addStaticShape(shape);
 
         for (var i = 0; i < 5; i++) {
-            shape = new ShapeBox(40, 20);
+            shape = new ShapeBox(5, 20);
             shape.e = 0.5;
             shape.u = 0.8;
             body = new Body(0.1, shape.inertia(0.1));
             body.addShape(shape);
-            body.p.set(0, 300 - 30 * i);
+            body.p.set(0, 275 - 25 * i);
             space.addBody(body);
 
-            if (i == 0) {
-                space.addConstraint(new PinJoint(space.staticBody, body, new vec2(0, 320), new vec2(0, 10)));
+            if (i == 0) {                
+                var joint = new PinJoint(space.staticBody, body, new vec2(0, 290), new vec2(0, 10));
+                space.addJoint(joint);
             }
             else {
-                space.addConstraint(new PinJoint(body_prev, body, new vec2(0, -10), new vec2(0, 10)));
+                var joint = new PinJoint(body_prev, body, new vec2(0, -10), new vec2(0, 10));
+                space.addJoint(joint);
             }
 
             body_prev = body;
         }
 
         for (var i = 0; i < 5; i++) {
-            shape = new ShapeBox(40, 20);
+            shape = new ShapeBox(5, 20);
             shape.e = 0.5;
             shape.u = 0.8;
             body = new Body(0.1, shape.inertia(0.1));
             body.addShape(shape);
-            body.p.set(100, 280 - 30 * i);
+            body.p.set(100, 255 - 25 * i);
             space.addBody(body);
 
             if (i == 0) {
-                space.addConstraint(new PivotJoint(space.staticBody, body, new vec2(100, 300)));
+                var joint = new PivotJoint(space.staticBody, body, new vec2(100, 255 + 15));
+                space.addJoint(joint);
             }
             else {
-                space.addConstraint(new PivotJoint(body_prev, body, new vec2(100, 280 - 30 * i + 20)));
+                var joint = new PivotJoint(body_prev, body, new vec2(100, 255 - 25 * i + 15));
+                space.addJoint(joint);
             }
 
             body_prev = body;
         }
 
         for (var i = 0; i < 5; i++) {
-            shape = new ShapeBox(40, 20);
+            shape = new ShapeBox(5, 20);
             shape.e = 0.5;
             shape.u = 0.8;
             body = new Body(0.1, shape.inertia(0.1));
             body.addShape(shape);
-            body.p.set(200, 260 - 30 * i);
+            body.p.set(200, 235 - 25 * i);
             space.addBody(body);
 
             if (i == 0) {
-                space.addConstraint(new DampedSpring(space.staticBody, body, new vec2(200, 280), new vec2(0, 10), 10, 1000, 1));
+                var cons = new DampedSpring(space.staticBody, body, new vec2(200, 235 + 15), new vec2(0, 10), 5, 150, 1.5);
+                space.addJoint(cons);
             }
             else {
-                space.addConstraint(new DampedSpring(body_prev, body, new vec2(0, -10), new vec2(0, 10), 10, 1000, 1));
+                var cons = new DampedSpring(body_prev, body, new vec2(0, -10), new vec2(0, 10), 5, 150, 1.5);
+                space.addJoint(cons);
             }
 
             body_prev = body;
@@ -276,7 +282,7 @@ App = function() {
         shape = new ShapeBox(150, 20);
         shape.e = 0.5;
         shape.u = 0.5;
-        body1 = new Body(1, shape.inertia(1));
+        body1 = new Body(10, shape.inertia(10));
         body1.addShape(shape);
         shape = new ShapeBox(80, 40, 0, 30);
         shape.e = 0.5;
@@ -288,22 +294,22 @@ App = function() {
         shape = new ShapeCircle(20);
         shape.e = 0.5;
         shape.u = 1.0;
-        body2 = new Body(0.2, shape.inertia(0.2));
+        body2 = new Body(1, shape.inertia(1));
         body2.addShape(shape);
-        body2.p.set(-350, 230);
+        body2.p.set(-345, 230);
         space.addBody(body2);
 
-        space.addConstraint(new PivotJoint(body1, body2, new vec2(-350, 230)));       
+        space.addJoint(new PivotJoint(body1, body2, new vec2(-345, 230)));
 
         shape = new ShapeCircle(20);
         shape.e = 0.5;
         shape.u = 1.0;
-        body2 = new Body(0.2, shape.inertia(0.2));
+        body2 = new Body(1, shape.inertia(1));
         body2.addShape(shape);
-        body2.p.set(-250, 230);
+        body2.p.set(-255, 230);
         space.addBody(body2);
 
-        space.addConstraint(new PivotJoint(body1, body2, new vec2(-250, 230)));        
+        space.addJoint(new PivotJoint(body1, body2, new vec2(-255, 230)));
     }
 
     function bodyColor(index) {        
@@ -326,7 +332,7 @@ App = function() {
 
         if (timeOffset >= 1000 / 60) {
             var steps = 0;
-            
+
             while (timeOffset >= 1000 / 60 && steps < 10) {
                 space.step(1 / 120, 8);
                 space.step(1 / 120, 8);
@@ -349,8 +355,8 @@ App = function() {
             drawBody(space.bodyArr[i], bodyColor(i), "#000");
         }
 
-        for (var i = 0; i < space.constraintArr.length; i++) {
-            drawConstraint(space.constraintArr[i], "#F0F");
+        for (var i = 0; i < space.jointArr.length; i++) {
+            drawJoint(space.jointArr[i], "#F0F");
         }
 
         //drawBox(clearBounds.mins, clearBounds.maxs, null, "#F00");
@@ -367,12 +373,12 @@ App = function() {
         }
     }
 
-    function drawConstraint(constraint, strokeStyle) {
-        var body1 = constraint.body1;
-        var body2 = constraint.body2;
+    function drawJoint(joint, strokeStyle) {
+        var body1 = joint.body1;
+        var body2 = joint.body2;
 
-        var p1 = vec2.add(body1.p, vec2.rotate(constraint.anchor1, body1.a));
-        var p2 = vec2.add(body2.p, vec2.rotate(constraint.anchor2, body2.a));
+        var p1 = vec2.add(body1.p, vec2.rotate(joint.anchor1, body1.a));
+        var p2 = vec2.add(body2.p, vec2.rotate(joint.anchor2, body2.a));
 
         ctx.strokeStyle = strokeStyle;
         ctx.beginPath();
@@ -556,9 +562,9 @@ App = function() {
 
             var body = shape.body;
             mouseJoint = new PivotJointLocal(mouseBody, body, new vec2(0, 0), body.worldToLocal(p));
-            mouseJoint.max_force = 40000;
+            mouseJoint.max_force = 20000;
             mouseJoint.bias_coeff = 0.15;
-            space.addConstraint(mouseJoint);
+            space.addJoint(mouseJoint);
         }
 
         e.preventDefault();
@@ -569,7 +575,7 @@ App = function() {
             mouseDown = false;
             
             if (mouseJoint) {
-                space.removeConstraint(mouseJoint);
+                space.removeJoint(mouseJoint);
                 mouseJoint = null;
             }
 		}
@@ -591,7 +597,7 @@ App = function() {
             mouseDown = false;
 
             if (mouseJoint) {
-                space.removeConstraint(mouseJoint);
+                space.removeJoint(mouseJoint);
                 mouseJoint = null;
             }            
         }        

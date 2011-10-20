@@ -153,6 +153,14 @@ PivotJointLocal = function(body1, body2, anchor1, anchor2) {
 	Constraint.call(this, body1, body2, anchor1, anchor2);
 
 	this.j_acc = new vec2(0, 0);
+
+	this.enableLimit = false;
+	this.lowerAngle = 0;
+	this.upperAngle = 0;
+
+	this.enableMotor = false;
+	this.maxMotorTorque = 0;
+	this.motorSpeed = 0;
 }
 
 PivotJointLocal.prototype = new Constraint;
