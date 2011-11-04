@@ -126,14 +126,9 @@ function k_tensor(body1, body2, r1, r2) {
 	var det = k_11 * k_22 - k_12 * k_21;
 	var det_inv = 1 / det;
 
-	var k1 = new vec2( k_22 * det_inv, -k_12 * det_inv);
-	var k2 = new vec2(-k_21 * det_inv,  k_11 * det_inv);
-
-	return { k1: k1, k2: k2 };
-}
-
-function mul_k(dv, k1, k2) {
-	return new vec2(k1.dot(dv), k2.dot(dv));
+	return new mat2(
+		 k_22 * det_inv, -k_12 * det_inv, 
+		-k_21 * det_inv,  k_11 * det_inv);	
 }
 
 function applyImpulses(body1, body2, r1, r2, j) {

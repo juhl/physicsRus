@@ -205,6 +205,90 @@ vec2.truncate = function(v, length) {
 }
 
 //-----------------------------------
+// 2x2 Matrix (row major)
+//-----------------------------------
+
+function mat2(_11, _12, _21, _22) {
+    this._11 = _11;
+    this._12 = _12;
+    this._21 = _21;
+    this._22 = _22;
+}
+
+mat2.zero = new mat2(0, 0, 0, 0);
+
+mat2.prototype.set = function(_11, _12, _21, _22) {
+    this._11 = _11;
+    this._12 = _12;
+    this._21 = _21;
+    this._22 = _22;
+
+    return this;
+}
+
+mat2.prototype.copy = function(m) {
+    this._11 = m._11;
+    this._12 = m._12;
+    this._21 = m._21;
+    this._22 = m._22;
+    
+    return this;
+}
+
+mat2.prototype.duplicate = function() {
+    return new mat2(this._11, this._12, this._21, this._22);
+}
+
+mat2.prototype.add = function(m1, m2) {
+    this._11 = m1._11 + m2._11;
+    this._12 = m1._12 + m2._12;
+    this._21 = m1._21 + m2._21;
+    this._22 = m1._22 + m2._22;
+
+    return this;
+}
+
+mat2.prototype.addself = function(m) {
+    this._11 += m._11;
+    this._12 += m._12;
+    this._21 += m._21;
+    this._22 += m._22;
+
+    return this;
+}
+
+mat2.prototype.sub = function(m1, m2) {
+    this._11 = m1._11 - m2._11;
+    this._12 = m1._12 - m2._12;
+    this._21 = m1._21 - m2._21;
+    this._22 = m1._22 - m2._22;
+
+    return this;
+}
+
+mat2.prototype.subself = function(m) {
+    this._11 -= m._11;
+    this._12 -= m._12;
+    this._21 -= m._21;
+    this._22 -= m._22;
+
+    return this;
+}
+
+mat2.prototype.scale = function(s) {
+    this._11 *= s;
+    this._12 *= s;
+    this._21 *= s;
+    this._22 *= s;
+
+    return this;
+}
+
+mat2.prototype.mulvec = function(v) {
+    return new vec2(this._11 * v.x + this._12 * v.y, this._21 * v.x + this._22 * v.y);
+}
+
+//-----------------------------------
 // 2D AABB
 //-----------------------------------
 

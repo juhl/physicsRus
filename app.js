@@ -119,7 +119,7 @@ App = function() {
 
         shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 600), 0);
         space.staticBody.addStaticShape(shape);
-        
+
         shape = new ShapeBox(140, 80);
         shape.e = 0.1;
         shape.u = 1.0;
@@ -155,7 +155,7 @@ App = function() {
         body.addShape(shape);
         body.p.set(250, 1500);
         space.addBody(body);
-        body.applyForce(new vec2(0, 100), new vec2(0, 100));
+        body.applyForce(new vec2(0, 100), new vec2(0, 100));        
     }
 
     function initScene2() {
@@ -196,7 +196,7 @@ App = function() {
     }
 
     function initScene3() {
-        var body, body1, body2;
+        var body, body1, body2, body3;
         var body_prev;
         var shape;
 
@@ -217,7 +217,7 @@ App = function() {
         space.staticBody.addStaticShape(shape);
 
         for (var i = 0; i < 5; i++) {
-            shape = new ShapeBox(5, 20);
+            shape = new ShapeBox(8, 20);
             shape.e = 0.5;
             shape.u = 0.8;
             body = new Body(0.1, shape.inertia(0.1));
@@ -226,11 +226,11 @@ App = function() {
             space.addBody(body);
 
             if (i == 0) {                
-                var joint = new PinJoint(space.staticBody, body, new vec2(0, 290), new vec2(0, 10));
+                var joint = new DistanceJoint(space.staticBody, body, new vec2(0, 290), new vec2(0, 10));
                 space.addJoint(joint);
             }
             else {
-                var joint = new PinJoint(body_prev, body, new vec2(0, -10), new vec2(0, 10));
+                var joint = new DistanceJoint(body_prev, body, new vec2(0, -10), new vec2(0, 10));
                 space.addJoint(joint);
             }
 
@@ -238,7 +238,7 @@ App = function() {
         }
 
         for (var i = 0; i < 5; i++) {
-            shape = new ShapeBox(5, 20);
+            shape = new ShapeBox(8, 20);
             shape.e = 0.5;
             shape.u = 0.8;
             body = new Body(0.1, shape.inertia(0.1));
@@ -247,11 +247,11 @@ App = function() {
             space.addBody(body);
 
             if (i == 0) {
-                var joint = new PivotJoint(space.staticBody, body, new vec2(100, 255 + 15));
+                var joint = new RevoluteJoint(space.staticBody, body, new vec2(100, 255 + 15));
                 space.addJoint(joint);
             }
             else {
-                var joint = new PivotJoint(body_prev, body, new vec2(100, 255 - 25 * i + 15));
+                var joint = new RevoluteJoint(body_prev, body, new vec2(100, 255 - 25 * i + 15));
                 space.addJoint(joint);
             }
 
@@ -259,7 +259,7 @@ App = function() {
         }
 
         for (var i = 0; i < 5; i++) {
-            shape = new ShapeBox(5, 20);
+            shape = new ShapeBox(8, 20);
             shape.e = 0.5;
             shape.u = 0.8;
             body = new Body(0.1, shape.inertia(0.1));
@@ -299,17 +299,20 @@ App = function() {
         body2.p.set(-345, 230);
         space.addBody(body2);
 
-        space.addJoint(new PivotJoint(body1, body2, new vec2(-345, 230)));
+        space.addJoint(new RevoluteJoint(body1, body2, new vec2(-345, 230)));
 
         shape = new ShapeCircle(20);
         shape.e = 0.5;
         shape.u = 1.0;
-        body2 = new Body(1, shape.inertia(1));
-        body2.addShape(shape);
-        body2.p.set(-255, 230);
-        space.addBody(body2);
+        body3 = new Body(1, shape.inertia(1));
+        body3.addShape(shape);
+        body3.p.set(-255, 230);
+        space.addBody(body3);
 
-        space.addJoint(new PivotJoint(body1, body2, new vec2(-255, 230)));
+        space.addJoint(new RevoluteJoint(body1, body3, new vec2(-255, 230)));
+        
+        // both wheels constrained to same rotation
+        space.addJoint(new AngleJoint(body2, body3, 0));
     }
 
     function bodyColor(index) {        
@@ -374,6 +377,10 @@ App = function() {
     }
 
     function drawJoint(joint, strokeStyle) {
+        if (!joint.anchor1 || !joint.anchor2) {
+            return;
+        }
+
         var body1 = joint.body1;
         var body2 = joint.body2;
 
@@ -561,8 +568,8 @@ App = function() {
             mousePoint_old = mouseBody.p;
 
             var body = shape.body;
-            mouseJoint = new PivotJointLocal(mouseBody, body, new vec2(0, 0), body.worldToLocal(p));
-            mouseJoint.max_force = 20000;
+            mouseJoint = new RevoluteJointLocal(mouseBody, body, new vec2(0, 0), body.worldToLocal(p));
+            mouseJoint.max_force = body.m * 10000;            
             mouseJoint.bias_coeff = 0.15;
             space.addJoint(mouseJoint);
         }
