@@ -39,16 +39,19 @@ DistanceJoint.prototype = new Constraint;
 DistanceJoint.prototype.constructor = DistanceJoint;
 
 DistanceJoint.prototype.preStep = function(dt, dt_inv) {
-	this.r1 = vec2.rotate(this.anchor1, this.body1.a);
-	this.r2 = vec2.rotate(this.anchor2, this.body2.a);
+	var body1 = this.body1;
+	var body2 = this.body2;
 
-	var d = vec2.sub(vec2.add(this.body2.p, this.r2), vec2.add(this.body1.p, this.r1));
+	this.r1 = vec2.rotate(this.anchor1, body1.a);
+	this.r2 = vec2.rotate(this.anchor2, body2.a);
+
+	var d = vec2.sub(vec2.add(body2.p, this.r2), vec2.add(body1.p, this.r1));
 	var dist = d.length();
 
 	// normal
 	this.n = vec2.scale(d, 1 / dist);
 
-	this.kn_inv = 1 / k_scalar(this.body1, this.body2, this.r1, this.r2, this.n);
+	this.kn_inv = 1 / k_scalar(body1, body2, this.r1, this.r2, this.n);
 
 	// max impulse
 	this.j_max = this.max_force * dt;
@@ -57,11 +60,14 @@ DistanceJoint.prototype.preStep = function(dt, dt_inv) {
 	this.bias = Math.clamp(this.bias_coeff * (this.restLength - dist) * dt_inv, -this.max_bias, this.max_bias);	
 
 	// apply cached impulses
-	applyImpulses(this.body1, this.body2, this.r1, this.r2, vec2.scale(this.n, this.jn_acc));
+	applyImpulses(body1, body2, this.r1, this.r2, vec2.scale(this.n, this.jn_acc));
 }
 
 DistanceJoint.prototype.applyImpulse = function() {
-	var dv = relative_velocity(this.body1, this.body2, this.r1, this.r2);
+	var body1 = this.body1;
+	var body2 = this.body2;
+
+	var dv = relative_velocity(body1, body2, this.r1, this.r2);
 	var dvn = dv.dot(this.n);
 
 	// normal impulse
@@ -70,7 +76,7 @@ DistanceJoint.prototype.applyImpulse = function() {
 	this.jn_acc = Math.clamp(jn_old + jn, -this.j_max, this.j_max);
 	jn = this.jn_acc - jn_old;
 
-	applyImpulses(this.body1, this.body2, this.r1, this.r2, vec2.scale(this.n, jn));
+	applyImpulses(body1, body2, this.r1, this.r2, vec2.scale(this.n, jn));
 }
 
 //------------------------------------------
@@ -101,16 +107,19 @@ MaxDistanceJoint.prototype = new Constraint;
 MaxDistanceJoint.prototype.constructor = MaxDistanceJoint;
 
 MaxDistanceJoint.prototype.preStep = function(dt, dt_inv) {
-	this.r1 = vec2.rotate(this.anchor1, this.body1.a);
-	this.r2 = vec2.rotate(this.anchor2, this.body2.a);
+	var body1 = this.body1;
+	var body2 = this.body2;
 
-	var d = vec2.sub(vec2.add(this.body2.p, this.r2), vec2.add(this.body1.p, this.r1));
+	this.r1 = vec2.rotate(this.anchor1, body1.a);
+	this.r2 = vec2.rotate(this.anchor2, body2.a);
+
+	var d = vec2.sub(vec2.add(body2.p, this.r2), vec2.add(body1.p, this.r1));
 	var dist = d.length();
 
 	// normal
 	this.n = vec2.scale(d, 1 / dist);
 
-	this.kn_inv = 1 / k_scalar(this.body1, this.body2, this.r1, this.r2, this.n);
+	this.kn_inv = 1 / k_scalar(body1, body2, this.r1, this.r2, this.n);
 
 	// max impulse
 	this.j_max = this.max_force * dt;
@@ -132,7 +141,7 @@ MaxDistanceJoint.prototype.preStep = function(dt, dt_inv) {
 	}
 
 	// apply cached impulses
-	applyImpulses(this.body1, this.body2, this.r1, this.r2, vec2.scale(this.n, this.jn_acc));
+	applyImpulses(body1, body2, this.r1, this.r2, vec2.scale(this.n, this.jn_acc));
 }
 
 MaxDistanceJoint.prototype.applyImpulse = function() {
@@ -140,7 +149,10 @@ MaxDistanceJoint.prototype.applyImpulse = function() {
 		return; 
 	}
 
-	var dv = relative_velocity(this.body1, this.body2, this.r1, this.r2);
+	var body1 = this.body1;
+	var body2 = this.body2;
+
+	var dv = relative_velocity(body1, body2, this.r1, this.r2);
 	var dvn = dv.dot(this.n);
 
 	var jn = (-dvn + this.bias) * this.kn_inv;
@@ -148,7 +160,7 @@ MaxDistanceJoint.prototype.applyImpulse = function() {
 	this.jn_acc = Math.clamp(jn_old + jn, -this.j_max, this.j_max);
 	jn = this.jn_acc - jn_old;
 
-	applyImpulses(this.body1, this.body2, this.r1, this.r2, vec2.scale(this.n, jn));
+	applyImpulses(body1, body2, this.r1, this.r2, vec2.scale(this.n, jn));
 }
 
 //------------------------------------------
@@ -160,6 +172,7 @@ AngleJoint = function(body1, body2, rate) {
 
 	this.rate = rate;
 
+	// accumulated angular impulse
 	this.j_acc = 0;
 }
 
@@ -167,27 +180,33 @@ AngleJoint.prototype = new Constraint;
 AngleJoint.prototype.constructor = AngleJoint;
 
 AngleJoint.prototype.preStep = function(dt, dt_inv) {
-	this.k_inv = 1 / (this.body1.i_inv + this.body2.i_inv);
+	var body1 = this.body1;
+	var body2 = this.body2;
+
+	this.k_inv = 1 / (body1.i_inv + body2.i_inv);
 
 	// max impulse
 	this.j_max = this.max_force * dt;
 
 	// apply cached impulses
-	this.body1.w -= this.j_acc * this.body1.i_inv;
-	this.body2.w += this.j_acc * this.body2.i_inv;
+	body1.w -= this.j_acc * body1.i_inv;
+	body2.w += this.j_acc * body2.i_inv;
 }
 
 AngleJoint.prototype.applyImpulse = function() {
-	var dw = this.body2.w - this.body1.w + this.rate;
+	var body1 = this.body1;
+	var body2 = this.body2;
+
+	var dw = body2.w - body1.w + this.rate;
 	
 	// normal impulse
 	var j = -dw * this.k_inv;
 	var j_old = this.j_acc;
-	this.j_acc = Math.clamp(j_old + j, -this.j_max, this.j_max);
+	this.j_acc = Math.clamp(j_old + j, -this.j_max, this.j_max);	
 	j = this.j_acc - j_old;
 
-	this.body1.w -= j * this.body1.i_inv;
-	this.body2.w += this.j * this.body2.i_inv;
+	body1.w -= j * body1.i_inv;
+	body2.w += j * body2.i_inv;
 }
 
 //------------------------------------------
@@ -215,29 +234,35 @@ RevoluteJointLocal.prototype = new Constraint;
 RevoluteJointLocal.prototype.constructor = RevoluteJointLocal;
 
 RevoluteJointLocal.prototype.preStep = function(dt, dt_inv) {
-	this.r1 = vec2.rotate(this.anchor1, this.body1.a);
-	this.r2 = vec2.rotate(this.anchor2, this.body2.a);
+	var body1 = this.body1;
+	var body2 = this.body2;
+		
+	this.r1 = vec2.rotate(this.anchor1, body1.a);
+	this.r2 = vec2.rotate(this.anchor2, body2.a);
 
-	this.k = k_tensor(this.body1, this.body2, this.r1, this.r2);
+	this.k = k_tensor(body1, body2, this.r1, this.r2);
 	
 	// max impulse
 	this.j_max = this.max_force * dt;
 
-	var d = vec2.sub(vec2.add(this.body2.p, this.r2), vec2.add(this.body1.p, this.r1));
+	var d = vec2.sub(vec2.add(body2.p, this.r2), vec2.add(body1.p, this.r1));
 	this.bias = vec2.truncate(vec2.scale(d, -this.bias_coeff * dt_inv), this.max_bias);
 
-	applyImpulses(this.body1, this.body2, this.r1, this.r2, this.j_acc);
+	applyImpulses(body1, body2, this.r1, this.r2, this.j_acc);
 }
 
 RevoluteJointLocal.prototype.applyImpulse = function() {
-	var dv = relative_velocity(this.body1, this.body2, this.r1, this.r2);
+	var body1 = this.body1;
+	var body2 = this.body2;
+
+	var dv = relative_velocity(body1, body2, this.r1, this.r2);
 
 	var j = this.k.mulvec(vec2.sub(this.bias, dv));
 	var j_old = this.j_acc;
 	this.j_acc = vec2.truncate(vec2.add(j_old, j), this.j_max);
 	j = vec2.sub(this.j_acc, j_old);
 
-	applyImpulses(this.body1, this.body2, this.r1, this.r2, j);
+	applyImpulses(body1, body2, this.r1, this.r2, j);
 }
 
 RevoluteJoint = function(body1, body2, pivot) {
@@ -266,16 +291,19 @@ DampedSpring.prototype = new Constraint;
 DampedSpring.prototype.constructor = DampedSpring;
 
 DampedSpring.prototype.preStep = function(dt, dt_inv) {
-	this.r1 = vec2.rotate(this.anchor1, this.body1.a);
-	this.r2 = vec2.rotate(this.anchor2, this.body2.a);
+	var body1 = this.body1;
+	var body2 = this.body2;
 
-	var d = vec2.sub(vec2.add(this.body2.p, this.r2), vec2.add(this.body1.p, this.r1));
+	this.r1 = vec2.rotate(this.anchor1, body1.a);
+	this.r2 = vec2.rotate(this.anchor2, body2.a);
+
+	var d = vec2.sub(vec2.add(body2.p, this.r2), vec2.add(body1.p, this.r1));
 	var dist = d.length();
 
 	// normal
 	this.n = vec2.scale(d, 1 / dist);
 
-	var kn = k_scalar(this.body1, this.body2, this.r1, this.r2, this.n);
+	var kn = k_scalar(body1, body2, this.r1, this.r2, this.n);
 	this.kn_inv = 1 / kn;
 	
 	//
@@ -284,17 +312,20 @@ DampedSpring.prototype.preStep = function(dt, dt_inv) {
 
 	// apply spring force
 	var spring_f = (this.restLength - dist) * this.stiffness;
-	applyImpulses(this.body1, this.body2, this.r1, this.r2, vec2.scale(this.n, spring_f * dt));
+	applyImpulses(body1, body2, this.r1, this.r2, vec2.scale(this.n, spring_f * dt));
 }
 
 DampedSpring.prototype.applyImpulse = function() {
-	var dv = relative_velocity(this.body1, this.body2, this.r1, this.r2);
+	var body1 = this.body1;
+	var body2 = this.body2;
+
+	var dv = relative_velocity(body1, body2, this.r1, this.r2);
 	var dvn = dv.dot(this.n) - this.target_dvn;
 
 	// compute velocity loss from drag
 	var v_damp = -dvn * this.v_coeff;
 	this.target_dvn = dvn + v_damp;
 
-	applyImpulses(this.body1, this.body2, this.r1, this.r2, vec2.scale(this.n, v_damp * this.kn_inv));
+	applyImpulses(body1, body2, this.r1, this.r2, vec2.scale(this.n, v_damp * this.kn_inv));
 }
 
