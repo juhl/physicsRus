@@ -7,6 +7,7 @@ Features
 --------------
 
 - Impulse based solver
+- Constraints/Joints
 - SAT collision detection
 - Supported shapes are circle, segment(thick rounded line segment), convex polygon
 - HTML5 canvas rendering
@@ -16,3 +17,4 @@ Todo
 
 - Broad phase collision detection
 - Freezing bodies
+- CCD
