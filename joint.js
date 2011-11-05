@@ -19,7 +19,7 @@ Joint = function(body1, body2, collideConnected) {
 	// max sepration bias
 	this.max_bias = Number.POSITIVE_INFINITY;
 
-	// max force
+	// constraint force limit
 	this.max_force = Number.POSITIVE_INFINITY;
 
 	// is breakable ?

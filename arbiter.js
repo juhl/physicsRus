@@ -63,10 +63,6 @@ Arbiter.prototype.preStep = function(dt_inv) {
     var body1 = this.shape1.body;
     var body2 = this.shape2.body;
 
-    if (body1 == this.staticBody && body2 == this.staticBody) {
-        return;
-    }
-
     for (var i = 0; i < this.contactArr.length; i++) {
         var con = this.contactArr[i];
 
@@ -107,10 +103,6 @@ Arbiter.prototype.applyImpulse = function() {
 
     var body1 = shape1.body;
     var body2 = shape2.body;
-
-    if (body1 == this.staticBody && body2 == this.staticBody) {
-        return;
-    }
 
     for (var i = 0; i < this.contactArr.length; i++) {
         var con = this.contactArr[i];
