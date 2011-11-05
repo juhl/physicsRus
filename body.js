@@ -13,8 +13,8 @@ Body = function(mass, inertia) {
     // shape list for this body
     this.shapeArr = [];
 
-    // joint list for this body
-    this.jointArr = [];
+    // joint hash for this body
+    this.jointHash = {};
 
     // force
     this.f = new vec2(0, 0);

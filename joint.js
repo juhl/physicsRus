@@ -1,12 +1,14 @@
-Constraint = function(body1, body2, collideConnected) {
+Joint = function(body1, body2, collideConnected) {
 	if (arguments.length == 0)
 		return;
 
+    if (Joint.hashid_counter == undefined)
+        Joint.hashid_counter = 0;
+    
+    this.hashid = Joint.hashid_counter++;
+
 	this.body1 = body1;
 	this.body2 = body2;
-
-	body1.jointArr.push(this);
-	body2.jointArr.push(this);
 
 	// allow collision between to cennected body
 	this.collideConnected = collideConnected;
@@ -29,10 +31,10 @@ Constraint = function(body1, body2, collideConnected) {
 //------------------------------------------
 
 DistanceJoint = function(body1, body2, anchor1, anchor2) {
-	Constraint.call(this, body1, body2, true);
+	Joint.call(this, body1, body2, true);
 
 	this.anchor1 = anchor1;
-	this.anchor2 = anchor2;	
+	this.anchor2 = anchor2;
 
 	var p1 = vec2.add(body1.p, vec2.rotate(anchor1, body1.a));
 	var p2 = vec2.add(body2.p, vec2.rotate(anchor2, body2.a));
@@ -44,7 +46,7 @@ DistanceJoint = function(body1, body2, anchor1, anchor2) {
 	this.jn_acc = 0;
 }
 
-DistanceJoint.prototype = new Constraint;
+DistanceJoint.prototype = new Joint;
 DistanceJoint.prototype.constructor = DistanceJoint;
 
 DistanceJoint.prototype.preStep = function(dt, dt_inv) {
@@ -88,12 +90,16 @@ DistanceJoint.prototype.applyImpulse = function() {
 	applyImpulses(body1, body2, this.r1, this.r2, vec2.scale(this.n, jn));
 }
 
+DistanceJoint.prototype.getImpulse = function() {
+	return Math.abs(this.jn_acc);
+}
+
 //------------------------------------------
 // MaxDistance Joint
 //------------------------------------------
 
 MaxDistanceJoint = function(body1, body2, anchor1, anchor2, min, max) {
-	Constraint.call(this, body1, body2, true);
+	Joint.call(this, body1, body2, true);
 
 	this.anchor1 = anchor1;
 	this.anchor2 = anchor2;	
@@ -112,7 +118,7 @@ MaxDistanceJoint = function(body1, body2, anchor1, anchor2, min, max) {
 	this.jn_acc = 0;
 }
 
-MaxDistanceJoint.prototype = new Constraint;
+MaxDistanceJoint.prototype = new Joint;
 MaxDistanceJoint.prototype.constructor = MaxDistanceJoint;
 
 MaxDistanceJoint.prototype.preStep = function(dt, dt_inv) {
@@ -172,12 +178,16 @@ MaxDistanceJoint.prototype.applyImpulse = function() {
 	applyImpulses(body1, body2, this.r1, this.r2, vec2.scale(this.n, jn));
 }
 
+MaxDistanceJoint.prototype.getImpulse = function() {
+	return Math.abs(this.jn_acc);
+}
+
 //------------------------------------------
 // Angle Joint
 //------------------------------------------
 
 AngleJoint = function(body1, body2, rate) {
-	Constraint.call(this, body1, body2, false);
+	Joint.call(this, body1, body2, false);
 
 	this.rate = rate;
 
@@ -185,7 +195,7 @@ AngleJoint = function(body1, body2, rate) {
 	this.j_acc = 0;
 }
 
-AngleJoint.prototype = new Constraint;
+AngleJoint.prototype = new Joint;
 AngleJoint.prototype.constructor = AngleJoint;
 
 AngleJoint.prototype.preStep = function(dt, dt_inv) {
@@ -218,6 +228,10 @@ AngleJoint.prototype.applyImpulse = function() {
 	body2.w += j * body2.i_inv;
 }
 
+AngleJoint.prototype.getImpulse = function() {
+	return 0;
+}
+
 //------------------------------------------
 // Revolute Joint (2D Ball-Socket)
 //------------------------------------------
@@ -226,7 +240,7 @@ RevoluteJointLocal = function(body1, body2, anchor1, anchor2) {
 	if (arguments.length == 0)
 		return;
 
-	Constraint.call(this, body1, body2, true);
+	Joint.call(this, body1, body2, true);
 
 	this.anchor1 = anchor1;
 	this.anchor2 = anchor2;	
@@ -243,7 +257,7 @@ RevoluteJointLocal = function(body1, body2, anchor1, anchor2) {
 	this.motorSpeed = 0;
 }
 
-RevoluteJointLocal.prototype = new Constraint;
+RevoluteJointLocal.prototype = new Joint;
 RevoluteJointLocal.prototype.constructor = RevoluteJointLocal;
 
 RevoluteJointLocal.prototype.preStep = function(dt, dt_inv) {
@@ -278,6 +292,10 @@ RevoluteJointLocal.prototype.applyImpulse = function() {
 	applyImpulses(body1, body2, this.r1, this.r2, j);
 }
 
+RevoluteJointLocal.prototype.getImpulse = function() {
+	return this.j_acc.length();
+}
+
 RevoluteJoint = function(body1, body2, pivot) {
 	RevoluteJointLocal.call(this, body1, body2, body1.worldToLocal(pivot), body2.worldToLocal(pivot));
 }
@@ -290,7 +308,7 @@ RevoluteJoint.prototype.constructor = RevoluteJoint;
 //------------------------------------------
 
 DampedSpring = function(body1, body2, anchor1, anchor2, restLength, stiffness, damping) {
-	Constraint.call(this, body1, body2, true);
+	Joint.call(this, body1, body2, true);
 
 	this.anchor1 = anchor1;
 	this.anchor2 = anchor2;	
@@ -300,7 +318,7 @@ DampedSpring = function(body1, body2, anchor1, anchor2, restLength, stiffness, d
 	this.damping = damping;
 }
 
-DampedSpring.prototype = new Constraint;
+DampedSpring.prototype = new Joint;
 DampedSpring.prototype.constructor = DampedSpring;
 
 DampedSpring.prototype.preStep = function(dt, dt_inv) {
@@ -325,7 +343,8 @@ DampedSpring.prototype.preStep = function(dt, dt_inv) {
 
 	// apply spring force
 	var spring_f = (this.restLength - dist) * this.stiffness;
-	applyImpulses(body1, body2, this.r1, this.r2, vec2.scale(this.n, spring_f * dt));
+	this.spring_j = spring_f * dt;
+	applyImpulses(body1, body2, this.r1, this.r2, vec2.scale(this.n, this.spring_j));
 }
 
 DampedSpring.prototype.applyImpulse = function() {
@@ -340,5 +359,9 @@ DampedSpring.prototype.applyImpulse = function() {
 	this.target_dvn = dvn + v_damp;
 
 	applyImpulses(body1, body2, this.r1, this.r2, vec2.scale(this.n, v_damp * this.kn_inv));
+}
+
+DampedSpring.prototype.getImpulse = function() {
+	return Math.abs(this.spring_j);
 }
 

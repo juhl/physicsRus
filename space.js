@@ -5,15 +5,18 @@ function Space() {
     this.staticBody = new Body(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
     this.staticBody.space = this;
 
-    this.shapeArr = [];
-    this.bodyArr = [];    
-    this.jointArr = [];
+    this.bodyHash = {};
+    this.jointHash = {};
 
+    this.shapeArr = [];
+    
     this.arbiterArr = [];
+
+    this.postSolve = function(arb) {};
 }
 
 Space.prototype.addBody = function(body) {
-    this.bodyArr.push(body);
+    this.bodyHash[body.hashid] = body;
     
     for (var i = 0; i < body.shapeArr.length; i++) {
         this.shapeArr.push(body.shapeArr[i]); 
@@ -24,32 +27,38 @@ Space.prototype.addBody = function(body) {
 }
 
 Space.prototype.removeBody = function(body) {
-    for (var i = 0; i < this.bodyArr.length; i++) {
-        if (this.bodyArr[i] == body) {            
-            for (var j = 0; j < this.shapeArr.length; j++) {
-                if (body.shapeArr[0] == this.shapeArr[j]) {
-                    this.shapeArr.splice(j, body.shapeArr.length);
-                    break;
-                }
+    if (this.bodyHash[body.hashid]) {
+        // remove from space shapeArr
+        for (var j = 0; j < this.shapeArr.length; j++) {
+            if (body.shapeArr[0] == this.shapeArr[j]) {
+                this.shapeArr.splice(j, body.shapeArr.length);
+                break;
             }
-
-            body.space = null;
-            this.bodyArr.splice(i, 1);
-            break;
         }
+
+        // remove linked joint
+        for (var j in body.jointHash) {
+            this.removeJoint(body.jointHash[j]);
+        }
+
+        body.space = null;
+        delete this.bodyHash[body.hashid];
     }
 }
 
 Space.prototype.addJoint = function(joint) {
-    this.jointArr.push(joint);
+    this.jointHash[joint.hashid] = joint;
+
+    joint.body1.jointHash[joint.hashid] = joint;
+    joint.body2.jointHash[joint.hashid] = joint;
 }
 
 Space.prototype.removeJoint = function(joint) {
-    for (var i = 0; i < this.jointArr.length; i++) {
-        if (this.jointArr[i] == joint) {
-            this.jointArr.splice(i, 1);
-            break;
-        }
+    if (this.jointHash[joint.hashid]) {
+        delete joint.body1.jointHash[joint.hashid];
+        delete joint.body2.jointHash[joint.hashid];
+
+        delete this.jointHash[joint.hashid];
     }
 }
 
@@ -79,18 +88,11 @@ Space.prototype.isCollidable = function(body1, body2) {
     if (body1 == this.staticBody && body2 == this.staticBody)
         return false;
 
-    for (var i = 0; i < body1.jointArr.length; i++) {        
-        var joint = body1.jointArr[i];
+    for (var i in body1.jointHash) {
+        var joint = body1.jointHash[i];
 
-        if (!joint.collideConnected) {
-            if (joint.body1 == body1) {
-                if (joint.body2 == body2)
-                    return;
-            }
-            else {
-                if (joint.body1 == body2)
-                    return;
-            }            
+        if (!joint.collideConnected && body2.jointHash[joint.hashid]) {
+            return false;
         }
     }
 
@@ -146,15 +148,15 @@ Space.prototype.step = function(dt, iteration) {
         this.arbiterArr[i].preStep(dt_inv);
     }
 
-    // prestep Joints
-    for (var i = 0; i < this.jointArr.length; i++) {
-        this.jointArr[i].preStep(dt, dt_inv);
+    // prestep joints
+    for (var i in this.jointHash) {
+        this.jointHash[i].preStep(dt, dt_inv);
     }
 
     // intergrate velocity
     var damping = this.damping < 1 ? Math.pow(this.damping, dt) : 1;
-    for (var i = 0; i < this.bodyArr.length; i++) {
-        this.bodyArr[i].updateVelocity(this.gravity, damping, dt);
+    for (var i in this.bodyHash) {
+        this.bodyHash[i].updateVelocity(this.gravity, damping, dt);
     }
 
     // apply cached impulse
@@ -168,19 +170,34 @@ Space.prototype.step = function(dt, iteration) {
             this.arbiterArr[j].applyImpulse();
         }
         
-        for (var j = 0; j < this.jointArr.length; j++) {
-            this.jointArr[j].applyImpulse();
+        for (var j in this.jointHash) {
+            this.jointHash[j].applyImpulse();
         }
     }    
 
-    // intergrate position
-    // semi-implicit method
-    for (var i = 0; i < this.bodyArr.length; i++) {
-        this.bodyArr[i].updatePosition(dt);
+    // post solve collision callback
+    for (var i = 0; i < this.arbiterArr.length; i++) {
+        var arb = this.arbiterArr[i];
+        this.postSolve(arb);
     }
 
-    for (var i = 0; i < this.bodyArr.length; i++) {
-        body = this.bodyArr[i].cacheData();
+    // process breakable joint
+    for (var i in this.jointHash) {
+        var joint = this.jointHash[i];
+        if (joint.breakable) {
+            if (joint.getImpulse() * dt_inv >= joint.max_force)
+                this.removeJoint(joint);
+        }
+    }
+
+    // intergrate position
+    // semi-implicit method
+    for (var i in this.bodyHash) {
+        this.bodyHash[i].updatePosition(dt);
+    }
+
+    for (var i in this.bodyHash) {
+        body = this.bodyHash[i].cacheData();
     }
 }
 

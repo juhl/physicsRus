@@ -11,13 +11,13 @@ function Contact(p, n, d, hash) {
     this.d = d; 
 
     // accumulated normal impulse
-    this.jn_acc = 0; 
+    this.jn_acc = 0;
 
     // accumulated tangential impulse
-    this.jt_acc = 0; 
+    this.jt_acc = 0;
 
     // accumulated separation impulse
-    this.js_acc = 0; 
+    this.js_acc = 0;
 }
 
 function Arbiter(shape1, shape2) {

@@ -85,6 +85,10 @@ App = function() {
     }
 
     function initScene() {
+        Shape.hashid_counter = 0;
+        Body.hashid_counter = 0;
+        Joint.hashid_counter = 0;
+
         switch (sceneNumber) {
         case 1:
             initScene1();
@@ -118,7 +122,7 @@ App = function() {
         space.staticBody.addStaticShape(shape);
 
         shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 600), 0);
-        space.staticBody.addStaticShape(shape);
+        space.staticBody.addStaticShape(shape);       
 
         shape = new ShapeBox(140, 80);
         shape.e = 0.1;
@@ -218,7 +222,7 @@ App = function() {
         space.staticBody.addStaticShape(shape);
 
         shape = new ShapeTriangle(new vec2(200, 0), new vec2(400, 0), new vec2(400, 40));
-        space.staticBody.addStaticShape(shape);        
+        space.staticBody.addStaticShape(shape);       
 
         for (var i = 0; i < 6; i++) {
             shape = new ShapeBox(20, 20);
@@ -230,11 +234,13 @@ App = function() {
             space.addBody(body);
 
             if (i == 0) {                
-                var joint = new DistanceJoint(space.staticBody, body, new vec2(0, 290), new vec2(0, 0));
+                var joint = new DistanceJoint(space.staticBody, body, new vec2(0, 290), new vec2(0, 0));                
                 space.addJoint(joint);
             }
             else {
                 var joint = new DistanceJoint(body_prev, body, new vec2(0, 0), new vec2(0, 0));
+                joint.breakable = true;
+                joint.max_force = 15000;
                 space.addJoint(joint);
             }
 
@@ -256,6 +262,8 @@ App = function() {
             }
             else {
                 var joint = new RevoluteJoint(body_prev, body, new vec2(100, 255 - 30 * i + 15));
+                joint.breakable = true;
+                joint.max_force = 15000;
                 space.addJoint(joint);
             }
 
@@ -272,12 +280,15 @@ App = function() {
             space.addBody(body);
 
             if (i == 0) {
-                var cons = new DampedSpring(space.staticBody, body, new vec2(200, 235 + 15), new vec2(0, 10), 5, 120, 1.5);
-                space.addJoint(cons);
+                var joint = new DampedSpring(space.staticBody, body, new vec2(200, 235 + 15), new vec2(0, 10), 5, 200, 1.5);
+                joint.max_force = 5000;
+                space.addJoint(joint);
             }
             else {
-                var cons = new DampedSpring(body_prev, body, new vec2(0, -10), new vec2(0, 10), 10, 120, 1.5);
-                space.addJoint(cons);
+                var joint = new DampedSpring(body_prev, body, new vec2(0, -10), new vec2(0, 10), 10, 200, 1.5);
+                joint.breakable = true;
+                joint.max_force = 5000;                
+                space.addJoint(joint);
             }
 
             body_prev = body;
@@ -286,7 +297,7 @@ App = function() {
         shape = new ShapeBox(150, 30);
         shape.e = 0.5;
         shape.u = 0.5;
-        body1 = new Body(10, shape.inertia(10));
+        body1 = new Body(4, shape.inertia(4));
         body1.addShape(shape);
         shape = new ShapeBox(80, 40, 0, 35);
         shape.e = 0.5;
@@ -362,12 +373,12 @@ App = function() {
         clearBounds.clear();
 
         drawBody(space.staticBody, "#888", "#000");
-        for (var i = 0; i < space.bodyArr.length; i++) {
-            drawBody(space.bodyArr[i], bodyColor(i), "#000");
+        for (var i in space.bodyHash) {
+            drawBody(space.bodyHash[i], bodyColor(i), "#000");
         }
 
-        for (var i = 0; i < space.jointArr.length; i++) {
-            drawJoint(space.jointArr[i], "#F0F");
+        for (var i in space.jointHash) {
+            drawJoint(space.jointHash[i], "#F0F");
         }
 
         //drawBox(clearBounds.mins, clearBounds.maxs, null, "#F00");
@@ -583,7 +594,7 @@ App = function() {
 
             var body = shape.body;
             mouseJoint = new RevoluteJointLocal(mouseBody, body, new vec2(0, 0), body.worldToLocal(p));
-            mouseJoint.max_force = body.m * 10000;            
+            mouseJoint.max_force = 12000; 
             mouseJoint.bias_coeff = 0.15;
             space.addJoint(mouseJoint);
         }

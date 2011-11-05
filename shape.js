@@ -15,7 +15,7 @@ Shape = function(type) {
 	this.u = 1;
 
     // axis-aligned bounding box
-    this.bounds = new Bounds;
+    this.bounds = new Bounds;    
 }
 
 Shape.TYPE_CIRCLE = 0;
