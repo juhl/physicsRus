@@ -1,4 +1,10 @@
 Body = function(mass, inertia) {
+    if (Body.hashid_counter == undefined) {
+        Body.hashid_counter = 0;
+    }
+
+    this.hashid = Body.hashid_counter++;
+
     if (mass != undefined)
         this.setMass(mass);
     if (inertia != undefined)
@@ -6,6 +12,9 @@ Body = function(mass, inertia) {
 
     // shape list for this body
     this.shapeArr = [];
+
+    // joint list for this body
+    this.jointArr = [];
 
     // force
     this.f = new vec2(0, 0);

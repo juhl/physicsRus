@@ -1,6 +1,15 @@
-Constraint = function(body1, body2) {
+Constraint = function(body1, body2, collideConnected) {
+	if (arguments.length == 0)
+		return;
+
 	this.body1 = body1;
 	this.body2 = body2;
+
+	body1.jointArr.push(this);
+	body2.jointArr.push(this);
+
+	// allow collision between to cennected body
+	this.collideConnected = collideConnected;
 
 	// sepration bias coefficient
 	this.bias_coeff = 0.1;
@@ -20,7 +29,7 @@ Constraint = function(body1, body2) {
 //------------------------------------------
 
 DistanceJoint = function(body1, body2, anchor1, anchor2) {
-	Constraint.call(this, body1, body2);
+	Constraint.call(this, body1, body2, true);
 
 	this.anchor1 = anchor1;
 	this.anchor2 = anchor2;	
@@ -84,7 +93,7 @@ DistanceJoint.prototype.applyImpulse = function() {
 //------------------------------------------
 
 MaxDistanceJoint = function(body1, body2, anchor1, anchor2, min, max) {
-	Constraint.call(this, body1, body2);
+	Constraint.call(this, body1, body2, true);
 
 	this.anchor1 = anchor1;
 	this.anchor2 = anchor2;	
@@ -168,7 +177,7 @@ MaxDistanceJoint.prototype.applyImpulse = function() {
 //------------------------------------------
 
 AngleJoint = function(body1, body2, rate) {
-	Constraint.call(this, body1, body2);
+	Constraint.call(this, body1, body2, false);
 
 	this.rate = rate;
 
@@ -214,13 +223,17 @@ AngleJoint.prototype.applyImpulse = function() {
 //------------------------------------------
 
 RevoluteJointLocal = function(body1, body2, anchor1, anchor2) {
-	Constraint.call(this, body1, body2);
+	if (arguments.length == 0)
+		return;
+
+	Constraint.call(this, body1, body2, true);
 
 	this.anchor1 = anchor1;
 	this.anchor2 = anchor2;	
 
 	this.j_acc = new vec2(0, 0);
 
+	// ** TO BE IMPLEMENTED
 	this.enableLimit = false;
 	this.lowerAngle = 0;
 	this.upperAngle = 0;
@@ -277,7 +290,7 @@ RevoluteJoint.prototype.constructor = RevoluteJoint;
 //------------------------------------------
 
 DampedSpring = function(body1, body2, anchor1, anchor2, restLength, stiffness, damping) {
-	Constraint.call(this, body1, body2);
+	Constraint.call(this, body1, body2, true);
 
 	this.anchor1 = anchor1;
 	this.anchor2 = anchor2;	

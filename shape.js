@@ -1,7 +1,9 @@
 Shape = function(type) {
-    if (Shape.hashid_counter == undefined) {
+    if (arguments.length == 0)
+        return;
+
+    if (Shape.hashid_counter == undefined)
         Shape.hashid_counter = 0;
-    }
     
     this.hashid = Shape.hashid_counter++;
     this.type = type;

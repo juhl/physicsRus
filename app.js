@@ -199,6 +199,7 @@ App = function() {
         var body, body1, body2, body3;
         var body_prev;
         var shape;
+        var joint;
 
         space = new Space();
         space.gravity = new vec2(0, -700);
@@ -213,37 +214,40 @@ App = function() {
         shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 600), 0);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeTriangle(new vec2(-400, 160), new vec2(-400, 0), new vec2(400, 0));
+        shape = new ShapeTriangle(new vec2(-400, 160), new vec2(-400, 0), new vec2(200, 0));
         space.staticBody.addStaticShape(shape);
 
-        for (var i = 0; i < 5; i++) {
-            shape = new ShapeBox(8, 20);
+        shape = new ShapeTriangle(new vec2(200, 0), new vec2(400, 0), new vec2(400, 40));
+        space.staticBody.addStaticShape(shape);        
+
+        for (var i = 0; i < 6; i++) {
+            shape = new ShapeBox(20, 20);
             shape.e = 0.5;
             shape.u = 0.8;
             body = new Body(0.1, shape.inertia(0.1));
             body.addShape(shape);
-            body.p.set(0, 275 - 25 * i);
+            body.p.set(0, 275 - 30 * i);
             space.addBody(body);
 
             if (i == 0) {                
-                var joint = new DistanceJoint(space.staticBody, body, new vec2(0, 290), new vec2(0, 10));
+                var joint = new DistanceJoint(space.staticBody, body, new vec2(0, 290), new vec2(0, 0));
                 space.addJoint(joint);
             }
             else {
-                var joint = new DistanceJoint(body_prev, body, new vec2(0, -10), new vec2(0, 10));
+                var joint = new DistanceJoint(body_prev, body, new vec2(0, 0), new vec2(0, 0));
                 space.addJoint(joint);
             }
 
             body_prev = body;
         }
 
-        for (var i = 0; i < 5; i++) {
-            shape = new ShapeBox(8, 20);
+        for (var i = 0; i < 6; i++) {
+            shape = new ShapeBox(20, 20);
             shape.e = 0.5;
             shape.u = 0.8;
             body = new Body(0.1, shape.inertia(0.1));
             body.addShape(shape);
-            body.p.set(100, 255 - 25 * i);
+            body.p.set(100, 255 - 30 * i);
             space.addBody(body);
 
             if (i == 0) {
@@ -251,40 +255,40 @@ App = function() {
                 space.addJoint(joint);
             }
             else {
-                var joint = new RevoluteJoint(body_prev, body, new vec2(100, 255 - 25 * i + 15));
+                var joint = new RevoluteJoint(body_prev, body, new vec2(100, 255 - 30 * i + 15));
                 space.addJoint(joint);
             }
 
             body_prev = body;
         }
 
-        for (var i = 0; i < 5; i++) {
-            shape = new ShapeBox(8, 20);
+        for (var i = 0; i < 6; i++) {
+            shape = new ShapeBox(20, 20);
             shape.e = 0.5;
             shape.u = 0.8;
             body = new Body(0.1, shape.inertia(0.1));
             body.addShape(shape);
-            body.p.set(200, 235 - 25 * i);
+            body.p.set(200, 235 - 30 * i);
             space.addBody(body);
 
             if (i == 0) {
-                var cons = new DampedSpring(space.staticBody, body, new vec2(200, 235 + 15), new vec2(0, 10), 5, 150, 1.5);
+                var cons = new DampedSpring(space.staticBody, body, new vec2(200, 235 + 15), new vec2(0, 10), 5, 120, 1.5);
                 space.addJoint(cons);
             }
             else {
-                var cons = new DampedSpring(body_prev, body, new vec2(0, -10), new vec2(0, 10), 5, 150, 1.5);
+                var cons = new DampedSpring(body_prev, body, new vec2(0, -10), new vec2(0, 10), 10, 120, 1.5);
                 space.addJoint(cons);
             }
 
             body_prev = body;
         }
 
-        shape = new ShapeBox(150, 20);
+        shape = new ShapeBox(150, 30);
         shape.e = 0.5;
         shape.u = 0.5;
         body1 = new Body(10, shape.inertia(10));
         body1.addShape(shape);
-        shape = new ShapeBox(80, 40, 0, 30);
+        shape = new ShapeBox(80, 40, 0, 35);
         shape.e = 0.5;
         shape.u = 0.5;
         body1.addShape(shape);
@@ -296,23 +300,27 @@ App = function() {
         shape.u = 1.0;
         body2 = new Body(1, shape.inertia(1));
         body2.addShape(shape);
-        body2.p.set(-345, 230);
+        body2.p.set(-345, 250);
         space.addBody(body2);
 
-        space.addJoint(new RevoluteJoint(body1, body2, new vec2(-345, 230)));
+        joint = new RevoluteJoint(body1, body2, new vec2(-345, 250));
+        joint.collideConnected = false;
+        space.addJoint(joint);
 
         shape = new ShapeCircle(20);
         shape.e = 0.5;
         shape.u = 1.0;
         body3 = new Body(1, shape.inertia(1));
         body3.addShape(shape);
-        body3.p.set(-255, 230);
+        body3.p.set(-255, 250);
         space.addBody(body3);
 
-        space.addJoint(new RevoluteJoint(body1, body3, new vec2(-255, 230)));
+        joint = new RevoluteJoint(body1, body3, new vec2(-255, 250))
+        joint.collideConnected = false;
+        space.addJoint(joint);
         
         // both wheels constrained to same rotation
-        space.addJoint(new AngleJoint(body2, body3, 0));
+        //space.addJoint(new AngleJoint(body2, body3, 0));
     }
 
     function bodyColor(index) {        
@@ -558,8 +566,14 @@ App = function() {
 
     function onMouseDown(e) {
         mouseDown = true;
+
+        if (mouseJoint) {
+            space.removeJoint(mouseJoint);
+            mouseJoint = null;
+        }
+
         var point = getMousePoint(e);
-                
+
         var p = new vec2(point.x - canvas.width * 0.5, canvas.height - point.y);
         var shape = space.findShapeByPoint(p);
         if (shape) {
@@ -592,7 +606,7 @@ App = function() {
 
     function onMouseMove(e) {
         var point = getMousePoint(e);
-        if (mouseDown) {
+        if (mouseDown) {            
             mousePoint = new vec2(point.x - canvas.width * 0.5, canvas.height - point.y);
         }
 
@@ -606,7 +620,7 @@ App = function() {
             if (mouseJoint) {
                 space.removeJoint(mouseJoint);
                 mouseJoint = null;
-            }            
+            }
         }        
 
         e.preventDefault();

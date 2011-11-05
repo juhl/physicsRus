@@ -72,6 +72,31 @@ Space.prototype.findArbiter = function(shape1, shape2) {
     return null;
 }
 
+Space.prototype.isCollidable = function(body1, body2) {
+    if (body1 == body2)
+        return false;
+
+    if (body1 == this.staticBody && body2 == this.staticBody)
+        return false;
+
+    for (var i = 0; i < body1.jointArr.length; i++) {        
+        var joint = body1.jointArr[i];
+
+        if (!joint.collideConnected) {
+            if (joint.body1 == body1) {
+                if (joint.body2 == body2)
+                    return;
+            }
+            else {
+                if (joint.body1 == body2)
+                    return;
+            }            
+        }
+    }
+
+    return true;
+}
+
 Space.prototype.step = function(dt, iteration) {
     var dt_inv = 1 / dt;
     var newArbiterArr = [];
@@ -82,12 +107,9 @@ Space.prototype.step = function(dt, iteration) {
             var shape1 = this.shapeArr[i];
             var shape2 = this.shapeArr[j];
 
-            if (shape1.body == this.staticBody && shape2.body == this.staticBody)
+            if (!this.isCollidable(shape1.body, shape2.body))
                 continue;
-
-            if (shape1.body == shape2.body)
-                continue;
-            
+                        
             if (!shape1.bounds.intersectsBounds(shape2.bounds))
                 continue;
 
