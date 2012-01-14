@@ -523,7 +523,18 @@ mat3.prototype.invert = function() {
         det2_31 * det, det2_32 * det, det2_33 * det);
 }
 
-// solve A * x = b
+// solve A(2x2) * x = b
+mat3.prototype.solve2x2 = function(b) {
+    var det = this._11 * this._22 - this._12 * this._21;
+    if (det != 0) 
+        det = 1 / det;
+    
+    return new vec2(
+        det * (this._22 * b.x - this._12 * b.y), 
+        det * (this._11 * b.y - this._21 * b.x));
+}
+
+// solve A(3x3) * x = b
 mat3.prototype.solve = function(b) {
     var det2_11 = this._22 * this._33 - this._23 * this._32;
     var det2_12 = this._23 * this._31 - this._21 * this._33;
@@ -564,8 +575,8 @@ mat3.mul = function(m1, m2) {
 //-----------------------------------
 
 Bounds = function(mins, maxs) {
-    this.mins = mins || new vec2(+99999, +99999);
-    this.maxs = maxs || new vec2(-99999, -99999);
+    this.mins = mins || new vec2(+999999999, +999999999);
+    this.maxs = maxs || new vec2(-999999999, -999999999);
 }
 
 Bounds.prototype.copy = function(b) {
@@ -574,8 +585,8 @@ Bounds.prototype.copy = function(b) {
 }
 
 Bounds.prototype.clear = function() {
-    this.mins.set(+99999, +99999);
-    this.maxs.set(-99999, -99999);
+    this.mins.set(+999999999, +999999999);
+    this.maxs.set(-999999999, -999999999);
 }
 
 Bounds.prototype.addPoint = function(p) {

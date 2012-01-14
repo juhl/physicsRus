@@ -88,7 +88,7 @@ function circle2Segment(circ, seg, contactArr) {
 }
 
 function circle2Poly(circ, poly, contactArr) {
-    var minDist = -99999999;
+    var minDist = -999999999;
     var minIdx = -1;
 
     for (var i = 0; i < poly.verts.length; i++) {
@@ -278,10 +278,10 @@ function segment2Poly(seg, poly, contactArr) {
 // find the minimum separating axis for the given poly and plane list.
 function findMSA(poly, planes, num)
 {
-	var min_dist = -99999999;
+    var min_dist = -999999999;
     var min_index  = -1;
 	
-	for (var i = 0; i < num; i++) {
+    for (var i = 0; i < num; i++) {
 		var dist = poly.distanceOnPlane(planes[i].n, planes[i].d);
 		if (dist > 0) {
 			return { dist: 0, index: -1 };

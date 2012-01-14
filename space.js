@@ -267,7 +267,7 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration) {
 
     // sleeping
     if (1) {
-        var minSleepTime = 999999;
+        var minSleepTime = 999999999;
 
         for (var i in this.bodyHash) {
            var body = this.bodyHash[i];

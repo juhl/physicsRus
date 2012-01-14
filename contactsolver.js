@@ -57,14 +57,14 @@ ContactSolver.prototype.initSolver = function(dt_inv) {
         var n = con.n;
         var t = vec2.perp(con.n);
 
-        // kn = J * invM * JT
+        // Kn = J * invM * JT
         // J = [ -n, -cross(r1, n), n, cross(r2, n) ]        
         var sn1 = vec2.cross(con.r1, n);
         var sn2 = vec2.cross(con.r2, n);
         var kn = sum_m_inv + body1.i_inv * sn1 * sn1 + body2.i_inv * sn2 * sn2;
         con.kn_inv = kn == 0 ? 0 : 1 / kn;
 
-        // kt = J * invM * JT
+        // Kt = J * invM * JT
         // J = [ -t, -cross(r1, t), t, cross(r2, t) ]  
         var st1 = vec2.cross(con.r1, t);
         var st2 = vec2.cross(con.r2, t);

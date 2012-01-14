@@ -32,7 +32,7 @@ App = function() {
         // main canvas context
         ctx = canvas.getContext("2d");
 
-        // transform coordinate system
+        // transform coordinate system to y-axis is up and origin is bottom center
         ctx.translate(canvas.width * 0.5, canvas.height);
         ctx.scale(1, -1);
 
@@ -74,6 +74,7 @@ App = function() {
                 function(callback, element) { window.setTimeout(callback, 1000 / 60); };
         })();
 
+        // random color for bodies
         randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"];        
 
         canvasBounds = new Bounds(new vec2(-canvas.width * 0.5, 0), new vec2(canvas.width * 0.5, canvas.height));
@@ -121,7 +122,7 @@ App = function() {
         lastTime = Date.now();
     }
 
-    // Car & various constraints
+    // Car & various joints
     function initScene1() {
         var body, body1, body2, body3;
         var body_prev;
@@ -216,6 +217,7 @@ App = function() {
             body_prev = body;
         }
 
+        // car body
         shape = new ShapeBox(150, 30);
         shape.e = 0.5;
         shape.u = 0.5;
@@ -228,6 +230,7 @@ App = function() {
         body1.p.set(-300, 262);
         space.addBody(body1);
 
+        // wheel 1
         shape = new ShapeCircle(20);
         shape.e = 0.5;
         shape.u = 1.0;
@@ -245,6 +248,7 @@ App = function() {
         joint.collideConnected = false;
         space.addJoint(joint);
 
+        // wheel 2
         shape = new ShapeCircle(20);
         shape.e = 0.5;
         shape.u = 1.0;
@@ -361,6 +365,8 @@ App = function() {
 
     // Crank
     function initScene4() {
+        var shape;
+
         space = new Space();
         space.gravity = new vec2(0, -600);
 
@@ -421,11 +427,13 @@ App = function() {
         joint.collideConnected = false;
         space.addJoint(joint);
         
-        body2,AngularImpulse(100);
+        body2.applyAngularImpulse(1000000);
     }
 
     // Web
     function initScene5() {
+        var shape;
+
         space = new Space();
         space.gravity = new vec2(0, -600);
 
@@ -490,6 +498,8 @@ App = function() {
 
     // Bounce
     function initScene6() {
+        var shape;
+
         space = new Space();
         space.gravity = new vec2(0, -600);
 
@@ -511,8 +521,8 @@ App = function() {
             body1.p.set(-300 + i * 60, 400);
             space.addBody(body1);
         }
-/*
-        shape = new ShapeBox(200, 40);
+
+/*        shape = new ShapeBox(200, 40);
         shape.e = 0.4;
         shape.u = 1.0;
         var body1 = new Body(1, shape.inertia(1));
