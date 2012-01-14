@@ -1,9 +1,9 @@
 Body = function(mass, inertia) {
-    if (Body.hashid_counter == undefined) {
-        Body.hashid_counter = 0;
+    if (Body.id_counter == undefined) {
+        Body.id_counter = 0;
     }
 
-    this.hashid = Body.hashid_counter++;
+    this.id = Body.id_counter++;
 
     if (mass != undefined)
         this.setMass(mass);
@@ -34,11 +34,15 @@ Body = function(mass, inertia) {
     // orientation (angle)
     this.a = 0;
 
-    // velocity for contact penetration bias
-    this.v_bias = new vec2(0, 0);
+    // sleep time
+    this.sleepTime = 0;
 
-    // angular velocity for contact penetration bias
-    this.w_bias = 0;
+    // awaked flag
+    this.awaked = false;
+}
+
+Body.prototype.isStatic = function() {
+    return this.m == Infinity ? true : false;
 }
 
 Body.prototype.localToWorld = function(vec) {
@@ -47,10 +51,6 @@ Body.prototype.localToWorld = function(vec) {
 
 Body.prototype.worldToLocal = function(vec) {
     return vec2.rotate(vec2.sub(vec, this.p), -this.a);
-}
-
-Body.prototype.isStatic = function() {
-    return this.m == Number.POSITIVE_INFINITY ? true : false;
 }
 
 Body.prototype.addShape = function(shape) {
@@ -63,7 +63,7 @@ Body.prototype.addStaticShape = function(shape) {
     shape.body = this;
     this.shapeArr.push(shape);
     
-    this.space.shapeArr.push(shape);
+    this.space.activeShapeArr.push(shape);
     shape.cacheData(new vec2(0, 0), 0);
 }
 
@@ -108,11 +108,8 @@ Body.prototype.updateVelocity = function(gravity, damping, dt) {
 }
 
 Body.prototype.updatePosition = function(dt) {
-	this.p.addself(vec2.scale(vec2.add(this.v, this.v_bias), dt));
-	this.a += (this.w + this.w_bias) * dt;
-
-    this.v_bias.set(0, 0);
-    this.w_bias = 0;
+	this.p.addself(vec2.scale(this.v, dt));
+	this.a += this.w * dt;
 }
 
 Body.prototype.resetForce = function() {
@@ -123,29 +120,64 @@ Body.prototype.resetForce = function() {
 Body.prototype.applyForce = function(force, r) {
     if (this.isStatic())
         return;
+
+    if (!this.isAwake())
+        this.awake(true);
 	
 	this.f.addself(force);
 	this.t += vec2.cross(r, force);
 }
 
-Body.prototype.applyImpulse = function(j, r) {
+Body.prototype.applyTorque = function(torque) {
     if (this.isStatic())
         return;
 
-	this.v.mad(j, this.m_inv);
-	this.w += vec2.cross(r, j) * this.i_inv;
+    if (!this.isAwake())
+        this.awake(true);
+    
+    this.t += torque;
 }
 
-Body.prototype.applyBiasImpulse = function(j, r) {
+Body.prototype.applyLinearImpulse = function(impulse, r) {
     if (this.isStatic())
         return;
 
-	this.v_bias.mad(j, this.m_inv);
-	this.w_bias += vec2.cross(r, j) * this.i_inv;
+    if (!this.isAwake()) 
+        this.awake(true);
+
+	this.v.mad(impulse, this.m_inv);
+	this.w += vec2.cross(r, impulse) * this.i_inv;
+}
+
+Body.prototype.applyAngularImpulse = function(impulse) {
+    if (this.isStatic())
+        return;
+
+    if (!this.isAwake()) 
+        this.awake(true);
+
+    this.w += impulse * this.i_inv;
 }
 
 Body.prototype.kineticEnergy = function() {
     var vsq = this.v.dot(this.v);
     var wsq = this.w * this.w;
     return 0.5 * (this.m * vsq + this.i * wsq);
+}
+
+Body.prototype.isAwake = function() {
+    return this.awaked;
+}
+
+Body.prototype.awake = function(flag) {
+    this.awaked = flag;
+    if (flag) {
+        this.sleepTime = 0;
+    } 
+    else {
+        this.v.set(0, 0);
+        this.w = 0;
+        this.f.set(0, 0);
+        this.t = 0;
+    }
 }

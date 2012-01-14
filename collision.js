@@ -54,8 +54,8 @@ function circle2Segment(circ, seg, contactArr) {
 	var rsum = circ.r + seg.r;
 	
 	// normal distance from segment
-	var dn = vec2.dot(circ.tc, seg.tn) - vec2.dot(seg.ta, seg.tn);
-	var dist = Math.abs(dn) - rsum;
+	var dn = vec2.dot(circ.tc, seg.tn) - vec2.dot(seg.ta, seg.tn);	
+    var dist = (dn < 0 ? dn * -1 : dn) - rsum;
 	if (dist > 0) {
         return 0;
     }
@@ -197,7 +197,7 @@ function findPointsBehindSeg(contactArr, seg, poly, dist, coef)
 		if (vec2.dot(v, n) < vec2.dot(seg.tn, seg.ta) * coef + seg.r) {
 			var dt = vec2.cross(seg.tn, v);
 			if (dta >= dt && dt >= dtb) {
-                contactArr.push(new Contact(v, n, dist, (poly.hashid << 16) | i));
+                contactArr.push(new Contact(v, n, dist, (poly.id << 16) | i));
 			}
 		}
 	}
@@ -235,11 +235,11 @@ function segment2Poly(seg, poly, contactArr) {
 	var vb = vec2.mad(seg.tb, poly_n, seg.r);
 
 	if (poly.containPoint(va)) {
-        contactArr.push(new Contact(va, poly_n, poly_d, (seg.hashid << 16) | 0));
+        contactArr.push(new Contact(va, poly_n, poly_d, (seg.id << 16) | 0));
     }
 
 	if (poly.containPoint(vb)) {
-        contactArr.push(new Contact(vb, poly_n, poly_d, (seg.hashid << 16) | 1));
+        contactArr.push(new Contact(vb, poly_n, poly_d, (seg.id << 16) | 1));
     }
 
     // Floating point precision problems here.
@@ -284,7 +284,7 @@ function findMSA(poly, planes, num)
 	for (var i = 0; i < num; i++) {
 		var dist = poly.distanceOnPlane(planes[i].n, planes[i].d);
 		if (dist > 0) {
-			return -1;
+			return { dist: 0, index: -1 };
 		} 
         else if (dist > min_dist) {
 			min_dist = dist;
@@ -302,7 +302,7 @@ function findVertsFallback(contactArr, poly1, poly2, n, dist)
 	for (var i = 0; i < poly1.verts.length; i++) {
 		var v = poly1.tverts[i];
 		if (poly2.containPointPartial(v, vec2.neg(n))) {
-            contactArr.push(new Contact(v, n, dist, (poly1.hashid << 16) | i));
+            contactArr.push(new Contact(v, n, dist, (poly1.id << 16) | i));
 
             num++;
         }
@@ -311,7 +311,7 @@ function findVertsFallback(contactArr, poly1, poly2, n, dist)
 	for (var i = 0; i < poly2.verts.length; i++) {
 		var v = poly2.tverts[i];
 		if (poly1.containPointPartial(v, n)) {
-            contactArr.push(new Contact(v, n, dist, (poly2.hashid << 16) | i));
+            contactArr.push(new Contact(v, n, dist, (poly2.id << 16) | i));
 
             num++;
         }
@@ -327,7 +327,7 @@ function findVerts(contactArr, poly1, poly2, n, dist)
 	for (var i = 0; i < poly1.verts.length; i++) {
 		var v = poly1.tverts[i];
 		if (poly2.containPoint(v)) {
-            contactArr.push(new Contact(v, n, dist, (poly1.hashid << 16) | i));
+            contactArr.push(new Contact(v, n, dist, (poly1.id << 16) | i));
 
             num++;
         }
@@ -336,7 +336,7 @@ function findVerts(contactArr, poly1, poly2, n, dist)
 	for (var i = 0; i < poly2.verts.length; i++) {
 		var v = poly2.tverts[i];
 		if (poly1.containPoint(v)) {
-            contactArr.push(new Contact(v, n, dist, (poly2.hashid << 16) | i));
+            contactArr.push(new Contact(v, n, dist, (poly2.id << 16) | i));
 
             num++;
         }
@@ -347,12 +347,12 @@ function findVerts(contactArr, poly1, poly2, n, dist)
 
 function poly2Poly(poly1, poly2, contactArr) {
     var min1 = findMSA(poly2, poly1.tplanes, poly1.verts.length);
-    if (min1 == -1) {
+    if (min1.index == -1) {
         return 0;
     }
 
     var min2 = findMSA(poly1, poly2.tplanes, poly2.verts.length);
-    if (min2 == -1) {
+    if (min2.index == -1) {
         return 0;
     }
 
