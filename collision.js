@@ -214,7 +214,7 @@ function segment2Poly(seg, poly, contactArr) {
         return 0;
     }
 
-    var poly_d = -99999999;
+    var poly_d = -999999999;
     var poly_i = -1;
 
     for (var i = 0; i < poly.verts.length; i++) {

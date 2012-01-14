@@ -76,7 +76,7 @@ ShapePoly.prototype.pointQuery = function(p) {
 }
 
 ShapePoly.prototype.distanceOnPlane = function(n, d) {
-    var min = 99999999;
+    var min = 999999999;
     for (var i = 0; i < this.verts.length; i++) {
         min = Math.min(min, vec2.dot(n, this.tverts[i]));
     }
