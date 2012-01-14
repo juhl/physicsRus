@@ -423,7 +423,7 @@ App = function() {
         joint.collideConnected = false;
         space.addJoint(joint);
 
-        var joint = new PrismaticJoint(space.staticBody, body3, new vec2(0, 0), new vec2(0, 0));
+        var joint = new PrismaticJoint(space.staticBody, body3, new vec2(0, 75), new vec2(0, 0));
         joint.collideConnected = false;
         space.addJoint(joint);
         
@@ -822,7 +822,9 @@ App = function() {
     }
 
     function getMousePoint(e) {
-        return { x: e.clientX - canvas.offsetLeft, y: e.clientY - canvas.offsetTop } 
+        return { 
+            x: document.body.scrollLeft + e.clientX - canvas.offsetLeft, 
+            y: document.body.scrollTop + e.clientY - canvas.offsetTop };
     }
 
     function onMouseDown(e) {
@@ -866,7 +868,7 @@ App = function() {
 
     function onMouseMove(e) {
         var point = getMousePoint(e);
-        if (mouseDown) {            
+        if (mouseDown) {
             mousePoint = new vec2(point.x - canvas.width * 0.5, canvas.height - point.y);
         }
 
