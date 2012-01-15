@@ -156,6 +156,8 @@ ContactSolver.prototype.solvePositionConstraints = function() {
     var body1 = this.shape1.body;
     var body2 = this.shape2.body;
 
+    var sum_m_inv = body1.m_inv + body2.m_inv;
+
     var max_penetration = 0;
 
     for (var i = 0; i < this.contactArr.length; i++) {
@@ -186,7 +188,7 @@ ContactSolver.prototype.solvePositionConstraints = function() {
         // solve (J * invM * JT) * lambda = -C
         var sn1 = vec2.cross(r1, n);
         var sn2 = vec2.cross(r2, n);
-        var k = body1.m_inv + body2.m_inv + body1.i_inv * sn1 * sn1 + body2.i_inv * sn2 * sn2;
+        var k = sum_m_inv + body1.i_inv * sn1 * sn1 + body2.i_inv * sn2 * sn2;
         var jp = k == 0 ? 0 : -correction / k;
 
         // accumulate and clamp
