@@ -94,8 +94,8 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 	// solve J * invM * JT * lambda = -J * v
 	// in 2D: cross(w, r) = perp(r) * w
 	var v1 = vec2.mad(body1.v, vec2.perp(this.r1), body1.w);
-    var v2 = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
-    var jv = vec2.sub(v2, v1);
+   	var v2 = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
+   	var jv = vec2.sub(v2, v1);
 	var lambda = this.k.solve(jv.neg());
 
 	// accumulate lambda for velocity constraint

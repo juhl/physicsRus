@@ -60,7 +60,7 @@ MouseJoint.prototype.solveVelocityConstraints = function() {
 	// compute lambda for velocity constraint	
 	// solve J * invM * JT * lambda = -J * v
 	// in 2D: cross(w, r) = perp(r) * w
-    var jv = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
+   	var jv = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
 	var lambda = this.k.solve(jv.neg());
 
 	// accumulate lambda for velocity constraint

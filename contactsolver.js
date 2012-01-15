@@ -194,7 +194,7 @@ ContactSolver.prototype.solvePositionConstraints = function() {
         // accumulate and clamp
         var jp_old = con.jp_acc;
         con.jp_acc = Math.max(jp_old + jp, 0);
-        jp = con.jp_acc - jp_old;        
+        jp = con.jp_acc - jp_old;
         
         // apply correction impulses
         var j = vec2.scale(n, jp);

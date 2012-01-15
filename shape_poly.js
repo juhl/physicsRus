@@ -32,10 +32,10 @@ ShapePoly.prototype = new Shape;
 ShapePoly.prototype.constructor = ShapePoly;
 
 ShapePoly.prototype.recenterForCentroid = function() {
-	var centroid = centroidForPoly(this.verts);
-	for (var i = 0; i < this.numVerts; i++) {
-		this.verts[i].subself(centroid);
-	}
+    var centroid = centroidForPoly(this.verts);
+    for (var i = 0; i < this.numVerts; i++) {
+        this.verts[i].subself(centroid);
+    }
 }
 
 ShapePoly.prototype.area = function() {

@@ -100,8 +100,8 @@ Body.prototype.setMassDensity = function(density) {
 }
 
 Body.prototype.updateVelocity = function(gravity, damping, dt) {
-	this.v = vec2.mad(vec2.scale(this.v, damping), vec2.mad(gravity, this.f, this.m_inv), dt);
-	this.w = this.w * damping + this.t * this.i_inv * dt;
+    this.v = vec2.mad(vec2.scale(this.v, damping), vec2.mad(gravity, this.f, this.m_inv), dt);
+    this.w = this.w * damping + this.t * this.i_inv * dt;
 
     this.f.set(0, 0);
     this.t = 0;
@@ -124,8 +124,8 @@ Body.prototype.applyForce = function(force, r) {
     if (!this.isAwake())
         this.awake(true);
 	
-	this.f.addself(force);
-	this.t += vec2.cross(r, force);
+    this.f.addself(force);
+    this.t += vec2.cross(r, force);
 }
 
 Body.prototype.applyTorque = function(torque) {

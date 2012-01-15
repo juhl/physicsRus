@@ -88,7 +88,7 @@ LineJoint.prototype.solveVelocityConstraints = function() {
 
 	// compute lambda for velocity constraint
 	// solve J * invM * JT * lambda = -J * v
-    var jv = this.n.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
+   	var jv = this.n.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
 	var lambda = this.k_inv * (-jv);
 
 	// accumulate lambda for velocity constraint
@@ -132,9 +132,9 @@ LineJoint.prototype.solvePositionConstraints = function() {
 	
 	// compute lambda for position constraint		
 	// solve J * invM * JT * lambda = -C
-    var s1 = vec2.cross(r1_d, n);
-    var s2 = vec2.cross(r2, n);
-    var k = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;
+   	var s1 = vec2.cross(r1_d, n);
+   	var s2 = vec2.cross(r2, n);
+   	var k = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;
 	var k_inv = k == 0 ? 0 : 1 / k;
 	var lambda = k_inv * (-correction);
 
