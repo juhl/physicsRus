@@ -90,9 +90,13 @@ ContactSolver.prototype.warmStart = function() {
 
     for (var i = 0; i < this.contactArr.length; i++) {
         var con = this.contactArr[i];
+        var n = con.n;
+        var jn = con.jn_acc;
+        var jt = con.jt_acc;
 
         // apply accumulated impulses
-        var j = vec2.rotate(con.n, new vec2(con.jn_acc, con.jt_acc));
+        //var j = vec2.rotate(n, new vec2(jn, jt));
+        var j = new vec2(n.x * jn - n.y * jt, n.x * jt + n.y * jn);
 
         body1.v.mad(j, -body1.m_inv);
         body1.w -= vec2.cross(con.r1, j) * body1.i_inv;
