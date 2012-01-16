@@ -11,6 +11,8 @@
 // J = [ -n, -s1, n, s2 ]
 // s1 = cross(r1 + d, n)
 // s2 = cross(r2, n)
+//
+// JT * lambda = [ -n * lambda, -(s1 * lambda), n * lambda, s2 * lambda ]
 //-------------------------------------------------------------------------------------------------
 
 LineJoint = function(body1, body2, anchor1, anchor2) {
@@ -24,10 +26,10 @@ LineJoint = function(body1, body2, anchor1, anchor2) {
 
 	var d = vec2.sub(p2, p1);
 
-   	// body1's local line normal
+   	// Body1's local line normal
    	this.n_local = vec2.normalize(vec2.rotate(vec2.perp(d), -body1.a));
 
-   	// accumulated impulse
+   	// Accumulated impulse
 	this.lambda_acc = 0;
 }
 
@@ -38,21 +40,21 @@ LineJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;
 		
-	// transformed r1, r2
+	// Transformed r1, r2
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
 	this.r2 = vec2.rotate(this.anchor2, body2.a);
 
-	// world anchor points
+	// World anchor points
 	var p1 = vec2.add(body1.p, this.r1);
 	var p2 = vec2.add(body2.p, this.r2);
 
-	// delta vector between world anchor points
+	// Delta vector between world anchor points
 	var d = vec2.sub(p2, p1);
 
 	// r1 + d
 	this.r1_d = vec2.add(this.r1, d);
 
-	// world line normal
+	// World line normal
 	this.n = vec2.normalize(vec2.perp(d));
 	
 	// s1, s2
@@ -63,11 +65,11 @@ LineJoint.prototype.initSolver = function(dt, warmStarting) {
     var k = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
 	this.k_inv = k > 0 ? 1 / k : k;
 	
-	// max impulse
+	// Max impulse
 	this.j_max = this.max_force * dt;
 
 	if (warmStarting) {
-		// apply cached impulses
+		// Apply cached impulses
 		// V += JT * lambda
 		var j = vec2.scale(this.n, this.lambda_acc);
 
@@ -86,15 +88,15 @@ LineJoint.prototype.solveVelocityConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
-	// compute lambda for velocity constraint
-	// solve J * invM * JT * lambda = -J * v
+	// Compute lambda for velocity constraint
+	// Solve J * invM * JT * lambda = -J * v
    	var jv = this.n.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
 	var lambda = this.k_inv * (-jv);
 
-	// accumulate lambda for velocity constraint
+	// Accumulate lambda for velocity constraint
 	this.lambda_acc += lambda;
 
-	// apply impulses
+	// Apply impulses
 	// V += JT * lambda
 	var j = vec2.scale(this.n, lambda);
 
@@ -109,36 +111,36 @@ LineJoint.prototype.solvePositionConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
-	// transformed r1, r2
+	// Transformed r1, r2
 	var r1 = vec2.rotate(this.anchor1, body1.a);
 	var r2 = vec2.rotate(this.anchor2, body2.a);
 
-	// world anchor points
+	// World anchor points
 	var p1 = vec2.add(body1.p, r1);
 	var p2 = vec2.add(body2.p, r2);
 
-	// delta vector between world anchor points
+	// Delta vector between world anchor points
 	var d = vec2.sub(p2, p1);
 
 	// r1 + d
 	var r1_d = vec2.add(r1, d);
 
-	// world line normal
+	// World line normal
 	var n = vec2.rotate(this.n_local, body1.a);
 
-	// position constraint
+	// Position constraint
 	var c = vec2.dot(n, d);
 	var correction = Math.clamp(c, -this.max_linear_correction, this.max_linear_correction);
 	
-	// compute lambda for position constraint		
-	// solve J * invM * JT * lambda = -C
+	// Compute lambda for position constraint		
+	// Solve J * invM * JT * lambda = -C
    	var s1 = vec2.cross(r1_d, n);
    	var s2 = vec2.cross(r2, n);
    	var k = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;
 	var k_inv = k == 0 ? 0 : 1 / k;
 	var lambda = k_inv * (-correction);
 
-	// apply impulses
+	// Apply impulses
 	// X += JT * lambda * dt
 	var j = vec2.scale(n, lambda);
 

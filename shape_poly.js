@@ -10,7 +10,7 @@ ShapePoly = function(verts) {
     this.tverts = [];
     this.tplanes = [];
 
-    // must be counter-clockwise verts
+    // Must be counter-clockwise verts
     for (var i = 0; i < verts.length; i++) {
         var a = verts[i];
         var b = verts[(i + 1) % verts.length];

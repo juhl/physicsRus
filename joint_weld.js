@@ -15,6 +15,8 @@
 // Block Jacobian Matrix:
 // J = [ -I, skew(r1), I, -skew(r2) ]
 //     [  0,       -1, 0,         1 ]
+//
+// JT * lambda = [ -lambda_xy, -(cross(r1, lambda_xy) + lambda_z), lambda_xy, cross(r1, lambda_xy) + lambda_z ]
 //-------------------------------------------------------------------------------------------------
 
 WeldJoint = function(body1, body2, pivot) {
@@ -33,7 +35,7 @@ WeldJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;
 		
-	// transformed r1, r2
+	// Transformed r1, r2
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
 	this.r2 = vec2.rotate(this.anchor2, body2.a);
 	
@@ -53,19 +55,20 @@ WeldJoint.prototype.initSolver = function(dt, warmStarting) {
 	var k33 = body1.i_inv + body2.i_inv;
 	this.k = new mat3(k11, k12, k13, k12, k22, k23, k13, k23, k33);
 	
-	// max impulse
+	// Max impulse
 	this.j_max = this.max_force * dt;
 
 	if (warmStarting) {
-		// apply cached impulses
+		// Apply cached impulses
 		// V += JT * lambda
-		var lambda2 = new vec2(this.lambda_acc.x, this.lambda_acc.y);
+		var lambda_xy = new vec2(this.lambda_acc.x, this.lambda_acc.y);
+		var lambda_z = this.lambda_acc.z;
 
-		body1.v.mad(lambda2, -body1.m_inv);
-		body1.w -= (vec2.cross(this.r1, lambda2) + this.lambda_acc.z) * body1.i_inv;
+		body1.v.mad(lambda_xy, -body1.m_inv);
+		body1.w -= (vec2.cross(this.r1, lambda_xy) + lambda_z) * body1.i_inv;
 
-		body2.v.mad(lambda2, body2.m_inv);
-		body2.w += (vec2.cross(this.r2, lambda2) + this.lambda_acc.z) * body2.i_inv;
+		body2.v.mad(lambda_xy, body2.m_inv);
+		body2.w += (vec2.cross(this.r2, lambda_xy) + lambda_z) * body2.i_inv;
 	}
 	else {
 		this.lambda_acc.set(0, 0, 0);
@@ -76,45 +79,47 @@ WeldJoint.prototype.solveVelocityConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
-	// compute lambda for velocity constraint
-	// solve J * invM * JT * lambda = -J * v
+	// Compute lambda for velocity constraint
+	// Solve J * invM * JT * lambda = -J * v
 	// in 2D: cross(w, r) = perp(r) * w
 	var v1 = vec2.mad(body1.v, vec2.perp(this.r1), body1.w);
    	var v2 = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
-   	var jv = vec3.fromVec2(vec2.sub(v2, v1), body2.w - body1.w);
+   	var jv_xy = vec2.sub(v2, v1);
+   	var jv_z = body2.w - body1.w;
+   	var jv = vec3.fromVec2(jv_xy, jv_z);
 	var lambda = this.k.solve(jv.neg());
 
-	// accumulate lambda for velocity constraint
+	// Accumulate lambda for velocity constraint
 	this.lambda_acc.addself(lambda);
 
-	// apply impulses
+	// Apply impulses
 	// V += JT * lambda
-	var lambda2 = new vec2(lambda.x, lambda.y);
+	var lambda_xy = new vec2(lambda.x, lambda.y);
 
-	body1.v.mad(lambda2, -body1.m_inv);
-	body1.w -= (vec2.cross(this.r1, lambda2) + lambda.z) * body1.i_inv;
+	body1.v.mad(lambda_xy, -body1.m_inv);
+	body1.w -= (vec2.cross(this.r1, lambda_xy) + lambda.z) * body1.i_inv;
 
-	body2.v.mad(lambda2, body2.m_inv);
-	body2.w += (vec2.cross(this.r2, lambda2) + lambda.z) * body2.i_inv;
+	body2.v.mad(lambda_xy, body2.m_inv);
+	body2.w += (vec2.cross(this.r2, lambda_xy) + lambda.z) * body2.i_inv;
 }
 
 WeldJoint.prototype.solvePositionConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
-	// transformed r1, r2
+	// Transformed r1, r2
 	var r1 = vec2.rotate(this.anchor1, body1.a);
 	var r2 = vec2.rotate(this.anchor2, body2.a);
 
-	// position constraint
+	// Position constraint
 	var c1 = vec2.sub(vec2.add(body2.p, r2), vec2.add(body1.p, r1));
 	var c2 = body2.a - body1.a;
 	var correction = vec3.fromVec2(
 		vec2.truncate(c1, this.max_linear_correction), 
 		Math.clamp(c2, -this.max_angular_correction, this.max_angular_correction));
 
-	// compute lambda for position constraint
-	// solve J * invM * JT * lambda = -C
+	// Compute lambda for position constraint
+	// Solve J * invM * JT * lambda = -C
 	var sum_m_inv = body1.m_inv + body2.m_inv;
 	var r1x_i = r1.x * body1.i_inv;
 	var r1y_i = r1.y * body1.i_inv;
@@ -129,15 +134,15 @@ WeldJoint.prototype.solvePositionConstraints = function() {
 	var k = new mat3(k11, k12, k13, k12, k22, k23, k13, k23, k33);
 	var lambda = k.solve(correction.neg());
 	
-	// apply impulses
+	// Apply impulses
 	// X += JT * lambda * dt
-	var lambda2 = new vec2(lambda.x, lambda.y);
+	var lambda_xy = new vec2(lambda.x, lambda.y);
 
-	body1.p.mad(lambda2, -body1.m_inv);
-	body1.a -= (vec2.cross(r1, lambda2) + lambda.z) * body1.i_inv;
+	body1.p.mad(lambda_xy, -body1.m_inv);
+	body1.a -= (vec2.cross(r1, lambda_xy) + lambda.z) * body1.i_inv;
 
-	body2.p.mad(lambda2, body2.m_inv);
-	body2.a += (vec2.cross(r2, lambda2) + lambda.z) * body2.i_inv;
+	body2.p.mad(lambda_xy, body2.m_inv);
+	body2.a += (vec2.cross(r2, lambda_xy) + lambda.z) * body2.i_inv;
 
 	return c1.length() < Joint.LINEAR_SLOP && Math.abs(c2) <= Joint.ANGULAR_SLOP;
 }

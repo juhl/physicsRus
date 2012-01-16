@@ -53,14 +53,14 @@ function circle2Circle(circ1, circ2, contactArr) {
 function circle2Segment(circ, seg, contactArr) {
 	var rsum = circ.r + seg.r;
 	
-	// normal distance from segment
+	// Normal distance from segment
 	var dn = vec2.dot(circ.tc, seg.tn) - vec2.dot(seg.ta, seg.tn);	
     var dist = (dn < 0 ? dn * -1 : dn) - rsum;
 	if (dist > 0) {
         return 0;
     }
 	
-	// tangential distance along segment
+	// Tangential distance along segment
 	var dt = vec2.cross(circ.tc, seg.tn);
 	var dtMin = vec2.cross(seg.ta, seg.tn);
 	var dtMax = vec2.cross(seg.tb, seg.tn);
@@ -185,7 +185,7 @@ function segment2Segment(seg1, seg2, contactArr) {
     return _circle2Circle(minp1, seg1.r, minp2, seg2.r, contactArr);
 }
 
-// identify vertexes that have penetrated the segment.
+// Identify vertexes that have penetrated the segment.
 function findPointsBehindSeg(contactArr, seg, poly, dist, coef) 
 {
 	var dta = vec2.cross(seg.tn, seg.ta);
@@ -275,7 +275,7 @@ function segment2Poly(seg, poly, contactArr) {
     return contactArr.length;
 }
 
-// find the minimum separating axis for the given poly and plane list.
+// Find the minimum separating axis for the given poly and plane list.
 function findMSA(poly, planes, num)
 {
     var min_dist = -999999999;

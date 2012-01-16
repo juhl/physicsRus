@@ -10,19 +10,19 @@ Joint = function(body1, body2, collideConnected) {
 	this.body1 = body1;
 	this.body2 = body2;
 
-	// allow collision between to cennected body
+	// Allow collision between to cennected body
 	this.collideConnected = collideConnected;
 
-	// constraint force limit
+	// Constraint force limit
 	this.max_force = Infinity;
 
-	// max linear correction
+	// Max linear correction
 	this.max_linear_correction = Infinity;
 
-	// max angular correction
+	// Max angular correction
 	this.max_angular_correction = Infinity;//Math.PI * (8 / 180);
 
-	// is breakable ?
+	// Is breakable ?
 	this.breakable = false;
 }
 

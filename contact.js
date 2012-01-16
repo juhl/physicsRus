@@ -1,21 +1,21 @@
 function Contact(p, n, d, hash) {
     this.hash = hash;
 
-    // contact point
+    // Contact point
     this.p = p; 
 
-    // contact normal (toward shape2)
+    // Contact normal (toward shape2)
     this.n = n; 
 
-    // penetration depth (d < 0)
+    // Penetration depth (d < 0)
     this.d = d; 
 
-    // accumulated normal impulse
+    // Accumulated normal impulse
     this.jn_acc = 0;
 
-    // accumulated tangential impulse
+    // Accumulated tangential impulse
     this.jt_acc = 0;
 
-    // accumulated position correction impulse
+    // Accumulated position correction impulse
     this.jp_acc = 0;
 }

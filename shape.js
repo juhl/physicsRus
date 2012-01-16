@@ -8,13 +8,13 @@ Shape = function(type) {
     this.id = Shape.id_counter++;
     this.type = type;
 
-    // coefficient of restitution (elasticity)
+    // Coefficient of restitution (elasticity)
     this.e = 0;
 
-    // frictional coefficient
+    // Frictional coefficient
     this.u = 1;
 
-    // axis-aligned bounding box
+    // Axis-aligned bounding box
     this.bounds = new Bounds;    
 }
 

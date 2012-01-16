@@ -29,10 +29,10 @@ App = function() {
             alert("Couldn't get canvas object !");
         }
 
-        // main canvas context
+        // Main canvas context
         ctx = canvas.getContext("2d");
 
-        // transform coordinate system to y-axis is up and origin is bottom center
+        // Transform coordinate system to y-axis is up and origin is bottom center
         ctx.translate(canvas.width * 0.5, canvas.height);
         ctx.scale(1, -1);
 
@@ -46,7 +46,7 @@ App = function() {
         canvas.addEventListener("touchmove", touchHandler, false);
         canvas.addEventListener("touchcancel", touchHandler, false);
         
-        // prevent elastic scrolling on iOS
+        // Prevent elastic scrolling on iOS
         //document.body.addEventListener('touchmove', function(event) { event.preventDefault(); }, false);
 
         if (document.addEventListener) {
@@ -74,7 +74,7 @@ App = function() {
                 function(callback, element) { window.setTimeout(callback, 1000 / 60); };
         })();
 
-        // random color for bodies
+        // Random color for bodies
         randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"];        
 
         canvasBounds = new Bounds(new vec2(-canvas.width * 0.5, 0), new vec2(canvas.width * 0.5, canvas.height));
@@ -182,6 +182,8 @@ App = function() {
 
             if (i == 0) {
                 var joint = new RevoluteJoint(space.staticBody, body, new vec2(100, 255 + 15));
+                joint.enableLimit(true);
+                joint.setLimits(-Math.PI * 0.1, Math.PI * 0.1);
                 space.addJoint(joint);
             }
             else {
@@ -217,7 +219,7 @@ App = function() {
             body_prev = body;
         }
 
-        // car body
+        // Car body
         shape = new ShapeBox(150, 30);
         shape.e = 0.5;
         shape.u = 0.5;
@@ -230,7 +232,7 @@ App = function() {
         body1.p.set(-300, 262);
         space.addBody(body1);
 
-        // wheel 1
+        // Wheel 1
         shape = new ShapeCircle(20);
         shape.e = 0.5;
         shape.u = 1.0;
@@ -248,7 +250,7 @@ App = function() {
         joint.collideConnected = false;
         space.addJoint(joint);
 
-        // wheel 2
+        // Wheel 2
         shape = new ShapeCircle(20);
         shape.e = 0.5;
         shape.u = 1.0;
@@ -266,7 +268,7 @@ App = function() {
         joint.collideConnected = false;
         space.addJoint(joint);
 
-        // both wheels constrained to be same rotation        
+        // Both wheels constrained to be same rotation        
         //space.addJoint(new AngleJoint(body2, body3));
     }
 

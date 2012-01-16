@@ -21,6 +21,8 @@
 // Block Jacobian Matrix:
 // J = [ -n, -s1, n, s2 ]
 //     [  0,  -1, 0,  1 ]
+//
+// JT * lambda = [ -n * lambda_x, -(s1 * lambda_x + lambda_y), n * lambda_x, s2 * lambda_x + lambda_y ]
 //-------------------------------------------------------------------------------------------------
 
 PrismaticJoint = function(body1, body2, anchor1, anchor2) {
@@ -31,17 +33,17 @@ PrismaticJoint = function(body1, body2, anchor1, anchor2) {
 
 	this.da = body2.a - body1.a;
 	
-	// world anchor points
+	// World anchor points
 	var p1 = vec2.add(body1.p, vec2.rotate(anchor1, body1.a));
 	var p2 = vec2.add(body2.p, vec2.rotate(anchor2, body2.a));
 
-	// delta vector between world anchor points
+	// Delta vector between world anchor points
 	var d = vec2.sub(p2, p1);
 
-   	// body1's local line normal
+   	// Body1's local line normal
    	this.n_local = vec2.normalize(vec2.rotate(vec2.perp(d), -body1.a));
 
-   	// accumulated lambda
+   	// Accumulated lambda
 	this.lambda_acc = new vec2(0, 0);
 }
 
@@ -52,21 +54,21 @@ PrismaticJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
-	// transformed r1, r2
+	// Transformed r1, r2
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
 	this.r2 = vec2.rotate(this.anchor2, body2.a);
 
-	// world anchor points
+	// World anchor points
 	var p1 = vec2.add(body1.p, this.r1);
 	var p2 = vec2.add(body2.p, this.r2);
 
-	// delta vector between world anchor points
+	// Delta vector between world anchor points
 	var d = vec2.sub(p2, p1);
 
 	// r1 + d
 	this.r1_d = vec2.add(this.r1, d);
 
-	// world line normal
+	// World line normal
 	this.n = vec2.normalize(vec2.perp(d));
 	
 	// s1, s2
@@ -83,11 +85,11 @@ PrismaticJoint.prototype.initSolver = function(dt, warmStarting) {
 	var k22 = body1.i_inv + body2.i_inv;
 	this.k = new mat2(k11, k12, k12, k22);
 	
-	// max impulse
+	// Max impulse
 	this.j_max = this.max_force * dt;
 
 	if (warmStarting) {
-		// apply cached impulses	
+		// Apply cached impulses
 		// V += JT * lambda
 		var j = vec2.scale(this.n, this.lambda_acc.x);
 
@@ -106,16 +108,16 @@ PrismaticJoint.prototype.solveVelocityConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
-	// compute lambda for velocity constraint	
-	// solve J * invM * JT * lambda = -J * v
+	// Compute lambda for velocity constraint	
+	// Solve J * invM * JT * lambda = -J * v
 	var jv1 = this.n.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
 	var jv2 = body2.w - body1.w;
 	var lambda = this.k.solve(new vec2(-jv1, -jv2));
 
-	// accumulate lambda for velocity constraint
+	// Accumulate lambda for velocity constraint
 	this.lambda_acc.addself(lambda);
 
-	// apply impulses
+	// Apply impulses
 	// V += JT * lambda
 	var j = vec2.scale(this.n, lambda.x);
 
@@ -130,32 +132,32 @@ PrismaticJoint.prototype.solvePositionConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
-	// transformed r1, r2
+	// Transformed r1, r2
 	var r1 = vec2.rotate(this.anchor1, body1.a);
 	var r2 = vec2.rotate(this.anchor2, body2.a);
 
-	// world anchor points
+	// World anchor points
 	var p1 = vec2.add(body1.p, r1);
 	var p2 = vec2.add(body2.p, r2);
 
-	// delta vector between world anchor points
+	// Delta vector between world anchor points
 	var d = vec2.sub(p2, p1);
 
 	// r1 + d
 	var r1_d = vec2.add(r1, d);
 
-	// world line normal
+	// World line normal
 	var n = vec2.rotate(this.n_local, body1.a);
 
-	// position constraint
+	// Position constraint
 	var c1 = vec2.dot(n, d);
 	var c2 = body2.a - body1.a - this.da;
 	var correction = new vec2;
 	correction.x = Math.clamp(c1, -this.max_linear_correction, this.max_linear_correction);
 	correction.y = Math.clamp(c2, -this.max_angular_correction, this.max_angular_correction);
 
-	// compute impulse for position constraint
-	// solve J * invM * JT * lambda = -C
+	// Compute impulse for position constraint
+	// Solve J * invM * JT * lambda = -C
 	var s1 = vec2.cross(r1_d, n);
 	var s2 = vec2.cross(r2, n);
 	var s1_i = s1 * body1.i_inv;
@@ -166,7 +168,7 @@ PrismaticJoint.prototype.solvePositionConstraints = function() {
 	var k = new mat2(k11, k12, k12, k22);
 	var lambda = k.solve(correction.neg());
 
-	// apply impulses
+	// Apply impulses
 	// X += JT * lambda * dt
 	var j = vec2.scale(n, lambda.x);
 

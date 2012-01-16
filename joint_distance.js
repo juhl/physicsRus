@@ -105,23 +105,25 @@ SpringJoint.prototype.getReactionTorque = function(dt_inv) {
 // dC/dt = dot(u, v2 + cross(w2, r2) - v1 - cross(w1, r1))
 //       = -dot(u, v1) - dot(w1, cross(r1, u)) + dot(u, v2) + dot(w2, cross(r2, u))
 // J = [ -u, -cross(r1, u), u, cross(r2, u) ]
+//
+// JT * lambda = [ -u * lambda, -cross(r1, u) * lambda, u * lambda, cross(r1, u) * lambda ]
 //-------------------------------------------------------------------------------------------------
 
 DistanceJoint = function(body1, body2, anchor1, anchor2) {
 	Joint.call(this, body1, body2, true);
 
-	// local anchor points
+	// Local anchor points
 	this.anchor1 = anchor1;
 	this.anchor2 = anchor2;
 
-	// world anchor points
+	// World anchor points
 	var p1 = vec2.add(body1.p, vec2.rotate(anchor1, body1.a));
 	var p2 = vec2.add(body2.p, vec2.rotate(anchor2, body2.a));
 
-	// rest distance
+	// Rest distance
 	this.restLength = vec2.dist(p1, p2);
 
-	// accumulated impulse
+	// Accumulated impulse
 	this.lambda_acc = 0;
 }
 
@@ -132,17 +134,17 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
-	// transformed r1, r2
+	// Transformed r1, r2
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
 	this.r2 = vec2.rotate(this.anchor2, body2.a);
 
-	// delta vector between two world anchors
+	// Delta vector between two world anchors
 	var d = vec2.sub(vec2.add(body2.p, this.r2), vec2.add(body1.p, this.r1));
 
-	// distance between two anchors
+	// Distance between two anchors
 	var dist = d.length();
 
-	// unit delta vector
+	// Unit delta vector
 	this.u = vec2.scale(d, 1 / dist);
 	
 	// s1, s2
@@ -153,11 +155,11 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
    	var k = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
 	this.k_inv = k == 0 ? 0 : 1 / k;
 
-	// max impulse	
+	// Max impulse	
 	this.j_max = this.max_force * dt;
 
 	if (warmStarting) {
-		// apply cached impulses
+		// Apply cached impulses
 		// V += JT * lambda
 		var j = vec2.scale(this.u, this.lambda_acc);
 
@@ -176,15 +178,15 @@ DistanceJoint.prototype.solveVelocityConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
-	// compute lambda for velocity constraint
-	// solve J * invM * JT * lambda = -J * v
+	// Compute lambda for velocity constraint
+	// Solve J * invM * JT * lambda = -J * v
     var jv = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
 	var lambda = this.k_inv * (-jv);
 
-	// accumulate lambda for velocity constraint
+	// Accumulate lambda for velocity constraint
 	this.lambda_acc += lambda;
 
-	// apply impulses
+	// Apply impulses
 	// V += JT * lambda
 	var j = vec2.scale(this.u, lambda);
 
@@ -199,31 +201,31 @@ DistanceJoint.prototype.solvePositionConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
-	// transformed r1, r2
+	// Transformed r1, r2
 	var r1 = vec2.rotate(this.anchor1, body1.a);
 	var r2 = vec2.rotate(this.anchor2, body2.a);
 
-	// delta vector between two anchors
+	// Delta vector between two anchors
 	var d = vec2.sub(vec2.add(body2.p, r2), vec2.add(body1.p, r1));
 
-	// distance between two anchors
+	// Distance between two anchors
 	var dist = d.length();
 
-	// unit delta vector
+	// Unit delta vector
 	var u = vec2.scale(d, 1 / dist);
 
-	// position constraint
+	// Position constraint
 	var c = dist - this.restLength;
 	var correction = Math.clamp(c, -this.max_linear_correction, this.max_linear_correction);
 
-	// compute lambda for correction		
-	// solve J * invM * JT * lambda = -C
+	// Compute lambda for correction		
+	// Solve J * invM * JT * lambda = -C
     var s1 = vec2.cross(r1, u);
     var s2 = vec2.cross(r2, u);
     var k = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;
 	var lambda = k == 0 ? 0 : -correction / k;	
 
-	// apply impulses
+	// Apply impulses
 	// X += JT * lambda * dt
 	var j = vec2.scale(u, lambda);
 

@@ -10,34 +10,34 @@ Body = function(mass, inertia) {
     if (inertia != undefined)
         this.setInertia(inertia);
 
-    // shape list for this body
+    // Shape list for this body
     this.shapeArr = [];
 
-    // joint hash for this body
+    // Joint hash for this body
     this.jointHash = {};
 
-    // force
+    // Force
     this.f = new vec2(0, 0);
 
-    // velocity
+    // Velocity
     this.v = new vec2(0, 0);
 
-    // position
+    // Position
     this.p = new vec2(0, 0);
 
-    // torque
+    // Torque
     this.t = 0;
 
-    // angular velocity
+    // Angular velocity
     this.w = 0;
 
-    // orientation (angle)
+    // Orientation (angle)
     this.a = 0;
 
-    // sleep time
+    // Sleep time
     this.sleepTime = 0;
 
-    // awaked flag
+    // Awaked flag
     this.awaked = false;
 }
 

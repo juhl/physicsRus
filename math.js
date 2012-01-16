@@ -99,7 +99,7 @@ vec2.prototype.dot = function(v) {
     return this.x * v.x + this.y * v.y;
 }
 
-// z-component of 3d cross product (ax, ay, 0) x (bx, by, 0)
+// Z-component of 3d cross product (ax, ay, 0) x (bx, by, 0)
 vec2.prototype.cross = function(v) {
     return this.x * v.y - this.y * v.x;
 }
@@ -169,12 +169,12 @@ vec2.rotate = function(v, r) {
     return new vec2(v.x * vec.x - v.y * vec.y, v.x * vec.y + v.y * vec.x);
 }
 
-// return perpendicular vector (90 degree rotation)
+// Return perpendicular vector (90 degree rotation)
 vec2.perp = function(v) {
     return new vec2(-v.y, v.x);
 }
 
-// return perpendicular vector (-90 degree rotation)
+// Return perpendicular vector (-90 degree rotation)
 vec2.rperp = function(v) {
     return new vec2(v.y, -v.x);
 }
@@ -398,7 +398,7 @@ mat2.prototype.invert = function() {
         -this._21 * det, this._11 * det);   
 }
 
-// solve A * x = b
+// Solve A * x = b
 mat2.prototype.solve = function(b) {
     var det = this._11 * this._22 - this._12 * this._21;
     if (det != 0) 
@@ -523,7 +523,7 @@ mat3.prototype.invert = function() {
         det2_31 * det, det2_32 * det, det2_33 * det);
 }
 
-// solve A(2x2) * x = b
+// Solve A(2x2) * x = b
 mat3.prototype.solve2x2 = function(b) {
     var det = this._11 * this._22 - this._12 * this._21;
     if (det != 0) 
@@ -534,7 +534,7 @@ mat3.prototype.solve2x2 = function(b) {
         det * (this._11 * b.y - this._21 * b.x));
 }
 
-// solve A(3x3) * x = b
+// Solve A(3x3) * x = b
 mat3.prototype.solve = function(b) {
     var det2_11 = this._22 * this._33 - this._23 * this._32;
     var det2_12 = this._23 * this._31 - this._21 * this._33;

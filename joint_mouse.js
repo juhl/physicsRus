@@ -5,6 +5,8 @@
 // C = p - m
 // dC/dt = v + cross(w, r)
 // J = [ I, -skew(r) ]
+//
+// JT * lambda = [ lambda_xy, cross(r1, lambda_xy) ]
 //-------------------------------------------------------------------------------------------------
 
 MouseJoint = function(body1, body2, anchor1, anchor2) {
@@ -26,7 +28,7 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;
 		
-	// transformed r1, r2
+	// Transformed r1, r2
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
 	this.r2 = vec2.rotate(this.anchor2, body2.a);
 		
@@ -39,11 +41,11 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	var k22 = body2.m_inv + r2.x * r2.x * body2.i_inv;
 	this.k = new mat2(k11, k12, k12, k22);
 	
-	// max impulse
+	// Max impulse
 	this.j_max = this.max_force * dt;
 
 	if (warmStarting) {
-		// apply cached impulses
+		// Apply cached impulses
 		// V += JT * lambda
 		body2.v.mad(this.lambda_acc, body2.m_inv);
 		body2.w += vec2.cross(this.r2, this.lambda_acc) * body2.i_inv;
@@ -57,16 +59,16 @@ MouseJoint.prototype.solveVelocityConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
-	// compute lambda for velocity constraint	
-	// solve J * invM * JT * lambda = -J * v
+	// Compute lambda for velocity constraint	
+	// Solve J * invM * JT * lambda = -J * v
 	// in 2D: cross(w, r) = perp(r) * w
    	var jv = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
 	var lambda = this.k.solve(jv.neg());
 
-	// accumulate lambda for velocity constraint
+	// Accumulate lambda for velocity constraint
 	this.lambda_acc.addself(lambda);
 
-	// apply impulse
+	// Apply impulse
 	// V += JT * lambda
 	body2.v.mad(lambda, body2.m_inv);
 	body2.w += vec2.cross(this.r2, lambda) * body2.i_inv;

@@ -33,7 +33,7 @@ Space.prototype.addBody = function(body) {
 
 Space.prototype.removeBody = function(body) {
     if (this.bodyHash[body.id]) {
-        // remove from space shapeArr
+        // Remove from space shapeArr
         for (var j = 0; j < this.activeShapeArr.length; j++) {
             if (body.shapeArr[0] == this.activeShapeArr[j]) {
                 this.activeShapeArr.splice(j, body.shapeArr.length);
@@ -41,7 +41,7 @@ Space.prototype.removeBody = function(body) {
             }
         }
 
-        // remove linked joint
+        // Remove linked joint
         for (var j in body.jointHash) {
             this.removeJoint(body.jointHash[j]);
         }
@@ -116,7 +116,7 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration) {
 
     var t0 = Date.now();
 
-    // generate contact & contactSolver
+    // Generate contact & contactSolver
     for (var i = 0; i < this.activeShapeArr.length; i++) {
         for (var j = i + 1; j < this.activeShapeArr.length; j++) {
             var shape1 = this.activeShapeArr[i];
@@ -172,32 +172,32 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration) {
 
     t0 = Date.now();
 
-    // initialize contact solvers
+    // Initialize contact solvers
     for (var i = 0; i < this.contactSolverArr.length; i++) {
         this.contactSolverArr[i].initSolver(dt_inv);
     }
 
-    // initialize joint solver
+    // Initialize joint solver
     for (var i in this.jointHash) {
         this.jointHash[i].initSolver(dt, true);
     }
 
     stats.timeInitSolver = Date.now() - t0;
 
-     // intergrate velocity
+    // Intergrate velocity
     var damping = this.damping < 1 ? Math.pow(this.damping, dt) : 1;
     for (var i in this.bodyHash) {
         this.bodyHash[i].updateVelocity(this.gravity, damping, dt);
     }
 
-    // warm start (apply cached impulse)
+    // Warm start (apply cached impulse)
     for (var i = 0; i < this.contactSolverArr.length; i++) {
         this.contactSolverArr[i].warmStart();
     }
 
     t0 = Date.now();
 
-    // iterative velocity constraints solver
+    // Iterative velocity constraints solver
     for (var i = 0; i < vel_iteration; i++) {
         for (var j in this.jointHash) {
             this.jointHash[j].solveVelocityConstraints();
@@ -210,12 +210,12 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration) {
 
     stats.timeVelocitySolver = Date.now() - t0;
 
-    // intergrate position
+    // Intergrate position
     for (var i in this.bodyHash) {
         this.bodyHash[i].updatePosition(dt);
     }
 
-    // process breakable joint
+    // Process breakable joint
     for (var i in this.jointHash) {
         var joint = this.jointHash[i];
         if (joint.breakable) {
@@ -229,7 +229,7 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration) {
     stats.positionIterations = 0;
     var positionSolved = false;
 
-    // iterative position constraints solver    
+    // Iterative position constraints solver    
     for (var i = 0; i < pos_iteration; i++) {
         var contactsOk = true;
         var jointsOk = true;
@@ -255,7 +255,7 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration) {
 
     stats.timePositionSolver = Date.now() - t0;
 
-    // post solve collision callback
+    // Post solve collision callback
     for (var i = 0; i < this.contactSolverArr.length; i++) {
         var arb = this.contactSolverArr[i];
         this.postSolve(arb);
@@ -265,7 +265,7 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration) {
         body = this.bodyHash[i].cacheData();
     }
 
-    // sleeping
+    // Process sleeping
     if (1) {
         var minSleepTime = 999999999;
 
