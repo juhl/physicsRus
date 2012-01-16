@@ -28,3 +28,8 @@ Joint = function(body1, body2, collideConnected) {
 
 Joint.LINEAR_SLOP = 0.05;
 Joint.ANGULAR_SLOP = deg2rad(1);
+
+Joint.LIMIT_STATE_INACTIVE = 0;
+Joint.LIMIT_STATE_AT_LOWER = 1;
+Joint.LIMIT_STATE_AT_UPPER = 2;
+Joint.LIMIT_STATE_EQUAL_LIMITS = 3;

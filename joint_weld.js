@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------------------------------
 // Weld Joint
 //
-// Linear Constraint:
+// Point-to-Point Constraint:
 // C = p2 - p1
 // dC/dt = v2 + cross(w2, r2) - v1 - cross(w1, r1)
 //       = -v1 + cross(r1, w1) + v2 - cross(r2, w1)

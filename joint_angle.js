@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------------------------------
 // Angle Joint
 //
-// C = a2 - a1 - initial_da
+// C = a2 - a1 - refAngle
 // dC/dt = w2 - w1
 // J = [0, -1, 0, 1]
 //-------------------------------------------------------------------------------------------------
@@ -9,7 +9,8 @@
 AngleJoint = function(body1, body2) {
 	Joint.call(this, body1, body2, false); // default not to collide with angle joint
 
-	this.da = body2.a - body1.a;
+	// initial angle difference
+	this.refAngle = body2.a - body1.a;
 
 	// accumulated lambda for angular velocity constraint
 	this.lambda_acc = 0;
@@ -63,7 +64,7 @@ AngleJoint.prototype.solvePositionConstraints = function() {
 	var body2 = this.body2;
 
 	// position (angle) constraint
-	var c = body2.a - body1.a - this.da;
+	var c = body2.a - body1.a - this.refAngle;
 	var correction = Math.clamp(c, -this.max_angular_correction, this.max_angular_correction);
 
 	// compute lambda for position (angle) constraint
