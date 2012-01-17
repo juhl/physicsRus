@@ -437,7 +437,7 @@ App = function() {
         var joint = new RevoluteJoint(bodyLArm1, bodyLArm2, new vec2(-105, 320));
         joint.collideConnected = false;
         joint.enableLimit(true);
-        joint.setLimits(deg2rad(-150), deg2rad(10));
+        joint.setLimits(deg2rad(-170), deg2rad(10));
         space.addJoint(joint);
 
         var joint = new RevoluteJoint(bodySpine1, bodyRArm1, new vec2(45, 320));
@@ -448,7 +448,7 @@ App = function() {
         var joint = new RevoluteJoint(bodyRArm1, bodyRArm2, new vec2(105, 320));
         joint.collideConnected = false;
         joint.enableLimit(true);
-        joint.setLimits(deg2rad(-10), deg2rad(150));
+        joint.setLimits(deg2rad(-10), deg2rad(170));
         space.addJoint(joint);
 
         var joint = new RevoluteJoint(bodyPelvis, bodyLLeg1, new vec2(-20, 210));
@@ -460,7 +460,7 @@ App = function() {
         var joint = new RevoluteJoint(bodyLLeg1, bodyLLeg2, new vec2(-20, 120));
         joint.collideConnected = false;
         joint.enableLimit(true);
-        joint.setLimits(deg2rad(-10), deg2rad(120));
+        joint.setLimits(deg2rad(-30), deg2rad(170));
         space.addJoint(joint);
 
         var joint = new RevoluteJoint(bodyPelvis, bodyRLeg1, new vec2(20, 210));
@@ -472,7 +472,7 @@ App = function() {
         var joint = new RevoluteJoint(bodyRLeg1, bodyRLeg2, new vec2(20, 120));
         joint.collideConnected = false;
         joint.enableLimit(true);
-        joint.setLimits(deg2rad(-120), deg2rad(10));
+        joint.setLimits(deg2rad(-170), deg2rad(30));
         space.addJoint(joint);
 
         bodyHead.applyLinearImpulse(new vec2(3000, 0), vec2.zero);
