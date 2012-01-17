@@ -18,6 +18,7 @@ MouseJoint = function(body1, body2, anchor1, anchor2) {
 	this.anchor1 = anchor1;
 	this.anchor2 = anchor2;	
 
+	// Accumulated impulse
 	this.lambda_acc = new vec2(0, 0);
 }
 

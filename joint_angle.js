@@ -67,7 +67,7 @@ AngleJoint.prototype.solvePositionConstraints = function() {
 
 	// Position (angle) constraint
 	var c = body2.a - body1.a - this.refAngle;
-	var correction = Math.clamp(c, -this.max_angular_correction, this.max_angular_correction);
+	var correction = Math.clamp(c, -Joint.MAX_ANGULAR_CORRECTION, Joint.MAX_ANGULAR_CORRECTION);
 
 	// Compute lambda for position (angle) constraint
 	// Solve J * invM * JT * lambda = -C

@@ -130,7 +130,7 @@ LineJoint.prototype.solvePositionConstraints = function() {
 
 	// Position constraint
 	var c = vec2.dot(n, d);
-	var correction = Math.clamp(c, -this.max_linear_correction, this.max_linear_correction);
+	var correction = Math.clamp(c, -Joint.MAX_LINEAR_CORRECTION, Joint.MAX_LINEAR_CORRECTION);
 	
 	// Compute lambda for position constraint		
 	// Solve J * invM * JT * lambda = -C

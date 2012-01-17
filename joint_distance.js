@@ -216,7 +216,7 @@ DistanceJoint.prototype.solvePositionConstraints = function() {
 
 	// Position constraint
 	var c = dist - this.restLength;
-	var correction = Math.clamp(c, -this.max_linear_correction, this.max_linear_correction);
+	var correction = Math.clamp(c, -Joint.MAX_LINEAR_CORRECTION, Joint.MAX_LINEAR_CORRECTION);
 
 	// Compute lambda for correction		
 	// Solve J * invM * JT * lambda = -C
@@ -384,7 +384,7 @@ MaxDistanceJoint.prototype.solvePositionConstraints = function() {
 	else if (dist > this.maxDist) {
 		c = dist - this.maxDist;
 	}
-	var correction = Math.clamp(c, -this.max_linear_correction, this.max_linear_correction);
+	var correction = Math.clamp(c, -Joint.MAX_LINEAR_CORRECTION, Joint.MAX_LINEAR_CORRECTION);
 
 	// compute lambda for position constraint	
 	// solve J * invM * JT * lambda = -C
