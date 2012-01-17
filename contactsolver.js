@@ -15,6 +15,7 @@ function ContactSolver(shape1, shape2) {
 
 ContactSolver.CORRECTION_COEFF = 0.34;
 ContactSolver.COLLISION_SLOP = 0.1;
+ContactSolver.MAX_LINEAR_CORRECTION = Infinity;
 
 ContactSolver.prototype.update = function(newContactArr) {
     for (var i = 0; i < newContactArr.length; i++) {
@@ -177,7 +178,7 @@ ContactSolver.prototype.solvePositionConstraints = function() {
 
         // Position constraint
         var c = vec2.dot(dp, n) + con.d;
-        var correction = ContactSolver.CORRECTION_COEFF * Math.min(c + ContactSolver.COLLISION_SLOP, 0);
+        var correction = Math.clamp(ContactSolver.CORRECTION_COEFF * (c + ContactSolver.COLLISION_SLOP), -ContactSolver.MAX_LINEAR_CORRECTION, 0);
         if (correction == 0)
             continue;
 

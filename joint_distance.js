@@ -63,8 +63,8 @@ SpringJoint.prototype.solveVelocityConstraints = function() {
 	
 	// compute lambda for velocity constraint	
 	// solve J * invM * JT * lambda = -J * v
-    var jv = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
-	var rnv = jv + this.target_rnv;
+    var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
+	var rnv = cdot + this.target_rnv;
 
 	// compute velocity loss from drag
 	var v_damp = rnv * this.v_coeff;
@@ -102,8 +102,8 @@ SpringJoint.prototype.getReactionTorque = function(dt_inv) {
 // u = p2 - p1 / norm(p2 - p1)
 // C = norm(d) - l
 // C = sqrt(dot(d, d)) - l
-// dC/dt = dot(u, v2 + cross(w2, r2) - v1 - cross(w1, r1))
-//       = -dot(u, v1) - dot(w1, cross(r1, u)) + dot(u, v2) + dot(w2, cross(r2, u))
+// Cdot = dot(u, v2 + cross(w2, r2) - v1 - cross(w1, r1))
+//      = -dot(u, v1) - dot(w1, cross(r1, u)) + dot(u, v2) + dot(w2, cross(r2, u))
 // J = [ -u, -cross(r1, u), u, cross(r2, u) ]
 //
 // JT * lambda = [ -u * lambda, -cross(r1, u) * lambda, u * lambda, cross(r1, u) * lambda ]
@@ -180,8 +180,8 @@ DistanceJoint.prototype.solveVelocityConstraints = function() {
 
 	// Compute lambda for velocity constraint
 	// Solve J * invM * JT * lambda = -J * v
-    var jv = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
-	var lambda = this.k_inv * (-jv);
+    var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
+	var lambda = -this.k_inv * cdot;
 
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc += lambda;
@@ -339,8 +339,8 @@ MaxDistanceJoint.prototype.solveVelocityConstraints = function() {
 
 	// compute lambda for velocity constraint	
 	// solve J * invM * JT * lambda = -J * v
-	var jv = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
-	var lambda = this.k_inv * (-jv);
+	var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
+	var lambda = -this.k_inv * cdot;
 
 	// accumulate lambda for velocity constraint
 	this.lambda_acc += lambda;

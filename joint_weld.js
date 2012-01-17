@@ -2,15 +2,15 @@
 // Weld Joint
 //
 // Point-to-Point Constraint:
-// C = p2 - p1
-// dC/dt = v2 + cross(w2, r2) - v1 - cross(w1, r1)
+// C1 = p2 - p1
+// Cdot1 = v2 + cross(w2, r2) - v1 - cross(w1, r1)
 //       = -v1 + cross(r1, w1) + v2 - cross(r2, w1)
-// J = [ -I, skew(r1), I, -skew(r2) ]
+// J1 = [ -I, skew(r1), I, -skew(r2) ]
 //
-// Anglular Constraint:
-// C = a2 - a1
-// dC/dt = w2 - w1
-// J = [ 0, -1, 0, 1 ]
+// Angular Constraint:
+// C2 = a2 - a1
+// C2dot = w2 - w1
+// J2 = [ 0, -1, 0, 1 ]
 //
 // Block Jacobian Matrix:
 // J = [ -I, skew(r1), I, -skew(r2) ]
@@ -25,6 +25,7 @@ WeldJoint = function(body1, body2, pivot) {
 	this.anchor1 = body1.worldToLocal(pivot);
 	this.anchor2 = body2.worldToLocal(pivot);
 
+	// Accumulated lambda
 	this.lambda_acc = new vec3(0, 0, 0);
 }
 
@@ -84,10 +85,10 @@ WeldJoint.prototype.solveVelocityConstraints = function() {
 	// in 2D: cross(w, r) = perp(r) * w
 	var v1 = vec2.mad(body1.v, vec2.perp(this.r1), body1.w);
    	var v2 = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
-   	var jv_xy = vec2.sub(v2, v1);
-   	var jv_z = body2.w - body1.w;
-   	var jv = vec3.fromVec2(jv_xy, jv_z);
-	var lambda = this.k.solve(jv.neg());
+   	var cdot1 = vec2.sub(v2, v1);
+   	var cdot2 = body2.w - body1.w;
+   	var cdot = vec3.fromVec2(cdot1, cdot2);
+	var lambda = this.k.solve(cdot.neg());
 
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc.addself(lambda);
@@ -115,8 +116,8 @@ WeldJoint.prototype.solvePositionConstraints = function() {
 	var c1 = vec2.sub(vec2.add(body2.p, r2), vec2.add(body1.p, r1));
 	var c2 = body2.a - body1.a;
 	var correction = vec3.fromVec2(
-		vec2.truncate(c1, this.max_linear_correction), 
-		Math.clamp(c2, -this.max_angular_correction, this.max_angular_correction));
+		vec2.truncate(c1, Joint.MAX_LINEAR_CORRECTION), 
+		Math.clamp(c2, -Joint.MAX_ANGULAR_CORRECTION, Joint.MAX_ANGULAR_CORRECTION));
 
 	// Compute lambda for position constraint
 	// Solve J * invM * JT * lambda = -C

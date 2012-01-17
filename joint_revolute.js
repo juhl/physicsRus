@@ -2,15 +2,15 @@
 // Revolute Joint
 //
 // Point-to-Point Constraint:
-// C = p2 - p1
-// dC/dt = v2 + cross(w2, r2) - v1 - cross(w1, r1)
-//       = -v1 + cross(r1, w1) + v2 - cross(r2, w1)
-// J = [ -I, skew(r1), I, -skew(r2) ]
+// C1 = p2 - p1
+// C1dot = v2 + cross(w2, r2) - v1 - cross(w1, r1)
+//      = -v1 + cross(r1, w1) + v2 - cross(r2, w1)
+// J1 = [ -I, skew(r1), I, -skew(r2) ]
 //
-// Anglular Constraint (for angle limit):
-// C = a2 - a1
-// dC/dt = w2 - w1
-// J = [ 0, -1, 0, 1 ]
+// Angular Constraint (for angle limit):
+// C2 = a2 - a1 - refAngle
+// C2dot = w2 - w1
+// J2 = [ 0, -1, 0, 1 ]
 //
 // Block Jacobian Matrix:
 // J = [ -I, skew(r1), I, -skew(r2) ]
@@ -28,6 +28,7 @@ RevoluteJoint = function(body1, body2, pivot) {
 	// Initial angle difference
 	this.refAngle = body2.a - body1.a;
 
+	// Accumulated lambda
 	this.lambda_acc = new vec3(0, 0, 0);
 
 	// Angle limit
@@ -36,7 +37,7 @@ RevoluteJoint = function(body1, body2, pivot) {
 	this.limitUpperAngle = 0;
 	this.limitState = Joint.LIMIT_STATE_INACTIVE;
 
-	// motor
+	// Motor
 	this.motorEnabled = false;
 	this.motorSpeed = 0;
 	this.maxMotorTorque = 0;	
@@ -116,6 +117,11 @@ RevoluteJoint.prototype.initSolver = function(dt, warmStarting) {
 	var k23 = r1x_i + r2x_i;
 	var k33 = body1.i_inv + body2.i_inv;
 	this.k = new mat3(k11, k12, k13, k12, k22, k23, k13, k23, k33);
+
+	// K2 = J2 * invM * J2T
+	if (k33 != 0) {
+		this.k2_inv = 1 / k33;
+	}
 	
 	// Max impulse
 	this.j_max = this.max_force * dt;
@@ -148,33 +154,40 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 		// in 2D: cross(w, r) = perp(r) * w
 		var v1 = vec2.mad(body1.v, vec2.perp(this.r1), body1.w);
    		var v2 = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
-   		var jv_xy = vec2.sub(v2, v1);
-   		var jv_z = body2.w - body1.w;
-   		var jv = vec3.fromVec2(jv_xy, jv_z);
-		var lambda = this.k.solve(jv.neg());
+   		var cdot1 = vec2.sub(v2, v1);
+   		var cdot2 = body2.w - body1.w;
+   		var cdot = vec3.fromVec2(cdot1, cdot2);
+		var lambda = this.k.solve(cdot.neg());
 
 		if (this.limitState == Joint.LIMIT_STATE_EQUAL_LIMITS) {
+			// Accumulate lambda for velocity constraint
 			this.lambda_acc.addself(lambda);
 		}
-		else if (this.limitState == Joint.LIMIT_STATE_AT_LOWER) {
+		else if (this.limitState == Joint.LIMIT_STATE_AT_LOWER || this.limitState == Joint.LIMIT_STATE_AT_UPPER) {
+			// Accumulated new lambda.z
 			var newLambda_z = this.lambda_acc.z + lambda.z;
 
-			if (newLambda_z < 0) {
+			var lowerLimited = this.limitState == Joint.LIMIT_STATE_AT_LOWER && newLambda_z < 0;
+			var upperLimited = this.limitState == Joint.LIMIT_STATE_AT_UPPER && newLambda_z > 0;
+
+			if (lowerLimited || upperLimited) {
+				// Modify last equation to get lambda_acc.z to 0
+				// That is, lambda.z have to be equal -lambda_acc.z
+				// rhs = -J * v - (K_13, K_23, K_33) * (lambda.z + lambda_acc.z)
+				// Solve J * invM * JT * reduced_lambda = rhs				
+				var rhs = vec2.add(cdot1, vec2.scale(new vec2(this.k._13, this.k._23), newLambda_z));
+				var reduced = this.k.solve2x2(rhs.neg());
+				lambda.x = reduced.x;
+				lambda.y = reduced.y;
 				lambda.z = -this.lambda_acc.z;
+				
+				// Accumulate lambda for velocity constraint
+				this.lambda_acc.x += lambda.x;
+				this.lambda_acc.y += lambda.y;
 				this.lambda_acc.z = 0;
 			}
 			else {
-				this.lambda_acc.addself(lambda);
-			}
-		}
-		else if (this.limitState == Joint.LIMIT_STATE_AT_UPPER) {
-			var newLambda_z = this.lambda_acc.z + lambda.z;
-
-			if (newLambda_z > 0) {
-				lambda.z = -this.lambda_acc.z;
-				this.lambda_acc.z = 0;
-			}
-			else {
+				// Accumulate lambda for velocity constraint
 				this.lambda_acc.addself(lambda);
 			}
 		}
@@ -192,18 +205,18 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 	// Solve point-to-point constraint
 	else {
 		// Compute lambda for velocity constraint
-		// Solve J * invM * JT * lambda = -J * v
+		// Solve J1 * invM * J1T * lambda = -J1 * v
 		// in 2D: cross(w, r) = perp(r) * w
 		var v1 = vec2.mad(body1.v, vec2.perp(this.r1), body1.w);
    		var v2 = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);   		
-   		var jv = vec2.sub(v2, v1);
-		var lambda = this.k.solve2x2(jv.neg());
+   		var cdot = vec2.sub(v2, v1);
+		var lambda = this.k.solve2x2(cdot.neg());
 
-		// accumulate lambda for velocity constraint
+		// Accumulate lambda for velocity constraint
 		this.lambda_acc.addself(vec3.fromVec2(lambda, 0));
 
-		// apply impulses
-		// V += JT * lambda
+		// Apply impulses
+		// V += J1T * lambda
 		body1.v.mad(lambda, -body1.m_inv);
 		body1.w -= vec2.cross(this.r1, lambda) * body1.i_inv;
 
@@ -216,19 +229,37 @@ RevoluteJoint.prototype.solvePositionConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
+	var angularError = 0;
+	var positionError = 0;
+
 	// Solve limit constraint
 	if (this.limitEnabled && this.limitState != Joint.LIMIT_STATE_INACTIVE) {
 		var da = body2.a - body1.a - this.refAngle;
+		var angularImpulse = 0;
 
 		if (this.limitState == Joint.LIMIT_STATE_EQUAL_LIMITS) {
-			
+			var c = Math.clamp(da - this.limitLowerAngle, -Joint.MAX_ANGULAR_CORRECTION, Joint.MAX_ANGULAR_CORRECTION);
+
+			angularError = Math.abs(c);
+			angularImpulse = -this.k2_inv * c;
 		}
 		else if (this.limitState == Joint.LIMIT_STATE_AT_LOWER) {
+			var c = da - this.limitLowerAngle;
 			
+			angularError = -c;
+			c = Math.clamp(c + Joint.ANGULAR_SLOP, -Joint.MAX_ANGULAR_CORRECTION, 0);
+			angularImpulse = -this.k2_inv * c;
 		}
 		else if (this.limitState == Joint.LIMIT_STATE_AT_UPPER) {
-			
+			var c = da - this.limitUpperAngle;
+
+			angularError = c;
+			c = Math.clamp(c - Joint.ANGULAR_SLOP, 0, Joint.MAX_ANGULAR_CORRECTION);
+			angularImpulse = -this.k2_inv * c;
 		}
+
+		body1.a -= angularImpulse * body1.i_inv;
+		body2.a += angularImpulse * body2.i_inv;
 	}
 
 	// Solve point-to-point constraint
@@ -238,11 +269,12 @@ RevoluteJoint.prototype.solvePositionConstraints = function() {
 		var r2 = vec2.rotate(this.anchor2, body2.a);
 
 		// Position constraint
-		var c = vec2.sub(vec2.add(body2.p, r2), vec2.add(body1.p, r1));
-		var correction = vec2.truncate(c, this.max_linear_correction);
+		var c = vec2.sub(vec2.add(body2.p, r2), vec2.add(body1.p, r1));		
+		var correction = vec2.truncate(c, Joint.MAX_LINEAR_CORRECTION);
+		positionError = correction.length();
 
 		// Compute lambda for position constraint
-		// Solve J * invM * JT * lambda = -C
+		// Solve J1 * invM * J1T * lambda = -C
 		var sum_m_inv = body1.m_inv + body2.m_inv;
 		var r1y_i = r1.y * body1.i_inv;
 		var r2y_i = r2.y * body2.i_inv;	
@@ -253,7 +285,7 @@ RevoluteJoint.prototype.solvePositionConstraints = function() {
 		var lambda = k.solve(correction.neg());
 	
 		// Apply impulses
-		// X += JT * lambda * dt
+		// X += J1T * lambda * dt
 		body1.p.mad(lambda, -body1.m_inv);
 		body1.a -= vec2.cross(r1, lambda) * body1.i_inv;
 
@@ -261,7 +293,7 @@ RevoluteJoint.prototype.solvePositionConstraints = function() {
 		body2.a += vec2.cross(r2, lambda) * body2.i_inv;
 	}
 
-	return c.length() < Joint.LINEAR_SLOP;
+	return positionError < Joint.LINEAR_SLOP && angularError < Joint.ANGULAR_SLOP;
 }
 
 RevoluteJoint.prototype.getReactionForce = function(dt_inv) {

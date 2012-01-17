@@ -113,6 +113,9 @@ App = function() {
         case 6:
             initScene6();
             break;
+        case 7:
+            initScene7();
+            break;
         }
 
         clearBounds.copy(canvasBounds);
@@ -182,8 +185,6 @@ App = function() {
 
             if (i == 0) {
                 var joint = new RevoluteJoint(space.staticBody, body, new vec2(100, 255 + 15));
-                joint.enableLimit(true);
-                joint.setLimits(-Math.PI * 0.1, Math.PI * 0.1);
                 space.addJoint(joint);
             }
             else {
@@ -272,8 +273,213 @@ App = function() {
         //space.addJoint(new AngleJoint(body2, body3));
     }
 
-    // See-saw
+     // Rag-doll
     function initScene2() {
+        var shape;
+
+        space = new Space();
+        space.gravity = new vec2(0, -600);
+
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
+        space.staticBody.addStaticShape(shape);
+
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 0);
+        space.staticBody.addStaticShape(shape);
+
+        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 0);
+        space.staticBody.addStaticShape(shape);
+        
+        // Head
+        shape = new ShapeCircle(25);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        var bodyHead = new Body(3, shape.inertia(3));
+        bodyHead.addShape(shape);
+        bodyHead.p.set(0, 370);
+        space.addBody(bodyHead);
+
+        // Spine1
+        shape = new ShapeBox(70, 25);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        var bodySpine1 = new Body(1, shape.inertia(1));
+        bodySpine1.addShape(shape);
+        bodySpine1.p.set(0, 320);
+        space.addBody(bodySpine1);
+
+        // Spine2
+        shape = new ShapeBox(65, 25);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        var bodySpine2 = new Body(1, shape.inertia(1));
+        bodySpine2.addShape(shape);
+        bodySpine2.p.set(0, 290);
+        space.addBody(bodySpine2);
+
+        // Spine3
+        shape = new ShapeBox(60, 25);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        var bodySpine3 = new Body(1, shape.inertia(1));
+        bodySpine3.addShape(shape);
+        bodySpine3.p.set(0, 260);
+        space.addBody(bodySpine3);
+
+        // Pelvis
+        shape = new ShapePoly([new vec2(-32, 10), new vec2(-35, -15), new vec2(35, -15), new vec2(32, 10)]);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        var bodyPelvis = new Body(3, shape.inertia(3));
+        bodyPelvis.addShape(shape);
+        bodyPelvis.p.set(0, 230);
+        space.addBody(bodyPelvis);
+
+        // Left Arm1
+        shape = new ShapeBox(55, 20);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        var bodyLArm1 = new Body(1, shape.inertia(1));
+        bodyLArm1.addShape(shape);
+        bodyLArm1.p.set(-75, 320);
+        space.addBody(bodyLArm1);
+
+        // Left Arm2
+        shape = new ShapeBox(55, 20);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        var bodyLArm2 = new Body(1, shape.inertia(1));
+        bodyLArm2.addShape(shape);
+        bodyLArm2.p.set(-140, 320);
+        space.addBody(bodyLArm2);
+
+        // Right Arm1
+        shape = new ShapeBox(55, 20);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        var bodyRArm1 = new Body(1, shape.inertia(1));
+        bodyRArm1.addShape(shape);
+        bodyRArm1.p.set(75, 320);
+        space.addBody(bodyRArm1);
+
+        // Right Arm2
+        shape = new ShapeBox(55, 20);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        var bodyRArm2 = new Body(1, shape.inertia(1));
+        bodyRArm2.addShape(shape);
+        bodyRArm2.p.set(140, 320);
+        space.addBody(bodyRArm2);
+
+        // Left Leg1
+        shape = new ShapeBox(30, 75);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        var bodyLLeg1 = new Body(1, shape.inertia(1));
+        bodyLLeg1.addShape(shape);
+        bodyLLeg1.p.set(-20, 165);
+        space.addBody(bodyLLeg1);
+
+        // Left Leg2
+        shape = new ShapeBox(30, 75);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        var bodyLLeg2 = new Body(1, shape.inertia(1));
+        bodyLLeg2.addShape(shape);
+        bodyLLeg2.p.set(-20, 75);
+        space.addBody(bodyLLeg2);
+
+        // Right Leg1
+        shape = new ShapeBox(30, 75);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        var bodyRLeg1 = new Body(1, shape.inertia(1));
+        bodyRLeg1.addShape(shape);
+        bodyRLeg1.p.set(20, 165);
+        space.addBody(bodyRLeg1);
+
+        // Right Leg2
+        shape = new ShapeBox(30, 75);
+        shape.e = 0.5;
+        shape.u = 1.0;
+        var bodyRLeg2 = new Body(1, shape.inertia(1));
+        bodyRLeg2.addShape(shape);
+        bodyRLeg2.p.set(20, 75);
+        space.addBody(bodyRLeg2);
+
+        var joint = new RevoluteJoint(bodyHead, bodySpine1, new vec2(0, 340));
+        joint.enableLimit(true);
+        joint.setLimits(deg2rad(-40), deg2rad(40));
+        space.addJoint(joint);
+
+        var joint = new RevoluteJoint(bodySpine1, bodySpine2, new vec2(0, 305));
+        joint.collideConnected = false;
+        joint.enableLimit(true);
+        joint.setLimits(deg2rad(-5), deg2rad(5));
+        space.addJoint(joint);
+
+        var joint = new RevoluteJoint(bodySpine2, bodySpine3, new vec2(0, 275));
+        joint.collideConnected = false;
+        joint.enableLimit(true);
+        joint.setLimits(deg2rad(-5), deg2rad(5));
+        space.addJoint(joint);
+
+        var joint = new RevoluteJoint(bodySpine3, bodyPelvis, new vec2(0, 240));
+        joint.collideConnected = false;
+        joint.enableLimit(true);
+        joint.setLimits(deg2rad(-20), deg2rad(20));
+        space.addJoint(joint);
+
+        var joint = new RevoluteJoint(bodySpine1, bodyLArm1, new vec2(-45, 320));
+        joint.enableLimit(true);
+        joint.setLimits(deg2rad(-120), deg2rad(120));
+        space.addJoint(joint);
+
+        var joint = new RevoluteJoint(bodyLArm1, bodyLArm2, new vec2(-105, 320));
+        joint.collideConnected = false;
+        joint.enableLimit(true);
+        joint.setLimits(deg2rad(-150), deg2rad(10));
+        space.addJoint(joint);
+
+        var joint = new RevoluteJoint(bodySpine1, bodyRArm1, new vec2(45, 320));
+        joint.enableLimit(true);
+        joint.setLimits(deg2rad(-120), deg2rad(120));
+        space.addJoint(joint);
+
+        var joint = new RevoluteJoint(bodyRArm1, bodyRArm2, new vec2(105, 320));
+        joint.collideConnected = false;
+        joint.enableLimit(true);
+        joint.setLimits(deg2rad(-10), deg2rad(150));
+        space.addJoint(joint);
+
+        var joint = new RevoluteJoint(bodyPelvis, bodyLLeg1, new vec2(-20, 210));
+        joint.collideConnected = false;
+        joint.enableLimit(true);
+        joint.setLimits(deg2rad(-120), deg2rad(120));
+        space.addJoint(joint);
+
+        var joint = new RevoluteJoint(bodyLLeg1, bodyLLeg2, new vec2(-20, 120));
+        joint.collideConnected = false;
+        joint.enableLimit(true);
+        joint.setLimits(deg2rad(-10), deg2rad(120));
+        space.addJoint(joint);
+
+        var joint = new RevoluteJoint(bodyPelvis, bodyRLeg1, new vec2(20, 210));
+        joint.collideConnected = false;
+        joint.enableLimit(true);        
+        joint.setLimits(deg2rad(-120), deg2rad(120));
+        space.addJoint(joint);
+
+        var joint = new RevoluteJoint(bodyRLeg1, bodyRLeg2, new vec2(20, 120));
+        joint.collideConnected = false;
+        joint.enableLimit(true);
+        joint.setLimits(deg2rad(-120), deg2rad(10));
+        space.addJoint(joint);
+
+        bodyHead.applyLinearImpulse(new vec2(3000, 0), vec2.zero);
+    }
+
+    // See-saw
+    function initScene3() {
         var body;
         var shape;
 
@@ -328,7 +534,7 @@ App = function() {
     }
 
     // Pyramid
-    function initScene3() {
+    function initScene4() {
         var body;
         var shape;
 
@@ -366,7 +572,7 @@ App = function() {
     }
 
     // Crank
-    function initScene4() {
+    function initScene5() {
         var shape;
 
         space = new Space();
@@ -433,7 +639,7 @@ App = function() {
     }
 
     // Web
-    function initScene5() {
+    function initScene6() {
         var shape;
 
         space = new Space();
@@ -499,7 +705,7 @@ App = function() {
     }
 
     // Bounce
-    function initScene6() {
+    function initScene7() {
         var shape;
 
         space = new Space();
@@ -939,6 +1145,7 @@ App = function() {
         case 52: // '4'
         case 53: // '5'
         case 54: // '6'
+        case 55: // '7'
             sceneNumber = e.keyCode - 48;
             initScene();
             break;

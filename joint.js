@@ -17,17 +17,19 @@ Joint = function(body1, body2, collideConnected) {
 	this.max_force = Infinity;
 
 	// Max linear correction
-	this.max_linear_correction = Infinity;
+	Joint.MAX_LINEAR_CORRECTION = Infinity;
 
 	// Max angular correction
-	this.max_angular_correction = Infinity;//Math.PI * (8 / 180);
+	Joint.MAX_ANGULAR_CORRECTION = Infinity;//Math.PI * (8 / 180);
 
 	// Is breakable ?
 	this.breakable = false;
 }
 
-Joint.LINEAR_SLOP = 0.05;
+Joint.LINEAR_SLOP = 0.005;
 Joint.ANGULAR_SLOP = deg2rad(1);
+Joint.MAX_LINEAR_CORRECTION = 0.2;
+Joint.MAX_ANGULAR_CORRECTION = deg2rad(8);
 
 Joint.LIMIT_STATE_INACTIVE = 0;
 Joint.LIMIT_STATE_AT_LOWER = 1;

@@ -3,7 +3,7 @@
 //
 // p = attached point, m = mouse point (constant)
 // C = p - m
-// dC/dt = v + cross(w, r)
+// Cdot = v + cross(w, r)
 // J = [ I, -skew(r) ]
 //
 // JT * lambda = [ lambda_xy, cross(r1, lambda_xy) ]
@@ -62,8 +62,8 @@ MouseJoint.prototype.solveVelocityConstraints = function() {
 	// Compute lambda for velocity constraint	
 	// Solve J * invM * JT * lambda = -J * v
 	// in 2D: cross(w, r) = perp(r) * w
-   	var jv = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
-	var lambda = this.k.solve(jv.neg());
+   	var cdot = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
+	var lambda = this.k.solve(cdot.neg());
 
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc.addself(lambda);

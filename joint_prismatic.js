@@ -4,19 +4,19 @@
 // Linear Constraint:
 // d = p2 - p1
 // n = normalize(perp(d))
-// C = dot(n, d)
-// dC/dt = dot(d, dn/dt) + dot(n dd/dt)
+// C1 = dot(n, d)
+// C1dot = dot(d, dn/dt) + dot(n dd/dt)
 //       = dot(d, cross(w1, n)) + dot(n, v2 + cross(w2, r2) - v1 - cross(w1, r1))
 //       = dot(d, cross(w1, n)) + dot(n, v2) + dot(n, cross(w2, r2)) - dot(n, v1) - dot(n, cross(w1, r1))
 //       = -dot(n, v1) - dot(cross(d + r1, n), w1) + dot(n, v2) + dot(cross(r2, n), w2)
-// J = [ -n, -s1, n, s2 ]
+// J1 = [ -n, -s1, n, s2 ]
 // s1 = cross(r1 + d, n)
 // s2 = cross(r2, n)
 //
 // Angular Constraint:
-// C = a2 - a1 - initial_da
-// dC/dt = w2 - w1
-// J = [ 0, -1, 0, 1 ]
+// C2 = a2 - a1 - initial_da
+// C2dot = w2 - w1
+// J2 = [ 0, -1, 0, 1 ]
 //
 // Block Jacobian Matrix:
 // J = [ -n, -s1, n, s2 ]
@@ -110,9 +110,9 @@ PrismaticJoint.prototype.solveVelocityConstraints = function() {
 
 	// Compute lambda for velocity constraint	
 	// Solve J * invM * JT * lambda = -J * v
-	var jv1 = this.n.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
-	var jv2 = body2.w - body1.w;
-	var lambda = this.k.solve(new vec2(-jv1, -jv2));
+	var cdot1 = this.n.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
+	var cdot2 = body2.w - body1.w;
+	var lambda = this.k.solve(new vec2(-cdot1, -cdot2));
 
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc.addself(lambda);

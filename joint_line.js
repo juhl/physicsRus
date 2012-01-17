@@ -4,10 +4,10 @@
 // d = p2 - p1
 // n = normalize(perp(d))
 // C = dot(n, d)
-// dC/dt = dot(d, dn/dt) + dot(n dd/dt)
-//       = dot(d, cross(w1, n)) + dot(n, v2 + cross(w2, r2) - v1 - cross(w1, r1))
-//       = dot(d, cross(w1, n)) + dot(n, v2) + dot(n, cross(w2, r2)) - dot(n, v1) - dot(n, cross(w1, r1))
-//       = -dot(n, v1) - dot(cross(d + r1, n), w1) + dot(n, v2) + dot(cross(r2, n), w2)
+// Cdot = dot(d, dn/dt) + dot(n dd/dt)
+//      = dot(d, cross(w1, n)) + dot(n, v2 + cross(w2, r2) - v1 - cross(w1, r1))
+//      = dot(d, cross(w1, n)) + dot(n, v2) + dot(n, cross(w2, r2)) - dot(n, v1) - dot(n, cross(w1, r1))
+//      = -dot(n, v1) - dot(cross(d + r1, n), w1) + dot(n, v2) + dot(cross(r2, n), w2)
 // J = [ -n, -s1, n, s2 ]
 // s1 = cross(r1 + d, n)
 // s2 = cross(r2, n)
@@ -90,8 +90,8 @@ LineJoint.prototype.solveVelocityConstraints = function() {
 
 	// Compute lambda for velocity constraint
 	// Solve J * invM * JT * lambda = -J * v
-   	var jv = this.n.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
-	var lambda = this.k_inv * (-jv);
+   	var cdot = this.n.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
+	var lambda = -this.k_inv * cdot;
 
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc += lambda;
