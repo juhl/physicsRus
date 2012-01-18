@@ -25,12 +25,12 @@ AngleJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
+	// Max impulse
+	this.maxImpulse = this.maxForce * dt;
+
 	// K = J * invM * JT
 	var k = body1.i_inv + body2.i_inv;
 	this.k_inv = k == 0 ? 0 : 1 / k;
-
-	// Max impulse
-	this.j_max = this.max_force * dt;
 
 	if (warmStarting) {
 		// Apply cached impulses

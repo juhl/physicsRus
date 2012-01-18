@@ -35,6 +35,9 @@ WeldJoint.prototype.constructor = WeldJoint;
 WeldJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;
+
+	// Max impulse
+	this.maxImpulse = this.maxForce * dt;
 		
 	// Transformed r1, r2
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
@@ -56,9 +59,6 @@ WeldJoint.prototype.initSolver = function(dt, warmStarting) {
 	var k33 = body1.i_inv + body2.i_inv;
 	this.k = new mat3(k11, k12, k13, k12, k22, k23, k13, k23, k33);
 	
-	// Max impulse
-	this.j_max = this.max_force * dt;
-
 	if (warmStarting) {
 		// Apply cached impulses
 		// V += JT * lambda

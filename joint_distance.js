@@ -134,6 +134,9 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
+	// Max impulse	
+	this.maxImpulse = this.maxForce * dt;
+
 	// Transformed r1, r2
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
 	this.r2 = vec2.rotate(this.anchor2, body2.a);
@@ -154,9 +157,6 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	// K = J * invM * JT
    	var k = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
 	this.k_inv = k == 0 ? 0 : 1 / k;
-
-	// Max impulse	
-	this.j_max = this.max_force * dt;
 
 	if (warmStarting) {
 		// Apply cached impulses
@@ -277,6 +277,9 @@ MaxDistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
+	// max impulse
+	this.maxImpulse = this.maxForce * dt;
+
 	// transformed r1, r2
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
 	this.r2 = vec2.rotate(this.anchor2, body2.a);
@@ -297,9 +300,6 @@ MaxDistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	// K = J * invM * JT
     var k = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
 	this.k_inv = k == 0 ? 0 : 1 / k;
-
-	// max impulse
-	this.j_max = this.max_force * dt;
 
 	// initial error
 	this.initial_err = 0;

@@ -164,7 +164,7 @@ App = function() {
             else {
                 var joint = new DistanceJoint(body_prev, body, new vec2(0, 0), new vec2(0, 0));
                 joint.breakable = true;
-                joint.max_force = 4000;
+                joint.maxForce = 4000;
                 space.addJoint(joint);
             }
 
@@ -187,7 +187,7 @@ App = function() {
             else {
                 var joint = new RevoluteJoint(body_prev, body, new vec2(100, 255 - 30 * i + 15));
                 joint.breakable = true;
-                joint.max_force = 4000;
+                joint.maxForce = 4000;
                 space.addJoint(joint);
             }
 
@@ -210,7 +210,7 @@ App = function() {
             else {
                 var joint = new SpringJoint(body_prev, body, new vec2(0, -10), new vec2(0, 10), 10, 330, 1.6);
                 joint.breakable = true;
-                joint.max_force = 4000;
+                joint.maxForce = 4000;
                 space.addJoint(joint);
             }
 
@@ -457,7 +457,7 @@ App = function() {
         var joint = new RevoluteJoint(bodyLLeg1, bodyLLeg2, new vec2(-20, 115));
         joint.collideConnected = false;
         joint.enableLimit(true);
-        joint.setLimits(deg2rad(-30), deg2rad(160));
+        joint.setLimits(deg2rad(-30), deg2rad(150));
         space.addJoint(joint);
 
         var joint = new RevoluteJoint(bodyPelvis, bodyRLeg1, new vec2(20, 205));
@@ -469,10 +469,10 @@ App = function() {
         var joint = new RevoluteJoint(bodyRLeg1, bodyRLeg2, new vec2(20, 115));
         joint.collideConnected = false;
         joint.enableLimit(true);
-        joint.setLimits(deg2rad(-160), deg2rad(30));
+        joint.setLimits(deg2rad(-150), deg2rad(30));
         space.addJoint(joint);
 
-        //bodyHead.applyLinearImpulse(new vec2(-2200, 0), vec2.zero);
+        //bodyHead.applyLinearImpulse(new vec2(-2500, 0), vec2.zero);
     }
 
     // See-saw
@@ -600,7 +600,7 @@ App = function() {
         body2.p.set(0, 175);
         space.addBody(body2);
 
-        shape = new ShapeBox(40, 40);
+        shape = new ShapeBox(160, 20);
         shape.e = 0.4;
         shape.u = 1.0;
         var body3 = new Body(1, shape.inertia(1));
@@ -608,16 +608,35 @@ App = function() {
         body3.p.set(0, 225);
         space.addBody(body3);
 
-        shape = new ShapeBox(40, 40);
-        shape.e = 0.1;
-        shape.u = 0.6;
+        shape = new ShapeBox(30, 30);
+        shape.e = 0.0;
+        shape.u = 1.0;
         var body4 = new Body(1, shape.inertia(1));
         body4.addShape(shape);
-        body4.p.set(0, 400);
+        body4.p.set(-32, 300);
         space.addBody(body4);
+
+        shape = new ShapeBox(30, 30);
+        shape.e = 0.0;
+        shape.u = 1.0;
+        var body5 = new Body(1, shape.inertia(1));
+        body5.addShape(shape);
+        body5.p.set(0, 300);
+        space.addBody(body5);
+
+        shape = new ShapeBox(30, 30);
+        shape.e = 0.0;
+        shape.u = 1.0;
+        var body5 = new Body(1, shape.inertia(1));
+        body5.addShape(shape);
+        body5.p.set(32, 300);
+        space.addBody(body5);
 
         var joint = new RevoluteJoint(space.staticBody, body1, new vec2(0, 75));
         joint.collideConnected = false;
+        joint.enableMotor(true);
+        joint.setMotorSpeed(deg2rad(270));
+        joint.setMaxMotorTorque(1000000);
         space.addJoint(joint);
 
         var joint = new RevoluteJoint(body1, body2, new vec2(0, 125));
@@ -630,9 +649,7 @@ App = function() {
 
         var joint = new PrismaticJoint(space.staticBody, body3, new vec2(0, 75), new vec2(0, 0));
         joint.collideConnected = false;
-        space.addJoint(joint);
-        
-        body2.applyAngularImpulse(1000000);
+        space.addJoint(joint);        
     }
 
     // Web
@@ -1051,7 +1068,7 @@ App = function() {
 
             var body = shape.body;
             mouseJoint = new MouseJoint(mouseBody, body, new vec2(0, 0), body.worldToLocal(p));
-            mouseJoint.max_force = Math.min(body.m * 45000, 40000);
+            mouseJoint.maxForce = Math.min(body.m * 45000, 40000);
             space.addJoint(mouseJoint);
         }
 

@@ -14,13 +14,7 @@ Joint = function(body1, body2, collideConnected) {
 	this.collideConnected = collideConnected;
 
 	// Constraint force limit
-	this.max_force = Infinity;
-
-	// Max linear correction
-	Joint.MAX_LINEAR_CORRECTION = Infinity;
-
-	// Max angular correction
-	Joint.MAX_ANGULAR_CORRECTION = Infinity;//Math.PI * (8 / 180);
+	this.maxForce = Infinity;
 
 	// Is breakable ?
 	this.breakable = false;

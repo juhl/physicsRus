@@ -54,6 +54,9 @@ PrismaticJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
+	// Max impulse
+	this.maxImpulse = this.maxForce * dt;
+
 	// Transformed r1, r2
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
 	this.r2 = vec2.rotate(this.anchor2, body2.a);
@@ -85,9 +88,6 @@ PrismaticJoint.prototype.initSolver = function(dt, warmStarting) {
 	var k22 = body1.i_inv + body2.i_inv;
 	this.k = new mat2(k11, k12, k12, k22);
 	
-	// Max impulse
-	this.j_max = this.max_force * dt;
-
 	if (warmStarting) {
 		// Apply cached impulses
 		// V += JT * lambda

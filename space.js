@@ -219,7 +219,7 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration) {
     for (var i in this.jointHash) {
         var joint = this.jointHash[i];
         if (joint.breakable) {
-            if (joint.getReactionForce(dt_inv).lengthsq() >= joint.max_force * joint.max_force)
+            if (joint.getReactionForce(dt_inv).lengthsq() >= joint.maxForce * joint.maxForce)
                 this.removeJoint(joint);
         }
     }
