@@ -13,8 +13,8 @@ function ContactSolver(shape1, shape2) {
     this.u = 1;
 }
 
-ContactSolver.CORRECTION_COEFF = 0.3;
-ContactSolver.COLLISION_SLOP = 0.05;
+ContactSolver.COLLISION_SLOP = 0.05;    
+ContactSolver.BAUMGARTE = 0.3;
 ContactSolver.MAX_LINEAR_CORRECTION = Infinity;
 
 ContactSolver.prototype.update = function(newContactArr) {
@@ -177,8 +177,8 @@ ContactSolver.prototype.solvePositionConstraints = function() {
         var dp = vec2.sub(p2, p1);
 
         // Position constraint
-        var c = vec2.dot(dp, n) + con.d;
-        var correction = Math.clamp(ContactSolver.CORRECTION_COEFF * (c + ContactSolver.COLLISION_SLOP), -ContactSolver.MAX_LINEAR_CORRECTION, 0);
+        var c = vec2.dot(dp, n) + con.d;        
+        var correction = Math.clamp(ContactSolver.BAUMGARTE * (c + ContactSolver.COLLISION_SLOP), -ContactSolver.MAX_LINEAR_CORRECTION, 0);
         if (correction == 0)
             continue;
 

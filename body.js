@@ -107,7 +107,7 @@ Body.prototype.resetMassData = function() {
     this.setMass(totalArea * this.density);
     this.setInertia(totalInertia);
 
-    console.log("mass = " + this.m + " inertia = " + this.i);
+    //console.log("mass = " + this.m + " inertia = " + this.i);
 }
 
 Body.prototype.localToWorld = function(vec) {

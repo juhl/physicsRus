@@ -30,7 +30,7 @@ RevoluteJoint = function(body1, body2, pivot) {
 
 	// Accumulated lambda
 	this.lambda_acc = new vec3(0, 0, 0);
-	this.motorImpulse = 0;
+	this.motorLambda_acc = 0;
 
 	// Angle limit
 	this.limitEnabled = false;
@@ -76,7 +76,7 @@ RevoluteJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.maxImpulse = this.maxForce * dt;
 
 	if (this.motorEnabled) {
-		this.motorImpulse = 0;
+		this.motorLambda_acc = 0;
 		this.maxMotorImpulse = this.maxMotorTorque * dt;
 	}
 
@@ -136,7 +136,7 @@ RevoluteJoint.prototype.initSolver = function(dt, warmStarting) {
 		// Apply cached impulses
 		// V += JT * lambda
 		var lambda_xy = new vec2(this.lambda_acc.x, this.lambda_acc.y);
-		var lambda_z = this.lambda_acc.z + this.motorImpulse;
+		var lambda_z = this.lambda_acc.z + this.motorLambda_acc;
 
 		body1.v.mad(lambda_xy, -body1.m_inv);
 		body1.w -= (vec2.cross(this.r1, lambda_xy) + lambda_z) * body1.i_inv;
@@ -146,7 +146,7 @@ RevoluteJoint.prototype.initSolver = function(dt, warmStarting) {
 	}
 	else {
 		this.lambda_acc.set(0, 0, 0);
-		this.motorImpulse = 0;
+		this.motorLambda_acc = 0;
 	}
 }
 
@@ -158,14 +158,14 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 	if (this.motorEnabled && this.limitState != Joint.LIMIT_STATE_EQUAL_LIMITS) {
 		// Compute motor impulse
 		var cdot = body2.w - body1.w - this.motorSpeed;
-		var impulse = -this.k2_inv * cdot;
-		var oldImpulse = this.motorImpulse;
-		this.motorImpulse = Math.clamp(this.motorImpulse + impulse, -this.maxMotorImpulse, this.maxMotorImpulse);
-		impulse = this.motorImpulse - oldImpulse;
+		var lambda = -this.k2_inv * cdot;
+		var motorLambdaOld = this.motorLambda_acc;
+		this.motorLambda_acc = Math.clamp(this.motorLambda_acc + lambda, -this.maxMotorImpulse, this.maxMotorImpulse);
+		lambda = this.motorLambda_acc - motorLambdaOld;
 
 		// Apply motor impulses
-		body1.w -= impulse * body1.i_inv;
-		body2.w += impulse * body2.i_inv;
+		body1.w -= lambda * body1.i_inv;
+		body2.w += lambda * body2.i_inv;
 	}
 
 	// Solve point-to-point constraint with angular limit
