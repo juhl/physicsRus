@@ -1,20 +1,18 @@
-Body = function(mass, inertia) {
+Body = function(density) {
     if (Body.id_counter == undefined) {
         Body.id_counter = 0;
     }
 
     this.id = Body.id_counter++;
 
-    if (mass != undefined)
-        this.setMass(mass);
-    if (inertia != undefined)
-        this.setInertia(inertia);
-
     // Shape list for this body
     this.shapeArr = [];
 
     // Joint hash for this body
     this.jointHash = {};
+
+    // Density
+    this.density = density;
 
     // Force
     this.f = new vec2(0, 0);
@@ -45,17 +43,8 @@ Body.prototype.isStatic = function() {
     return this.m == Infinity ? true : false;
 }
 
-Body.prototype.localToWorld = function(vec) {
-    return vec2.add(this.p, vec2.rotate(vec, this.a));
-}
-
-Body.prototype.worldToLocal = function(vec) {
-    return vec2.rotate(vec2.sub(vec, this.p), -this.a);
-}
-
 Body.prototype.addShape = function(shape) {
-    shape.body = this;
-    shape.recenterForCentroid();
+    shape.body = this;    
     this.shapeArr.push(shape);
 }
 
@@ -67,36 +56,66 @@ Body.prototype.addStaticShape = function(shape) {
     shape.cacheData(new vec2(0, 0), 0);
 }
 
+// Internal function
 Body.prototype.cacheData = function() {
     for (var i = 0; i < this.shapeArr.length; i++) {
         this.shapeArr[i].cacheData(this.p, this.a);
     }
 }
 
+// Internal function
 Body.prototype.setMass = function(mass) {
     this.m = mass;
-    this.m_inv = 1 / mass;
+    this.m_inv = 1 / mass; // 0 = 1 / Infinity
 }
 
+// Internal function
 Body.prototype.setInertia = function(inertia) {
     this.i = inertia;
-    this.i_inv = 1 / inertia;
+    this.i_inv = 1 / inertia; // 0 = 1 / Infinity
 }
 
-Body.prototype.setMassDensity = function(density) {
-    var totalMass = 0;
-    var totalInertia = 0;
-
-    // compute total mass and moment of inertia with mass density
-    for (var i = 0; i < this.shapeArr.length; i++) {
-        var mass = this.shapeArr[i].area() * density;
-
-        totalMass += mass;
-        totalInertia += this.shapeArr[i].inertia(mass);
+Body.prototype.resetMassData = function() {
+    if (this.density == Infinity) {
+        this.setMass(Infinity);
+        this.setInertia(Infinity);
+        return;
     }
 
-    this.setMass(totalMass);
+    var totalArea = 0;
+    var totalInertia = 0;
+    var centroid = new vec2(0, 0);
+
+    for (var i = 0; i < this.shapeArr.length; i++) {
+        var shape = this.shapeArr[i];
+        var area = shape.area();
+
+        totalArea += area;
+        centroid.mad(shape.centroid(), area);
+    }
+
+    centroid.scale(1 / totalArea);
+
+    for (var i = 0; i < this.shapeArr.length; i++) {
+        var shape = this.shapeArr[i];
+        var mass = shape.area() * this.density;
+        
+        shape.recenter(centroid);
+        totalInertia += shape.inertia(mass);
+    }
+    
+    this.setMass(totalArea * this.density);
     this.setInertia(totalInertia);
+
+    console.log("mass = " + this.m + " inertia = " + this.i);
+}
+
+Body.prototype.localToWorld = function(vec) {
+    return vec2.add(this.p, vec2.rotate(vec, this.a));
+}
+
+Body.prototype.worldToLocal = function(vec) {
+    return vec2.rotate(vec2.sub(vec, this.p), -this.a);
 }
 
 Body.prototype.updateVelocity = function(gravity, damping, dt) {

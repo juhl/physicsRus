@@ -18,14 +18,17 @@ ShapeSegment = function(a, b, radius) {
 ShapeSegment.prototype = new Shape;
 ShapeSegment.prototype.constructor = ShapeSegment;
 
-ShapeSegment.prototype.recenterForCentroid = function() {
-    var centroid = centroidForSegment(this.a, this.b);
-    this.a.subself(centroid);
-    this.b.subself(centroid);
+ShapeSegment.prototype.recenter = function(c) {
+    this.a.subself(c);
+    this.b.subself(c);
 }
 
 ShapeSegment.prototype.area = function() {
     return areaForSegment(this.a, this.b, this.r);
+}
+
+ShapeSegment.prototype.centroid = function() {
+	return centroidForSegment(this.a, this.b);
 }
 
 ShapeSegment.prototype.inertia = function(mass) {

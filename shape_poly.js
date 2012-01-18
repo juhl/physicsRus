@@ -31,15 +31,18 @@ ShapePoly = function(verts) {
 ShapePoly.prototype = new Shape;
 ShapePoly.prototype.constructor = ShapePoly;
 
-ShapePoly.prototype.recenterForCentroid = function() {
-    var centroid = centroidForPoly(this.verts);
+ShapePoly.prototype.recenter = function(c) {
     for (var i = 0; i < this.numVerts; i++) {
-        this.verts[i].subself(centroid);
+        this.verts[i].subself(c);
     }
 }
 
 ShapePoly.prototype.area = function() {
     return areaForPoly(this.verts);
+}
+
+ShapePoly.prototype.centroid = function() {
+    return centroidForPoly(this.verts);
 }
 
 ShapePoly.prototype.inertia = function(mass) {

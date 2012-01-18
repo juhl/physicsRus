@@ -13,12 +13,16 @@ ShapeCircle = function(radius, offset) {
 ShapeCircle.prototype = new Shape;
 ShapeCircle.prototype.constructor = ShapeCircle;
 
-ShapeCircle.prototype.recenterForCentroid = function() {
-    this.c = vec2.zero;
+ShapeCircle.prototype.recenter = function(c) {
+    this.c.subself(c);
 }
 
 ShapeCircle.prototype.area = function() {
     return areaForCircle(this.r, 0);
+}
+
+ShapeCircle.prototype.centroid = function() {
+    return new vec2(0, 0);
 }
 
 ShapeCircle.prototype.inertia = function(mass) {

@@ -2,7 +2,8 @@ function Space() {
     this.gravity = new vec2(0, 0);
     this.damping = 1.0;
 
-    this.staticBody = new Body(Infinity, Infinity);
+    this.staticBody = new Body(Infinity);
+    this.staticBody.resetMassData();
     this.staticBody.space = this;
 
     this.bodyHash = {};
