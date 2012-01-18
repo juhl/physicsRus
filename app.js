@@ -613,7 +613,7 @@ App = function() {
         shape = new ShapeBox(20, 50);
         shape.e = 0.4;
         shape.u = 1.0;
-        var body1 = new Body(0.0008);
+        var body1 = new Body(0.001);
         body1.addShape(shape);
         body1.resetMassData();
         body1.p.set(0, 100);
