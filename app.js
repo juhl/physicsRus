@@ -288,7 +288,7 @@ App = function() {
         
         // Head
         shape = new ShapeCircle(25);        
-        shape.e = 0.5;
+        shape.e = 0.4;
         shape.u = 1.0;
         var bodyHead = new Body(3, shape.inertia(3));
         bodyHead.addShape(shape);
@@ -296,8 +296,8 @@ App = function() {
         space.addBody(bodyHead);
 
         // Spine1
-        shape = new ShapeBox(70, 25);
-        shape.e = 0.5;
+        shape = new ShapeBox(70, 15);
+        shape.e = 0.4;
         shape.u = 1.0;
         var bodySpine1 = new Body(1, shape.inertia(1));
         bodySpine1.addShape(shape);
@@ -305,8 +305,8 @@ App = function() {
         space.addBody(bodySpine1);
 
         // Spine2
-        shape = new ShapeBox(65, 25);
-        shape.e = 0.5;
+        shape = new ShapeBox(65, 15);
+        shape.e = 0.4;
         shape.u = 1.0;
         var bodySpine2 = new Body(1, shape.inertia(1));
         bodySpine2.addShape(shape);
@@ -314,8 +314,8 @@ App = function() {
         space.addBody(bodySpine2);
 
         // Spine3
-        shape = new ShapeBox(60, 25);
-        shape.e = 0.5;
+        shape = new ShapeBox(60, 15);
+        shape.e = 0.4;
         shape.u = 1.0;
         var bodySpine3 = new Body(1, shape.inertia(1));
         bodySpine3.addShape(shape);
@@ -324,7 +324,7 @@ App = function() {
 
         // Pelvis
         shape = new ShapePoly([new vec2(-32, 10), new vec2(-35, -15), new vec2(35, -15), new vec2(32, 10)]);
-        shape.e = 0.5;
+        shape.e = 0.4;
         shape.u = 1.0;
         var bodyPelvis = new Body(3, shape.inertia(3));
         bodyPelvis.addShape(shape);
@@ -333,7 +333,7 @@ App = function() {
 
         // Left Arm1
         shape = new ShapeBox(55, 20);
-        shape.e = 0.5;
+        shape.e = 0.4;
         shape.u = 1.0;
         var bodyLArm1 = new Body(1, shape.inertia(1));
         bodyLArm1.addShape(shape);
@@ -342,7 +342,7 @@ App = function() {
 
         // Left Arm2
         shape = new ShapeBox(55, 20);
-        shape.e = 0.5;
+        shape.e = 0.4;
         shape.u = 1.0;
         var bodyLArm2 = new Body(1, shape.inertia(1));
         bodyLArm2.addShape(shape);
@@ -351,7 +351,7 @@ App = function() {
 
         // Right Arm1
         shape = new ShapeBox(55, 20);
-        shape.e = 0.5;
+        shape.e = 0.4;
         shape.u = 1.0;
         var bodyRArm1 = new Body(1, shape.inertia(1));
         bodyRArm1.addShape(shape);
@@ -360,7 +360,7 @@ App = function() {
 
         // Right Arm2
         shape = new ShapeBox(55, 20);
-        shape.e = 0.5;
+        shape.e = 0.4;
         shape.u = 1.0;
         var bodyRArm2 = new Body(1, shape.inertia(1));
         bodyRArm2.addShape(shape);
@@ -369,7 +369,7 @@ App = function() {
 
         // Left Leg1
         shape = new ShapeBox(30, 75);
-        shape.e = 0.5;
+        shape.e = 0.4;
         shape.u = 1.0;
         var bodyLLeg1 = new Body(1, shape.inertia(1));
         bodyLLeg1.addShape(shape);
@@ -378,7 +378,7 @@ App = function() {
 
         // Left Leg2
         shape = new ShapeBox(30, 75);
-        shape.e = 0.5;
+        shape.e = 0.4;
         shape.u = 1.0;
         var bodyLLeg2 = new Body(1, shape.inertia(1));
         bodyLLeg2.addShape(shape);
@@ -387,7 +387,7 @@ App = function() {
 
         // Right Leg1
         shape = new ShapeBox(30, 75);
-        shape.e = 0.5;
+        shape.e = 0.4;
         shape.u = 1.0;
         var bodyRLeg1 = new Body(1, shape.inertia(1));
         bodyRLeg1.addShape(shape);
@@ -396,14 +396,14 @@ App = function() {
 
         // Right Leg2
         shape = new ShapeBox(30, 75);
-        shape.e = 0.5;
+        shape.e = 0.4;
         shape.u = 1.0;
         var bodyRLeg2 = new Body(1, shape.inertia(1));
         bodyRLeg2.addShape(shape);
         bodyRLeg2.p.set(20, 70);
         space.addBody(bodyRLeg2);
 
-        var joint = new RevoluteJoint(bodyHead, bodySpine1, new vec2(0, 340));
+        var joint = new RevoluteJoint(bodyHead, bodySpine1, new vec2(0, 335));
         joint.enableLimit(true);
         joint.setLimits(deg2rad(-40), deg2rad(40));
         space.addJoint(joint);
@@ -420,7 +420,7 @@ App = function() {
         joint.setLimits(deg2rad(-5), deg2rad(5));
         space.addJoint(joint);
 
-        var joint = new RevoluteJoint(bodySpine3, bodyPelvis, new vec2(0, 240));
+        var joint = new RevoluteJoint(bodySpine3, bodyPelvis, new vec2(0, 245));
         joint.collideConnected = false;
         joint.enableLimit(true);
         joint.setLimits(deg2rad(-20), deg2rad(20));
@@ -457,7 +457,7 @@ App = function() {
         var joint = new RevoluteJoint(bodyLLeg1, bodyLLeg2, new vec2(-20, 115));
         joint.collideConnected = false;
         joint.enableLimit(true);
-        joint.setLimits(deg2rad(-30), deg2rad(170));
+        joint.setLimits(deg2rad(-30), deg2rad(160));
         space.addJoint(joint);
 
         var joint = new RevoluteJoint(bodyPelvis, bodyRLeg1, new vec2(20, 205));
@@ -469,10 +469,10 @@ App = function() {
         var joint = new RevoluteJoint(bodyRLeg1, bodyRLeg2, new vec2(20, 115));
         joint.collideConnected = false;
         joint.enableLimit(true);
-        joint.setLimits(deg2rad(-170), deg2rad(30));
+        joint.setLimits(deg2rad(-160), deg2rad(30));
         space.addJoint(joint);
 
-        bodyHead.applyLinearImpulse(new vec2(2200, 0), vec2.zero);
+        //bodyHead.applyLinearImpulse(new vec2(-2200, 0), vec2.zero);
     }
 
     // See-saw
@@ -495,7 +495,7 @@ App = function() {
         shape = new ShapeBox(140, 80);
         shape.e = 0.1;
         shape.u = 1.0;
-        body = new Body(4, shape.inertia(4));
+        body = new Body(10, shape.inertia(10));
         body.addShape(shape);
         body.p.set(-150, 80);
         space.addBody(body);
@@ -523,7 +523,7 @@ App = function() {
         shape = new ShapePoly([new vec2(-35, 35), new vec2(-50, 0), new vec2(-35, -35), new vec2(35, -35), new vec2(50, 0), new vec2(35, 35)]);
         shape.e = 0.4;
         shape.u = 1.0;
-        body = new Body(4, shape.inertia(4));
+        body = new Body(5, shape.inertia(5));
         body.addShape(shape);
         body.p.set(250, 1500);
         space.addBody(body);

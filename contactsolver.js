@@ -13,8 +13,8 @@ function ContactSolver(shape1, shape2) {
     this.u = 1;
 }
 
-ContactSolver.CORRECTION_COEFF = 0.34;
-ContactSolver.COLLISION_SLOP = 0.1;
+ContactSolver.CORRECTION_COEFF = 0.26;
+ContactSolver.COLLISION_SLOP = 0.04;
 ContactSolver.MAX_LINEAR_CORRECTION = Infinity;
 
 ContactSolver.prototype.update = function(newContactArr) {
