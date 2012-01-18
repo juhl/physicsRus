@@ -136,13 +136,10 @@ App = function() {
         space.gravity = new vec2(0, -600);
         space.damping = 0.75;
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 10);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 0);
-        space.staticBody.addStaticShape(shape);
-
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 0);
+        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 10);
         space.staticBody.addStaticShape(shape);
 
         shape = new ShapeTriangle(new vec2(-400, 160), new vec2(-400, 0), new vec2(200, 0));
@@ -280,17 +277,17 @@ App = function() {
         space = new Space();
         space.gravity = new vec2(0, -600);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 10);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 10);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 0);
+        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 10);
         space.staticBody.addStaticShape(shape);
         
         // Head
-        shape = new ShapeCircle(25);
+        shape = new ShapeCircle(25);        
         shape.e = 0.5;
         shape.u = 1.0;
         var bodyHead = new Body(3, shape.inertia(3));
@@ -486,13 +483,13 @@ App = function() {
         space = new Space();
         space.gravity = new vec2(0, -600);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 10);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 10);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 0);
+        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 10);
         space.staticBody.addStaticShape(shape);       
 
         shape = new ShapeBox(140, 80);
@@ -541,13 +538,13 @@ App = function() {
         space = new Space();
         space.gravity = new vec2(0, -600);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 10);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 10);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 0);
+        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 10);
         space.staticBody.addStaticShape(shape);
 
         for (var i = 0; i < 10; i++) {
@@ -578,13 +575,13 @@ App = function() {
         space = new Space();
         space.gravity = new vec2(0, -600);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 10);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 600), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 600), 10);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 600), 0);
+        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 600), 10);
         space.staticBody.addStaticShape(shape);      
 
         shape = new ShapeBox(20, 50);
@@ -645,13 +642,13 @@ App = function() {
         space = new Space();
         space.gravity = new vec2(0, -600);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 10);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 10);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 0);
+        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 10);
         space.staticBody.addStaticShape(shape);
 
         shape = new ShapeBox(20, 20);
@@ -711,13 +708,13 @@ App = function() {
         space = new Space();
         space.gravity = new vec2(0, -600);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 10);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 600), 0);
+        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 600), 10);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 600), 0);
+        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 600), 10);
         space.staticBody.addStaticShape(shape);      
 
         for (var i = 0; i <= 10; i++)  {
