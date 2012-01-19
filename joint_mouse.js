@@ -18,8 +18,8 @@ MouseJoint = function(mouseBody, body, anchor1, anchor2) {
 	this.anchor1 = anchor1;
 	this.anchor2 = anchor2;
 
-	this.frequencyHz = 8;
-	this.dampingRatio = 0.98;
+	this.frequencyHz = 5;
+	this.dampingRatio = 0.7;
 
 	// Accumulated impulse
 	this.lambda_acc = new vec2(0, 0);
@@ -56,13 +56,15 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	var z = body2.m * 2 * this.dampingRatio * omega;
 
 	// Spring stiffness
-	var k = body2.m * omega * omega;
+	var k = body2.m * (omega * omega);
 
 	// Soft constraint formulas
-	var gamma = z + k * dt;
-	this.gamma = gamma == 0 ? 0 : 1 / (gamma * dt);
+	var gamma = dt * (z + k * dt);
+	this.gamma = gamma == 0 ? 0 : 1 / gamma;
 	var beta = dt * k * this.gamma;
 	this.bias = vec2.scale(c, beta);
+
+	body2.w *= 0.98;
 
 	if (warmStarting) {
 		// Apply cached impulses

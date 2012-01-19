@@ -90,7 +90,7 @@ LineJoint.prototype.initSolver = function(dt, warmStarting) {
 	// invEM = J * invM * JT
     var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;    
 	this.em = em_inv > 0 ? 1 / em_inv : em_inv;
-
+	
 	// invEM2 = J2 * invM * J2T
 	var em2_inv = body1.i_inv + body2.i_inv;
 	this.em2 = em2_inv > 0 ? 1 / em2_inv : em2_inv;
