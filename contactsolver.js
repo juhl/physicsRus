@@ -13,9 +13,9 @@ function ContactSolver(shape1, shape2) {
     this.u = 1;
 }
 
-ContactSolver.COLLISION_SLOP = 0.05;    
+ContactSolver.COLLISION_SLOP = 0.05;
 ContactSolver.BAUMGARTE = 0.3;
-ContactSolver.MAX_LINEAR_CORRECTION = Infinity;
+ContactSolver.MAX_LINEAR_CORRECTION = 1;//Infinity;
 
 ContactSolver.prototype.update = function(newContactArr) {
     for (var i = 0; i < newContactArr.length; i++) {
@@ -177,7 +177,7 @@ ContactSolver.prototype.solvePositionConstraints = function() {
         var dp = vec2.sub(p2, p1);
 
         // Position constraint
-        var c = vec2.dot(dp, n) + con.d;        
+        var c = vec2.dot(dp, n) + con.d;
         var correction = Math.clamp(ContactSolver.BAUMGARTE * (c + ContactSolver.COLLISION_SLOP), -ContactSolver.MAX_LINEAR_CORRECTION, 0);
         if (correction == 0)
             continue;
@@ -189,8 +189,8 @@ ContactSolver.prototype.solvePositionConstraints = function() {
         // Solve (J * invM * JT) * lambda = -C
         var sn1 = vec2.cross(r1, n);
         var sn2 = vec2.cross(r2, n);
-        var k = sum_m_inv + body1.i_inv * sn1 * sn1 + body2.i_inv * sn2 * sn2;
-        var jp = k == 0 ? 0 : -correction / k;
+        var em_inv = sum_m_inv + body1.i_inv * sn1 * sn1 + body2.i_inv * sn2 * sn2;
+        var jp = em_inv == 0 ? 0 : -correction / em_inv;
 
         // Accumulate and clamp
         var jp_old = con.jp_acc;

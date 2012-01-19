@@ -31,10 +31,28 @@ LineJoint = function(body1, body2, anchor1, anchor2) {
 
    	// Accumulated impulse
 	this.lambda_acc = 0;
+	this.motorLambda_acc = 0;
+
+	// Motor
+	this.motorEnabled = false;
+	this.motorSpeed = 0;
+	this.maxMotorTorque = Infinity;
 }
 
 LineJoint.prototype = new Joint;
 LineJoint.prototype.constructor = LineJoint;
+
+LineJoint.prototype.enableMotor = function(flag) {
+	this.motorEnabled = flag;
+}
+
+LineJoint.prototype.setMotorSpeed = function(speed) {
+	this.motorSpeed = speed;
+}
+
+LineJoint.prototype.setMaxMotorTorque = function(torque) {
+	this.maxMotorTorque = torque;
+}
 
 LineJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
@@ -42,6 +60,11 @@ LineJoint.prototype.initSolver = function(dt, warmStarting) {
 
 	// Max impulse
 	this.maxImpulse = this.maxForce * dt;
+
+	if (this.motorEnabled) {
+		this.motorLambda_acc = 0;
+		this.maxMotorImpulse = this.maxMotorTorque * dt;
+	}
 		
 	// Transformed r1, r2
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
@@ -64,9 +87,13 @@ LineJoint.prototype.initSolver = function(dt, warmStarting) {
     this.s1 = vec2.cross(this.r1_d, this.n);
     this.s2 = vec2.cross(this.r2, this.n);
 
-	// K = J * invM * JT
-    var k = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
-	this.k_inv = k > 0 ? 1 / k : k;
+	// invEM = J * invM * JT
+    var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;    
+	this.em = em_inv > 0 ? 1 / em_inv : em_inv;
+
+	// invEM2 = J2 * invM * J2T
+	var em2_inv = body1.i_inv + body2.i_inv;
+	this.em2 = em2_inv > 0 ? 1 / em2_inv : em2_inv;
 	
 	if (warmStarting) {
 		// Apply cached impulses
@@ -74,13 +101,14 @@ LineJoint.prototype.initSolver = function(dt, warmStarting) {
 		var j = vec2.scale(this.n, this.lambda_acc);
 
 		body1.v.mad(j, -body1.m_inv);
-		body1.w -= this.s1 * this.lambda_acc * body1.i_inv;
+		body1.w -= (this.s1 * this.lambda_acc + this.motorLambda_acc) * body1.i_inv;
 
 		body2.v.mad(j, body2.m_inv);
-		body2.w += this.s2 * this.lambda_acc * body2.i_inv;
+		body2.w += (this.s2 * this.lambda_acc + this.motorLambda_acc) * body2.i_inv;
 	}
 	else {
 		this.lambda_acc = 0;
+		this.motorLambda_acc = 0;
 	}
 }
 
@@ -88,10 +116,24 @@ LineJoint.prototype.solveVelocityConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
+	// Solve motor constraint
+	if (this.motorEnabled) {
+		// Compute motor impulse
+		var cdot = body2.w - body1.w - this.motorSpeed;
+		var lambda = -this.em2 * cdot;
+		var motorLambdaOld = this.motorLambda_acc;
+		this.motorLambda_acc = Math.clamp(this.motorLambda_acc + lambda, -this.maxMotorImpulse, this.maxMotorImpulse);
+		lambda = this.motorLambda_acc - motorLambdaOld;
+
+		// Apply motor impulses
+		body1.w -= lambda * body1.i_inv;
+		body2.w += lambda * body2.i_inv;
+	}
+
 	// Compute lambda for velocity constraint
 	// Solve J * invM * JT * lambda = -J * v
    	var cdot = this.n.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
-	var lambda = -this.k_inv * cdot;
+	var lambda = -this.em * cdot;
 
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc += lambda;
@@ -136,8 +178,8 @@ LineJoint.prototype.solvePositionConstraints = function() {
 	// Solve J * invM * JT * lambda = -C
    	var s1 = vec2.cross(r1_d, n);
    	var s2 = vec2.cross(r2, n);
-   	var k = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;
-	var k_inv = k == 0 ? 0 : 1 / k;
+   	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;
+	var k_inv = em_inv == 0 ? 0 : 1 / em_inv;
 	var lambda = k_inv * (-correction);
 
 	// Apply impulses

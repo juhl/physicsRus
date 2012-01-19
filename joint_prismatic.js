@@ -78,7 +78,7 @@ PrismaticJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.s1 = vec2.cross(this.r1_d, this.n);
 	this.s2 = vec2.cross(this.r2, this.n);
 	
-	// K = J * invM * JT
+	// invEM = J * invM * JT
 	var s1 = this.s1;
 	var s2 = this.s2;
 	var s1_i = s1 * body1.i_inv;
@@ -86,7 +86,7 @@ PrismaticJoint.prototype.initSolver = function(dt, warmStarting) {
 	var k11 = body1.m_inv + body2.m_inv + s1 * s1_i + s2 * s2_i;
 	var k12 = s1_i + s2_i;
 	var k22 = body1.i_inv + body2.i_inv;
-	this.k = new mat2(k11, k12, k12, k22);
+	this.em_inv = new mat2(k11, k12, k12, k22);
 	
 	if (warmStarting) {
 		// Apply cached impulses
@@ -112,7 +112,7 @@ PrismaticJoint.prototype.solveVelocityConstraints = function() {
 	// Solve J * invM * JT * lambda = -J * v
 	var cdot1 = this.n.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
 	var cdot2 = body2.w - body1.w;
-	var lambda = this.k.solve(new vec2(-cdot1, -cdot2));
+	var lambda = this.em_inv.solve(new vec2(-cdot1, -cdot2));
 
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc.addself(lambda);
@@ -165,8 +165,8 @@ PrismaticJoint.prototype.solvePositionConstraints = function() {
 	var k11 = body1.m_inv + body2.m_inv + s1 * s1_i + s2 * s2_i;
 	var k12 = s1_i + s2_i;
 	var k22 = body1.i_inv + body2.i_inv;
-	var k = new mat2(k11, k12, k12, k22);
-	var lambda = k.solve(correction.neg());
+	var em_inv = new mat2(k11, k12, k12, k22);
+	var lambda = em_inv.solve(correction.neg());
 
 	// Apply impulses
 	// X += JT * lambda * dt

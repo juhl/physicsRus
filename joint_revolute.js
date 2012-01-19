@@ -111,7 +111,7 @@ RevoluteJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
 	this.r2 = vec2.rotate(this.anchor2, body2.a);
 
-	// K = J * invM * JT	
+	// invEM = J * invM * JT	
 	var sum_m_inv = body1.m_inv + body2.m_inv;
 	var r1 = this.r1;
 	var r2 = this.r2;
@@ -125,12 +125,12 @@ RevoluteJoint.prototype.initSolver = function(dt, warmStarting) {
 	var k22 = sum_m_inv + r1.x * r1x_i + r2.x * r2x_i;
 	var k23 = r1x_i + r2x_i;
 	var k33 = body1.i_inv + body2.i_inv;
-	this.k = new mat3(k11, k12, k13, k12, k22, k23, k13, k23, k33);
+	this.em_inv = new mat3(k11, k12, k13, k12, k22, k23, k13, k23, k33);
 
 	// K2 = J2 * invM * J2T
 	if (k33 != 0) {
-		this.k2_inv = 1 / k33;
-	}	
+		this.em2 = 1 / k33;
+	}
 	
 	if (warmStarting) {
 		// Apply cached impulses
@@ -158,7 +158,7 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 	if (this.motorEnabled && this.limitState != Joint.LIMIT_STATE_EQUAL_LIMITS) {
 		// Compute motor impulse
 		var cdot = body2.w - body1.w - this.motorSpeed;
-		var lambda = -this.k2_inv * cdot;
+		var lambda = -this.em2 * cdot;
 		var motorLambdaOld = this.motorLambda_acc;
 		this.motorLambda_acc = Math.clamp(this.motorLambda_acc + lambda, -this.maxMotorImpulse, this.maxMotorImpulse);
 		lambda = this.motorLambda_acc - motorLambdaOld;
@@ -178,7 +178,7 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
    		var cdot1 = vec2.sub(v2, v1);
    		var cdot2 = body2.w - body1.w;
    		var cdot = vec3.fromVec2(cdot1, cdot2);
-		var lambda = this.k.solve(cdot.neg());
+		var lambda = this.em_inv.solve(cdot.neg());
 
 		if (this.limitState == Joint.LIMIT_STATE_EQUAL_LIMITS) {
 			// Accumulate lambda for velocity constraint
@@ -196,8 +196,8 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 				// That is, lambda.z have to be equal -lambda_acc.z
 				// rhs = -J * v - (K_13, K_23, K_33) * (lambda.z + lambda_acc.z)
 				// Solve J * invM * JT * reduced_lambda = rhs				
-				var rhs = vec2.add(cdot1, vec2.scale(new vec2(this.k._13, this.k._23), newLambda_z));
-				var reduced = this.k.solve2x2(rhs.neg());
+				var rhs = vec2.add(cdot1, vec2.scale(new vec2(this.em_inv._13, this.em_inv._23), newLambda_z));
+				var reduced = this.em_inv.solve2x2(rhs.neg());
 				lambda.x = reduced.x;
 				lambda.y = reduced.y;
 				lambda.z = -this.lambda_acc.z;
@@ -231,7 +231,7 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 		var v1 = vec2.mad(body1.v, vec2.perp(this.r1), body1.w);
    		var v2 = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);   		
    		var cdot = vec2.sub(v2, v1);
-		var lambda = this.k.solve2x2(cdot.neg());
+		var lambda = this.em_inv.solve2x2(cdot.neg());
 
 		// Accumulate lambda for velocity constraint
 		this.lambda_acc.addself(vec3.fromVec2(lambda, 0));
@@ -262,21 +262,21 @@ RevoluteJoint.prototype.solvePositionConstraints = function() {
 			var c = Math.clamp(da - this.limitLowerAngle, -Joint.MAX_ANGULAR_CORRECTION, Joint.MAX_ANGULAR_CORRECTION);
 
 			angularError = Math.abs(c);
-			angularImpulse = -this.k2_inv * c;
+			angularImpulse = -this.em2 * c;
 		}
 		else if (this.limitState == Joint.LIMIT_STATE_AT_LOWER) {
 			var c = da - this.limitLowerAngle;
 			
 			angularError = -c;
 			c = Math.clamp(c + Joint.ANGULAR_SLOP, -Joint.MAX_ANGULAR_CORRECTION, 0);
-			angularImpulse = -this.k2_inv * c;
+			angularImpulse = -this.em2 * c;
 		}
 		else if (this.limitState == Joint.LIMIT_STATE_AT_UPPER) {
 			var c = da - this.limitUpperAngle;
 
 			angularError = c;
 			c = Math.clamp(c - Joint.ANGULAR_SLOP, 0, Joint.MAX_ANGULAR_CORRECTION);
-			angularImpulse = -this.k2_inv * c;
+			angularImpulse = -this.em2 * c;
 		}
 
 		body1.a -= angularImpulse * body1.i_inv;
@@ -302,8 +302,8 @@ RevoluteJoint.prototype.solvePositionConstraints = function() {
 		var k11 = sum_m_inv + r1.y * r1y_i + r2.y * r2y_i;
 		var k12 = -r1.x * r1y_i - r2.x * r2y_i;
 		var k22 = sum_m_inv + r1.x * r1.x * body1.i_inv + r2.x * r2.x * body2.i_inv;
-		var k = new mat2(k11, k12, k12, k22);
-		var lambda = k.solve(correction.neg());
+		var em_inv = new mat2(k11, k12, k12, k22);
+		var lambda = em_inv.solve(correction.neg());
 	
 		// Apply impulses
 		// X += J1T * lambda * dt

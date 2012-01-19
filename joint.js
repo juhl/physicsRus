@@ -21,8 +21,8 @@ Joint = function(body1, body2, collideConnected) {
 }
 
 Joint.LINEAR_SLOP = 0.005;
-Joint.ANGULAR_SLOP = deg2rad(1);
-Joint.MAX_LINEAR_CORRECTION = 0.2;
+Joint.ANGULAR_SLOP = deg2rad(2);
+Joint.MAX_LINEAR_CORRECTION = 0.5;
 Joint.MAX_ANGULAR_CORRECTION = deg2rad(8);
 
 Joint.LIMIT_STATE_INACTIVE = 0;
