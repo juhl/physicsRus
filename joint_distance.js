@@ -86,15 +86,15 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 		// Frequency
 		var omega = 2 * Math.PI * this.frequencyHz;
 
-		// Damping coefficients
-		var z = this.em * 2 * this.dampingRatio * omega;
-
 		// Spring stiffness
-		var k = this.em * omega * omega;
+		var k = this.em * (omega * omega);
+
+		// Damping coefficients
+		var d = this.em * 2 * this.dampingRatio * omega;	
 
 		// Soft constraint formulas
-		var gamma = z + k * dt;
-		this.gamma = gamma == 0 ? 0 : 1 / (gamma * dt);
+		var gamma = dt * (d + k * dt);
+		this.gamma = gamma == 0 ? 0 : 1 / gamma;
 		var beta = dt * k * this.gamma;
 		this.bias = c * beta;
 
@@ -123,7 +123,7 @@ DistanceJoint.prototype.solveVelocityConstraints = function() {
 	var body2 = this.body2;
 
 	// Compute lambda for velocity constraint
-	// Solve J * invM * JT * lambda = -J * v
+	// Solve J * invM * JT * lambda = -(J * v + beta * C/h + gamma * lambda)
     var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
 	var lambda = -this.em * (cdot + this.bias + this.gamma * this.lambda_acc);
 

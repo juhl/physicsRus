@@ -58,19 +58,19 @@ ContactSolver.prototype.initSolver = function(dt_inv) {
         var n = con.n;
         var t = vec2.perp(con.n);
 
-        // Kn = J * invM * JT
+        // EMn = J * invM * JT
         // J = [ -n, -cross(r1, n), n, cross(r2, n) ]        
         var sn1 = vec2.cross(con.r1, n);
         var sn2 = vec2.cross(con.r2, n);
-        var kn = sum_m_inv + body1.i_inv * sn1 * sn1 + body2.i_inv * sn2 * sn2;
-        con.kn_inv = kn == 0 ? 0 : 1 / kn;
+        var emn_inv = sum_m_inv + body1.i_inv * sn1 * sn1 + body2.i_inv * sn2 * sn2;
+        con.emn = emn_inv == 0 ? 0 : 1 / emn_inv;
 
-        // Kt = J * invM * JT
+        // EMt = J * invM * JT
         // J = [ -t, -cross(r1, t), t, cross(r2, t) ]  
         var st1 = vec2.cross(con.r1, t);
         var st2 = vec2.cross(con.r2, t);
-        var kt = sum_m_inv + body1.i_inv * st1 * st1 + body2.i_inv * st2 * st2;
-        con.kt_inv = kt == 0 ? 0 : 1 / kt;
+        var emt_inv = sum_m_inv + body1.i_inv * st1 * st1 + body2.i_inv * st2 * st2;
+        con.emt = emt_inv == 0 ? 0 : 1 / emt_inv;
         
         // Linear velocities at contact
         // in 2D: cross(w, r) = perp(r) * w
@@ -127,7 +127,7 @@ ContactSolver.prototype.solveVelocityConstraints = function() {
         var rv = vec2.sub(v2, v1);
 
         // Compute normal impulse
-        var jn = -con.kn_inv * (vec2.dot(n, rv) + con.bounce);
+        var jn = -con.emn * (vec2.dot(n, rv) + con.bounce);
         var jn_old = con.jn_acc;
         con.jn_acc = Math.max(jn_old + jn, 0);
         jn = con.jn_acc - jn_old;
@@ -136,7 +136,7 @@ ContactSolver.prototype.solveVelocityConstraints = function() {
         var jt_max = con.jn_acc * this.u;
 
         // Compute frictional impulse
-        var jt = -con.kt_inv * vec2.dot(t, rv);
+        var jt = -con.emt * vec2.dot(t, rv);
         var jt_old = con.jt_acc;
         con.jt_acc = Math.clamp(jt_old + jt, -jt_max, jt_max);
         jt = con.jt_acc - jt_old;

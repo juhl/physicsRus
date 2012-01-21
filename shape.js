@@ -9,10 +9,10 @@ Shape = function(type) {
     this.type = type;
 
     // Coefficient of restitution (elasticity)
-    this.e = 0;
+    this.e = 0.0;
 
     // Frictional coefficient
-    this.u = 1;
+    this.u = 1.0;
 
     // Axis-aligned bounding box
     this.bounds = new Bounds;    

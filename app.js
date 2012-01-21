@@ -14,6 +14,7 @@ App = function() {
     var mouseDown;
     var canvasBounds;
     var clearBounds;
+    var paintBounds;
     var randomColor;
 
     var space;
@@ -26,6 +27,7 @@ App = function() {
     var showContacts = false;
     var showJoints = true;
     var showStats = false;
+    var showClearBounds = false;
 
     function main() {
         canvas = document.getElementById("canvas");
@@ -83,6 +85,7 @@ App = function() {
 
         canvasBounds = new Bounds(new vec2(-canvas.width * 0.5, 0), new vec2(canvas.width * 0.5, canvas.height));
         clearBounds = new Bounds;
+        paintBounds = new Bounds;
 
         Collision.init();
 
@@ -125,13 +128,13 @@ App = function() {
             initScene8();
             break;
         }
-
+        
         clearBounds.copy(canvasBounds);
         
         timeOffset = 0;
         frameSkip = 0;
         lastTime = Date.now();
-    }    
+    }
 
     // Car
     function initScene1() {
@@ -141,92 +144,162 @@ App = function() {
         var joint;
 
         space = new Space();
-        space.gravity = new vec2(0, -600);
-        //space.damping = 0.75;
+        space.gravity = new vec2(0, -800);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 10);
+        shape = new ShapeBox(10, 500, -400, 250);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 10);
+        shape = new ShapeBox(10, 500, 400, 250);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapePoly([new vec2(-400, 0), new vec2(200, 0), new vec2(200, 180), new vec2(160, 180)]);
+        shape = new ShapePoly([new vec2(-400, 0), new vec2(-100, 0), new vec2(-100, 50), new vec2(-370, 190), new vec2(-400, 190)]);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapePoly([new vec2(200, 0), new vec2(400, 0), new vec2(400, 10), new vec2(200, 10)]);
+        shape = new ShapePoly([new vec2(100, 0), new vec2(400, 0), new vec2(400, 190), new vec2(370, 190), new vec2(100, 50)]);        
         space.staticBody.addStaticShape(shape);
 
-        for (var i = 0; i < 5; i++) {
-            shape = new ShapeBox(20, 20);
-            shape.e = 0.4;
+        // Bridge
+        var body_prev;
+        for (var i = 0; i < 10; i++) {
+            shape = new ShapeBox(20, 10);
+            shape.e = 0.1;
             shape.u = 1.0;
-            body = new Body(0.0001);
+            body = new Body(0.4);
             body.addShape(shape);
             body.resetMassData();
-            body.p.set(180, 300 + i * 40);
-            space.addBody(body);
+            body.p.set(-90 + i * 20, 45);
+            space.addBody(body);            
+
+            if (i == 0) {
+                var joint = new RevoluteJoint(space.staticBody, body, new vec2(-100, 45));
+                joint.collideConnected = false;
+                space.addJoint(joint);
+            }            
+            else {
+                var joint = new RevoluteJoint(body_prev, body, new vec2(-100 + i * 20, 45));
+                joint.collideConnected = false;
+                space.addJoint(joint);
+            }
+
+            body_prev = body;
         }
 
+        var joint = new RevoluteJoint(body, space.staticBody, new vec2(100, 45));
+        joint.collideConnected = false;
+        space.addJoint(joint);        
+
         // Car body
-        shape = new ShapeBox(80, 20);
+        shape = new ShapeBox(72, 20, 0, 0);
         shape.e = 0.5;
         shape.u = 0.5;
-        body1 = new Body(0.0002);
+        body1 = new Body(0.1);
         body1.addShape(shape);
         shape = new ShapeBox(50, 20, 0, 20);
         shape.e = 0.5;
         shape.u = 0.5;
         body1.addShape(shape);
         body1.resetMassData();
-        body1.p.set(-300, 150);
+        body1.p.set(-340, 300);
         space.addBody(body1);
 
         // Wheel 1
-        shape = new ShapeCircle(15);
-        shape.e = 0.0;
-        shape.u = 1.0;
-        body2 = new Body(0.0004);
+        shape = new ShapeCircle(14);
+        shape.e = 0.1;
+        shape.u = 0.97;
+        body2 = new Body(0.05);
         body2.addShape(shape);
         body2.resetMassData();
-        body2.p.set(-320, 140);
+        body2.p.set(-360, 290);
         space.addBody(body2);
 
         //joint = new RevoluteJoint(body1, body2, new vec2(-345, 250));
-        joint = new DistanceJoint(body1, body2, new vec2(-20, 0), new vec2(0, 0));
-        joint.setSpringCoeffs(10, 0.7);
+        joint = new DistanceJoint(body1, body2, new vec2(-20, 5), new vec2(0, 0));
+        joint.setSpringCoeffs(5, 0.5);
         joint.collideConnected = false;
         space.addJoint(joint);
 
-        joint = new LineJoint(body1, body2, new vec2(-20, 0), new vec2(0, 0));
+        joint = new LineJoint(body1, body2, new vec2(-20, 5), new vec2(0, 0));
         joint.enableMotor(true);
-        joint.setMotorSpeed(deg2rad(-800));
+        joint.setMotorSpeed(deg2rad(-1400));
+        joint.setMaxMotorTorque(40000000);
         joint.collideConnected = false;
         space.addJoint(joint);
 
         // Wheel 2
-        shape = new ShapeCircle(15);
-        shape.e = 0.0;
-        shape.u = 1.0;
-        body3 = new Body(0.0004);
+        shape = new ShapeCircle(14);
+        shape.e = 0.1;
+        shape.u = 0.97;
+        body3 = new Body(0.05);
         body3.addShape(shape);
         body3.resetMassData();
-        body3.p.set(-280, 140);
+        body3.p.set(-320, 290);
         space.addBody(body3);
 
         //joint = new RevoluteJoint(body1, body3, new vec2(-255, 250));
-        joint = new DistanceJoint(body1, body3, new vec2(20, 0), new vec2(0, 0));
-        joint.setSpringCoeffs(10, 0.7);
+        joint = new DistanceJoint(body1, body3, new vec2(20, 5), new vec2(0, 0));
+        joint.setSpringCoeffs(5, 0.5);
         joint.collideConnected = false;
         space.addJoint(joint);
 
-        joint = new LineJoint(body1, body3, new vec2(20, 0), new vec2(0, 0));
-        joint.enableMotor(true);
-        joint.setMotorSpeed(deg2rad(-800));
+        joint = new LineJoint(body1, body3, new vec2(20, 5), new vec2(0, 0));
+        //joint.enableMotor(true);
+        //joint.setMotorSpeed(deg2rad(-800));
+        joint.setMaxMotorTorque(1200);
         joint.collideConnected = false;
         space.addJoint(joint);
 
         // Both wheels constrained to be same rotation        
         //space.addJoint(new AngleJoint(body2, body3));
+/*
+        shape = new ShapeBox(100, 40);
+        shape.e = 0.5;
+        shape.u = 0.5;
+        var body1 = new Body(0.2);
+        body1.addShape(shape);
+        body1.resetMassData();
+        body1.p.set(340, 300);
+        space.addBody(body1);
+
+        shape = new ShapeCircle(18);
+        shape.e = 0.1;
+        shape.u = 0.97;
+        var body2 = new Body(0.4);
+        body2.addShape(shape);
+        body2.resetMassData();
+        body2.p.set(310, 280);
+        space.addBody(body2);
+
+        shape = new ShapeCircle(18);
+        shape.e = 0.1;
+        shape.u = 0.97;
+        var body3 = new Body(0.4);
+        body3.addShape(shape);
+        body3.resetMassData();
+        body3.p.set(370, 280);
+        space.addBody(body3);
+
+        var joint = new DistanceJoint(body1, body2, new vec2(-30, 5), new vec2(0, 0));
+        joint.setSpringCoeffs(5, 0.1);
+        joint.collideConnected = false;
+        space.addJoint(joint);
+
+        var joint = new LineJoint(body1, body2, new vec2(-30, 5), new vec2(0, 0));
+        joint.enableMotor(true);
+        joint.setMotorSpeed(deg2rad(500));
+        joint.setMaxMotorTorque(20);
+        joint.collideConnected = false;
+        space.addJoint(joint);
+
+        var joint = new DistanceJoint(body1, body3, new vec2(30, 5), new vec2(0, 0));
+        joint.setSpringCoeffs(5, 0.1);
+        joint.collideConnected = false;
+        space.addJoint(joint);        
+
+        var joint = new LineJoint(body1, body3, new vec2(30, 5), new vec2(0, 0));
+        joint.enableMotor(true);
+        joint.setMotorSpeed(deg2rad(500));
+        joint.collideConnected = false;
+        space.addJoint(joint);*/
     }
 
      // Rag-doll
@@ -235,21 +308,21 @@ App = function() {
 
         space = new Space();
         space.gravity = new vec2(0, -600);
-
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 10);
+        
+        shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 10);
+        shape = new ShapeBox(10, 500, -400, 250);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 10);
+        shape = new ShapeBox(10, 500, 400, 250);
         space.staticBody.addStaticShape(shape);
         
         // Head
         shape = new ShapeCircle(23);        
         shape.e = 0.4;
         shape.u = 1.0;
-        var bodyHead = new Body(0.0008);        
+        var bodyHead = new Body(0.8);
         bodyHead.addShape(shape);
         bodyHead.resetMassData();
         bodyHead.p.set(0, 367);
@@ -259,7 +332,7 @@ App = function() {
         shape = new ShapeBox(70, 15);
         shape.e = 0.4;
         shape.u = 1.0;
-        var bodySpine1 = new Body(0.0006);
+        var bodySpine1 = new Body(0.6);
         bodySpine1.addShape(shape);
         bodySpine1.resetMassData();
         bodySpine1.p.set(0, 320);
@@ -269,7 +342,7 @@ App = function() {
         shape = new ShapeBox(65, 15);
         shape.e = 0.4;
         shape.u = 1.0;
-        var bodySpine2 = new Body(0.0006);
+        var bodySpine2 = new Body(0.6);
         bodySpine2.addShape(shape);
         bodySpine2.resetMassData();
         bodySpine2.p.set(0, 290);
@@ -279,7 +352,7 @@ App = function() {
         shape = new ShapeBox(60, 15);
         shape.e = 0.4;
         shape.u = 1.0;
-        var bodySpine3 = new Body(0.0006);
+        var bodySpine3 = new Body(0.6);
         bodySpine3.addShape(shape);
         bodySpine3.resetMassData();
         bodySpine3.p.set(0, 260);
@@ -289,7 +362,7 @@ App = function() {
         shape = new ShapePoly([new vec2(-30, 10), new vec2(-32, -15), new vec2(32, -15), new vec2(30, 10)]);
         shape.e = 0.4;
         shape.u = 1.0;
-        var bodyPelvis = new Body(0.0006);
+        var bodyPelvis = new Body(0.6);
         bodyPelvis.addShape(shape);
         bodyPelvis.resetMassData();
         bodyPelvis.p.set(0, 225);
@@ -299,7 +372,7 @@ App = function() {
         shape = new ShapeBox(55, 15);
         shape.e = 0.4;
         shape.u = 1.0;
-        var bodyLArm1 = new Body(0.0005);
+        var bodyLArm1 = new Body(0.5);
         bodyLArm1.addShape(shape);
         bodyLArm1.resetMassData();
         bodyLArm1.p.set(-75, 320);
@@ -309,7 +382,7 @@ App = function() {
         shape = new ShapeBox(55, 15);
         shape.e = 0.4;
         shape.u = 1.0;
-        var bodyLArm2 = new Body(0.0005);
+        var bodyLArm2 = new Body(0.5);
         bodyLArm2.addShape(shape);
         bodyLArm2.resetMassData();
         bodyLArm2.p.set(-135, 320);
@@ -319,7 +392,7 @@ App = function() {
         shape = new ShapeBox(55, 15);
         shape.e = 0.4;
         shape.u = 1.0;
-        var bodyRArm1 = new Body(0.0005);
+        var bodyRArm1 = new Body(0.5);
         bodyRArm1.addShape(shape);
         bodyRArm1.resetMassData();
         bodyRArm1.p.set(75, 320);
@@ -329,7 +402,7 @@ App = function() {
         shape = new ShapeBox(55, 15);
         shape.e = 0.4;
         shape.u = 1.0;
-        var bodyRArm2 = new Body(0.0005);
+        var bodyRArm2 = new Body(0.5);
         bodyRArm2.addShape(shape);
         bodyRArm2.resetMassData();
         bodyRArm2.p.set(135, 320);
@@ -339,7 +412,7 @@ App = function() {
         shape = new ShapeBox(20, 85);
         shape.e = 0.4;
         shape.u = 1.0;
-        var bodyLLeg1 = new Body(0.0005);
+        var bodyLLeg1 = new Body(0.5);
         bodyLLeg1.addShape(shape);
         bodyLLeg1.resetMassData();
         bodyLLeg1.p.set(-20, 160);
@@ -349,7 +422,7 @@ App = function() {
         shape = new ShapeBox(20, 85);
         shape.e = 0.4;
         shape.u = 1.0;
-        var bodyLLeg2 = new Body(0.0005);
+        var bodyLLeg2 = new Body(0.5);
         bodyLLeg2.addShape(shape);
         bodyLLeg2.resetMassData();
         bodyLLeg2.p.set(-20, 70);
@@ -359,7 +432,7 @@ App = function() {
         shape = new ShapeBox(20, 85);
         shape.e = 0.4;
         shape.u = 1.0;
-        var bodyRLeg1 = new Body(0.0005);
+        var bodyRLeg1 = new Body(0.5);
         bodyRLeg1.addShape(shape);
         bodyRLeg1.resetMassData();
         bodyRLeg1.p.set(20, 160);
@@ -369,7 +442,7 @@ App = function() {
         shape = new ShapeBox(20, 85);
         shape.e = 0.4;
         shape.u = 1.0;
-        var bodyRLeg2 = new Body(0.0005);
+        var bodyRLeg2 = new Body(0.5);
         bodyRLeg2.addShape(shape);
         bodyRLeg2.resetMassData();
         bodyRLeg2.p.set(20, 70);
@@ -444,7 +517,7 @@ App = function() {
         joint.setLimits(deg2rad(-160), deg2rad(30));
         space.addJoint(joint);
 
-        bodyHead.applyLinearImpulse(new vec2(1300, 0), vec2.zero);
+        bodyHead.applyLinearImpulse(new vec2(1300000, 0), vec2.zero);
     }
 
     // See-saw
@@ -455,19 +528,19 @@ App = function() {
         space = new Space();
         space.gravity = new vec2(0, -600);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 10);
+        shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 10);
+        shape = new ShapeBox(10, 500, -400, 250);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 10);
-        space.staticBody.addStaticShape(shape);       
+        shape = new ShapeBox(10, 500, 400, 250);
+        space.staticBody.addStaticShape(shape);
 
         shape = new ShapeBox(140, 80);
         shape.e = 0.1;
         shape.u = 1.0;
-        body = new Body(0.0006);
+        body = new Body(0.6);
         body.addShape(shape);
         body.resetMassData();
         body.p.set(-150, 80);
@@ -476,7 +549,7 @@ App = function() {
         shape = new ShapeBox(600, 10);
         shape.e = 0.4;
         shape.u = 0.7;
-        body = new Body(0.0004);
+        body = new Body(0.4);
         body.addShape(shape);
         body.resetMassData();
         body.p.set(0, 140);
@@ -487,7 +560,7 @@ App = function() {
                 shape = new ShapeBox(40, 40);
                 shape.e = 0.3;
                 shape.u = 0.8;
-                body = new Body(0.0003);
+                body = new Body(0.3);
                 body.addShape(shape);
                 body.resetMassData();
                 body.p.set((j - i * 0.5) * 44 - 150, 350 - i * 44);
@@ -498,7 +571,7 @@ App = function() {
         shape = new ShapePoly([new vec2(-35, 35), new vec2(-50, 0), new vec2(-35, -35), new vec2(35, -35), new vec2(50, 0), new vec2(35, 35)]);
         shape.e = 0.4;
         shape.u = 1.0;
-        body = new Body(0.001);
+        body = new Body(1);
         body.addShape(shape);
         body.resetMassData();
         body.p.set(250, 1500);
@@ -514,13 +587,13 @@ App = function() {
         space = new Space();
         space.gravity = new vec2(0, -600);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 10);
+        shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 10);
+        shape = new ShapeBox(10, 500, -400, 250);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 10);
+        shape = new ShapeBox(10, 500, 400, 250);
         space.staticBody.addStaticShape(shape);
 
         for (var i = 0; i < 10; i++) {
@@ -528,7 +601,7 @@ App = function() {
                 shape = new ShapeBox(37, 37);
                 shape.e = 0.0;
                 shape.u = 1.0;
-                body = new Body(0.0008);
+                body = new Body(0.8);
                 body.addShape(shape);
                 body.resetMassData();
                 body.p.set((j - i * 0.5) * 42, 500 - i * 42);
@@ -539,7 +612,7 @@ App = function() {
 /*        shape = new ShapeCircle(19);
         shape.e = 0.1;
         shape.u = 1.0;
-        body = new Body(0.002);
+        body = new Body(2);
         body.addShape(shape);
         body.resetMassData();
         body.p.set(0, 50);
@@ -553,19 +626,19 @@ App = function() {
         space = new Space();
         space.gravity = new vec2(0, -600);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 10);
+        shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 600), 10);
+        shape = new ShapeBox(10, 500, -400, 250);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 600), 10);
-        space.staticBody.addStaticShape(shape);      
+        shape = new ShapeBox(10, 500, 400, 250);
+        space.staticBody.addStaticShape(shape);
 
         shape = new ShapeBox(20, 50);
         shape.e = 0.4;
         shape.u = 1.0;
-        var body1 = new Body(0.001);
+        var body1 = new Body(1);
         body1.addShape(shape);
         body1.resetMassData();
         body1.p.set(0, 100);
@@ -574,7 +647,7 @@ App = function() {
         shape = new ShapeBox(20, 100);
         shape.e = 0.4;
         shape.u = 1.0;
-        var body2 = new Body(0.0008);
+        var body2 = new Body(1);
         body2.addShape(shape);
         body2.resetMassData();
         body2.p.set(0, 175);
@@ -583,7 +656,7 @@ App = function() {
         shape = new ShapeBox(200, 10);
         shape.e = 0.4;
         shape.u = 1.0;
-        var body3 = new Body(0.0008);
+        var body3 = new Body(1);
         body3.addShape(shape);
         body3.resetMassData();
         body3.p.set(0, 225);
@@ -593,7 +666,7 @@ App = function() {
         joint.collideConnected = false;
         joint.enableMotor(true);
         joint.setMotorSpeed(deg2rad(270));
-        joint.setMaxMotorTorque(1000000);
+        joint.setMaxMotorTorque(200000000);
         space.addJoint(joint);
 
         var joint = new RevoluteJoint(body1, body2, new vec2(0, 125));
@@ -611,7 +684,7 @@ App = function() {
         shape = new ShapeBox(30, 30);
         shape.e = 0.0;
         shape.u = 1.0;
-        var body = new Body(0.0012);
+        var body = new Body(0.1);
         body.addShape(shape);
         body.resetMassData();
         body.p.set(-32, 300);
@@ -620,7 +693,7 @@ App = function() {
         shape = new ShapeBox(30, 30);
         shape.e = 0.0;
         shape.u = 1.0;
-        var body = new Body(0.0012);
+        var body = new Body(0.1);
         body.addShape(shape);
         body.resetMassData();
         body.p.set(0, 300);
@@ -629,11 +702,11 @@ App = function() {
         shape = new ShapeBox(30, 30);
         shape.e = 0.0;
         shape.u = 1.0;
-        var body = new Body(0.0012);
+        var body = new Body(0.1);
         body.addShape(shape);
         body.resetMassData();
         body.p.set(32, 300);
-        space.addBody(body);  
+        space.addBody(body);      
     }
 
     // Rope
@@ -644,36 +717,34 @@ App = function() {
         space = new Space();
         space.gravity = new vec2(0, -600);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 10);
+        shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 10);
+        shape = new ShapeBox(10, 500, -400, 250);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 10);
+        shape = new ShapeBox(10, 500, 400, 250);
         space.staticBody.addStaticShape(shape);
 
-        for (var i = 0; i < 20; i++) {            
-            shape = new ShapeCircle(15);
+        for (var i = 0; i < 24; i++) {            
+            shape = new ShapeBox(16, 4, 10, 0);
             shape.e = 0.0;
             shape.u = 0.5;
-            body = new Body(0.0001);
+            body = new Body(0.1);
             body.addShape(shape);
             body.resetMassData();
-            body.p.set(i * 20, 320);
+            body.p.set(i * 16, 320);
             space.addBody(body);
 
             if (i == 0) {
-                var joint = new DistanceJoint(space.staticBody, body, new vec2(0, 320), new vec2(-4, 0));
-                joint.setSpringCoeffs(12, 0.6);
+                var joint = new RevoluteJoint(space.staticBody, body, new vec2(0, 320));                
                 joint.collideConnected = false;
                 space.addJoint(joint);
             }
             else {
-                var joint = new DistanceJoint(body_prev, body, new vec2(4, 0), new vec2(-4, 0));
-                joint.setSpringCoeffs(12, 0.6);
-                joint.breakable = true;
-                joint.maxForce = 8000;
+                var joint = new RevoluteJoint(body_prev, body, new vec2(i * 16, 320));                
+                //joint.breakable = true;
+                //joint.maxForce = 8000000;
                 joint.collideConnected = false;
                 space.addJoint(joint);
             }
@@ -689,19 +760,19 @@ App = function() {
         space = new Space();
         space.gravity = new vec2(0, 0);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 10);
+        shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 500), 10);
+        shape = new ShapeBox(10, 500, -400, 250);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 500), 10);
+        shape = new ShapeBox(10, 500, 400, 250);
         space.staticBody.addStaticShape(shape);
 
         shape = new ShapeBox(20, 20);
         shape.e = 0.0;
         shape.u = 1.0;
-        var body1 = new Body(0.0025);
+        var body1 = new Body(1);
         body1.addShape(shape);
         body1.resetMassData();
         body1.p.set(-70, 300);
@@ -710,7 +781,7 @@ App = function() {
         shape = new ShapeBox(20, 20);
         shape.e = 0.0;
         shape.u = 1.0;
-        var body2 = new Body(0.0025);
+        var body2 = new Body(1);
         body2.addShape(shape);
         body2.resetMassData();
         body2.p.set(-70, 160);
@@ -719,7 +790,7 @@ App = function() {
         shape = new ShapeBox(20, 20);
         shape.e = 0.0;
         shape.u = 1.0;
-        var body3 = new Body(0.0025);
+        var body3 = new Body(1);
         body3.addShape(shape);
         body3.resetMassData();
         body3.p.set(70, 300);
@@ -728,7 +799,7 @@ App = function() {
         shape = new ShapeBox(20, 20);
         shape.e = 0.0;
         shape.u = 1.0;
-        var body4 = new Body(0.0025);
+        var body4 = new Body(1);
         body4.addShape(shape);
         body4.resetMassData();
         body4.p.set(70, 160);
@@ -774,66 +845,25 @@ App = function() {
         space = new Space();
         space.gravity = new vec2(0, -600);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(400, 0), 10);
+        shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(-400, 0), new vec2(-400, 600), 10);
+        shape = new ShapeBox(10, 500, -400, 250);
         space.staticBody.addStaticShape(shape);
 
-        shape = new ShapeSegment(new vec2(400, 0), new vec2(400, 600), 10);
-        space.staticBody.addStaticShape(shape);      
+        shape = new ShapeBox(10, 500, 400, 250);
+        space.staticBody.addStaticShape(shape);
 
         for (var i = 0; i <= 10; i++)  {
             shape = new ShapeCircle(20);
             shape.e = i / 10;
             shape.u = 1.0;
-            var body = new Body(0.0008);
+            var body = new Body(0.8);
             body.addShape(shape);
             body.resetMassData();
             body.p.set(-300 + i * 60, 400);
             space.addBody(body);
         }
-
-/*        shape = new ShapeBox(200, 40);
-        shape.e = 0.4;
-        shape.u = 1.0;
-        var body1 = new Body(0.0005);
-        body1.addShape(shape);
-        body1.resetMassData();
-        body1.p.set(0, 400);
-        space.addBody(body1);
-
-        shape = new ShapeCircle(30);
-        shape.e = 0.4;
-        shape.u = 1.0;
-        var body2 = new Body(0.0005);
-        body2.addShape(shape);
-        body2.resetMassData();
-        body2.p.set(-50, 300);
-        space.addBody(body2);
-
-        shape = new ShapeCircle(30);
-        shape.e = 0.4;
-        shape.u = 1.0;
-        var body3 = new Body(0.0005);
-        body3.addShape(shape);
-        body3.resetMassData();
-        body3.p.set(50, 300);
-        space.addBody(body3);
-
-        var joint = new DistanceJoint(body1, body2, new vec2(-50, -20), new vec2(0, 0));
-        joint.setSpringCoeffs(5, 0.1);
-        space.addJoint(joint);
-
-        var joint = new DistanceJoint(body1, body3, new vec2(50, -20), new vec2(0, 0));
-        joint.setSpringCoeffs(5, 0.1);
-        space.addJoint(joint);
-
-        var joint = new PrismaticJoint(body1, body2, new vec2(-50, 0), new vec2(0, 0));
-        space.addJoint(joint);
-
-        var joint = new LineJoint(body1, body3, new vec2(50, 0), new vec2(0, 0));
-        space.addJoint(joint);*/
     }    
 
     function bodyColor(body) {
@@ -854,41 +884,56 @@ App = function() {
             mouseBody.p = mousePoint;
         }
 
-        if (timeOffset >= 1000 / 60) {
+        //if (timeOffset >= 1000 / 60) {
             var steps = 0;
 
-            while (timeOffset >= 1000 / 60 && steps < 10) {                
+            //while (timeOffset >= 1000 / 60 && steps < 10) {                
                 var t0 = Date.now();
                 space.step(1 / 60, config.velocityIterations, config.positionIterations);
                 stats.timeStep = Date.now() - t0;
 
                 timeOffset -= 1000 / 60;
                 steps++;
-            }
+            //}
 
             drawFrame(frameTime);
-        }
+        //}
 
         window.requestAnimFrame(function() { runFrame(); });   
     }
 
     function drawFrame(ms) {
         var t0 = Date.now();
+            
+        // Clear rect
+        if (!clearBounds.isEmpty()) {
+            ctx.clearRect(clearBounds.mins.x, clearBounds.mins.y, clearBounds.maxs.x - clearBounds.mins.x, clearBounds.maxs.y - clearBounds.mins.y);            
+        }                        
 
-        ctx.clearRect(clearBounds.mins.x - 2, clearBounds.mins.y - 2, clearBounds.maxs.x - clearBounds.mins.x + 4, clearBounds.maxs.y - clearBounds.mins.y + 4);
+        // Update paint bounds for culling
+        paintBounds.clear();
+        preBody(space.staticBody);
+        for (var i in space.bodyHash) {
+            preBody(space.bodyHash[i]);
+        }
+
+        paintBounds.addBounds(clearBounds);
         clearBounds.clear();
 
+        // Draw bodies
         drawBody(space.staticBody, "#888", "#000");
         for (var i in space.bodyHash) {
             drawBody(space.bodyHash[i], bodyColor(space.bodyHash[i]), "#000");
         }
 
+        // Draw joints
         if (showJoints) {
             for (var i in space.jointHash) {
                 drawJoint(space.jointHash[i], "#F0F");
             }
         }        
 
+        // Draw contacts
         if (showContacts) {
             for (var i = 0; i < space.contactSolverArr.length; i++) {
                 var contactSolver = space.contactSolverArr[i];
@@ -900,10 +945,16 @@ App = function() {
             }
         }
         
-        //drawBox(clearBounds.mins, clearBounds.maxs, null, "#F00");        
+        // Draw update bounds
+        if (showClearBounds) {
+            var bounds = new Bounds(clearBounds.mins, clearBounds.maxs);
+            bounds.expand(-2, -2);
+            drawBox(bounds.mins, bounds.maxs, null, "#F00");
+        }
 
         stats.timeDrawFrame = Date.now() - t0;
 
+        // Draw statistics
         if (showStats) {
             ctx.save();
             ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -916,6 +967,69 @@ App = function() {
             ctx.restore();
 
             clearBounds.copy(canvasBounds);
+        }
+    }
+
+    function preBody(body) {
+        for (var i = 0; i < body.shapeArr.length; i++) {
+            var shape = body.shapeArr[i];
+
+            // Expand for outline
+            var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
+            bounds.expand(2, 2);
+
+            if (!canvasBounds.intersectsBounds(bounds)) {
+                continue;
+            }
+
+            if (!body.isStatic() && body.isAwake()) {
+                paintBounds.addBounds(bounds);
+            }
+        }
+    }
+
+    function drawBody(body, fillColor, outlineColor) {
+        for (var i = 0; i < body.shapeArr.length; i++) {
+            var shape = body.shapeArr[i];
+
+            // Expand for outline
+            var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
+            bounds.expand(2, 2);
+
+            if (!paintBounds.intersectsBounds(bounds)) {
+                continue;
+            }
+
+            if (!body.isStatic() && body.isAwake()) {
+                clearBounds.addBounds(bounds);
+            }
+
+            drawBodyShape(body, shape, fillColor, outlineColor);
+        }
+    }
+
+    function drawBodyShape(body, shape, fillColor, outlineColor) {
+        // Draw body shape
+        switch (shape.type) {
+        case Shape.TYPE_CIRCLE:
+            drawCircle(shape.tc, shape.r, body.a, fillColor, outlineColor);
+            break;
+        case Shape.TYPE_SEGMENT:
+            drawSegment(shape.ta, shape.tb, shape.r, fillColor, outlineColor);
+            break;
+        case Shape.TYPE_POLY:
+            drawPolygon(shape.tverts, fillColor, outlineColor);
+            break;
+        }
+
+        // Draw bounds
+        if (showBounds) {
+            // expand for outline
+            var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
+            bounds.expand(1, 1);
+
+            drawBox(bounds.mins, bounds.maxs, null, "#0A0");
+            clearBounds.addBounds(bounds);
         }
     }
 
@@ -952,42 +1066,6 @@ App = function() {
         clearBounds.addBounds(new Bounds(new vec2(p2.x - 3, p2.y - 3), new vec2(p2.x + 3, p2.y + 3)));
     }
 
-    function drawBody(body, fillColor, outlineColor) {
-        for (var i = 0; i < body.shapeArr.length; i++) {
-            var shape = body.shapeArr[i];
-
-            if (!canvasBounds.intersectsBounds(shape.bounds)) {
-                continue;
-            }
-
-            if (!body.isStatic()) {
-                clearBounds.addBounds(shape.bounds);
-            }
-
-            drawBodyShape(body, shape, fillColor, outlineColor);
-        }
-    }
-
-    function drawBodyShape(body, shape, fillColor, outlineColor) {
-        switch (shape.type) {
-        case Shape.TYPE_CIRCLE:
-            drawCircle(shape.tc, shape.r, body.a, fillColor, outlineColor);
-            break;
-        case Shape.TYPE_SEGMENT:
-            drawSegment(shape.ta, shape.tb, shape.r, fillColor, outlineColor);
-            break;
-        case Shape.TYPE_POLY:
-            drawPolygon(shape.tverts, fillColor, outlineColor);
-            break;
-        }
-
-        if (showBounds) {
-            var offset = new vec2(1, 1);
-            drawBox(vec2.sub(shape.bounds.mins, offset), vec2.add(shape.bounds.maxs, offset), null, "#0A0");
-            clearBounds.addBounds(shape.bounds);
-        }
-    }
-
     function drawArrow(p1, p2, strokeStyle) {
         var angle = vec2.toAngle(vec2.sub(p2, p1)) - Math.PI;
 
@@ -1021,7 +1099,7 @@ App = function() {
             ctx.fill();
         }
 
-        if (strokeStyle) {
+        if (strokeStyle) {            
             ctx.strokeStyle = strokeStyle;
             ctx.stroke();
         }
@@ -1124,7 +1202,7 @@ App = function() {
             space.addJoint(mouseJoint);
         }
 
-        e.preventDefault();
+        e.preventDefault();        
     }
 
     function onMouseUp(e) { 
@@ -1157,7 +1235,7 @@ App = function() {
                 space.removeJoint(mouseJoint);
                 mouseJoint = null;
             }
-        }        
+        }
 
         e.preventDefault();
     }
@@ -1204,6 +1282,9 @@ App = function() {
             break;
         case 83: // 's'
             showStats = !showStats;
+            break;        
+        case 85: // 'u'
+            showClearBounds = !showClearBounds;
             break;
         case 49: // '1'            
         case 50: // '2'

@@ -575,18 +575,27 @@ mat3.mul = function(m1, m2) {
 //-----------------------------------
 
 Bounds = function(mins, maxs) {
-    this.mins = mins || new vec2(+999999999, +999999999);
-    this.maxs = maxs || new vec2(-999999999, -999999999);
+    this.mins = mins ? new vec2(mins.x, mins.y) : new vec2(+999999999, +999999999);
+    this.maxs = maxs ? new vec2(maxs.x, maxs.y) : new vec2(-999999999, -999999999);
 }
 
 Bounds.prototype.copy = function(b) {
     this.mins.copy(b.mins);
     this.maxs.copy(b.maxs);
+
+    return this;
 }
 
 Bounds.prototype.clear = function() {
     this.mins.set(+999999999, +999999999);
     this.maxs.set(-999999999, -999999999);
+
+    return this;
+}
+
+Bounds.prototype.isEmpty = function() {
+    if (this.mins.x > this.maxs.x || this.mins.y > this.maxs.y)
+        return true;
 }
 
 Bounds.prototype.addPoint = function(p) {
@@ -598,6 +607,8 @@ Bounds.prototype.addPoint = function(p) {
         this.mins.y = p.y;
     if (this.maxs.y < p.y)
         this.maxs.y = p.y;
+
+    return this;
 }
 
 Bounds.prototype.addBounds = function(b) {
@@ -609,6 +620,17 @@ Bounds.prototype.addBounds = function(b) {
         this.mins.y = b.mins.y;
     if (this.maxs.y < b.maxs.y)
         this.maxs.y = b.maxs.y;
+
+    return this;
+}
+
+Bounds.prototype.expand = function(ax, ay) {
+    this.mins.x -= ax;
+    this.mins.y -= ay;
+    this.maxs.x += ax;
+    this.maxs.y += ay;
+
+    return this;
 }
 
 Bounds.prototype.containPoint = function(p) {
