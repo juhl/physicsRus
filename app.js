@@ -307,7 +307,7 @@ App = function() {
         var shape;
 
         space = new Space();
-        space.gravity = new vec2(0, -600);
+        space.gravity = new vec2(0, -800);
         
         shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
@@ -526,7 +526,7 @@ App = function() {
         var shape;
 
         space = new Space();
-        space.gravity = new vec2(0, -600);
+        space.gravity = new vec2(0, -800);
 
         shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
@@ -585,7 +585,7 @@ App = function() {
         var shape;
 
         space = new Space();
-        space.gravity = new vec2(0, -600);
+        space.gravity = new vec2(0, -800);
 
         shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
@@ -624,7 +624,7 @@ App = function() {
         var shape;
 
         space = new Space();
-        space.gravity = new vec2(0, -600);
+        space.gravity = new vec2(0, -800);
 
         shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
@@ -715,7 +715,7 @@ App = function() {
         var shape;
 
         space = new Space();
-        space.gravity = new vec2(0, -600);
+        space.gravity = new vec2(0, -800);
 
         shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
@@ -843,7 +843,7 @@ App = function() {
         var shape;
 
         space = new Space();
-        space.gravity = new vec2(0, -600);
+        space.gravity = new vec2(0, -800);
 
         shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
@@ -884,20 +884,20 @@ App = function() {
             mouseBody.p = mousePoint;
         }
 
-        //if (timeOffset >= 1000 / 60) {
+        if (timeOffset >= 1000 / 60) {
             var steps = 0;
 
-            //while (timeOffset >= 1000 / 60 && steps < 10) {                
+            while (timeOffset >= 1000 / 60 && steps < 10) {                
                 var t0 = Date.now();
                 space.step(1 / 60, config.velocityIterations, config.positionIterations);
                 stats.timeStep = Date.now() - t0;
 
                 timeOffset -= 1000 / 60;
                 steps++;
-            //}
+            }
 
             drawFrame(frameTime);
-        //}
+        }
 
         window.requestAnimFrame(function() { runFrame(); });   
     }
