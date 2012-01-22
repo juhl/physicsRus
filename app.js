@@ -517,7 +517,7 @@ App = function() {
         joint.setLimits(deg2rad(-160), deg2rad(30));
         space.addJoint(joint);
 
-        bodyHead.applyLinearImpulse(new vec2(1300000, 0), vec2.zero);
+        bodyHead.applyLinearImpulse(new vec2(1200000, 0), vec2.zero);
     }
 
     // See-saw
@@ -526,7 +526,7 @@ App = function() {
         var shape;
 
         space = new Space();
-        space.gravity = new vec2(0, -800);
+        space.gravity = new vec2(0, -600);
 
         shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
@@ -585,7 +585,7 @@ App = function() {
         var shape;
 
         space = new Space();
-        space.gravity = new vec2(0, -800);
+        space.gravity = new vec2(0, -600);
 
         shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
@@ -624,7 +624,7 @@ App = function() {
         var shape;
 
         space = new Space();
-        space.gravity = new vec2(0, -800);
+        space.gravity = new vec2(0, -600);
 
         shape = new ShapeBox(790, 10, 0, 0);
         space.staticBody.addStaticShape(shape);
@@ -887,7 +887,7 @@ App = function() {
         if (timeOffset >= 1000 / 60) {
             var steps = 0;
 
-            while (timeOffset >= 1000 / 60 && steps < 10) {                
+            while (timeOffset >= 1000 / 60 && steps < 10) {
                 var t0 = Date.now();
                 space.step(1 / 60, config.velocityIterations, config.positionIterations);
                 stats.timeStep = Date.now() - t0;

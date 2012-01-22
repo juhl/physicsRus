@@ -18,8 +18,8 @@ MouseJoint = function(mouseBody, body, anchor1, anchor2) {
 	this.anchor1 = anchor1;
 	this.anchor2 = anchor2;
 
-	this.frequencyHz = 5;
-	this.dampingRatio = 0.8;
+	this.frequencyHz = 8;
+	this.dampingRatio = 1.0;
 
 	// Accumulated impulse
 	this.lambda_acc = new vec2(0, 0);
