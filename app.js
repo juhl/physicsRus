@@ -963,7 +963,7 @@ App = function() {
             ctx.textBaseline = "top";
             ctx.fillText("step: " + stats.timeStep + " draw: " + stats.timeDrawFrame, 15, 2);
             ctx.fillText("col: " + stats.timeCollision + " init_sv: " + stats.timeInitSolver + " vel_sv: " + stats.timeVelocitySolver + " pos_sv: " + stats.timePositionSolver, 15, 20);
-            ctx.fillText("bodies: " + space.numBodies + " joints: " + space.numJoints + " contacts: " + space.contactSolverArr.length + " pos_iter: " + stats.positionIterations, 15, 38);
+            ctx.fillText("bodies: " + space.numBodies + " joints: " + space.numJoints + " contacts: " + space.numContacts + " pos_iter: " + stats.positionIterations, 15, 38);
             ctx.restore();
 
             clearBounds.copy(canvasBounds);

@@ -15,6 +15,7 @@ function Space() {
     this.shapeArr = [];
     
     this.contactSolverArr = [];
+    this.numContacts = 0;
 
     this.postSolve = function(arb) {};
 }
@@ -132,7 +133,9 @@ Space.prototype.isCollidable = function(body1, body2) {
 
 Space.prototype.genTemporalContactSolvers = function() {
     var t0 = Date.now();
-    var newContactSolverArr = [];    
+    var newContactSolverArr = [];
+
+    this.numContacts = 0;
 
     for (var i = 0; i < this.shapeArr.length; i++) {
         for (var j = i + 1; j < this.shapeArr.length; j++) {
@@ -161,6 +164,8 @@ Space.prototype.genTemporalContactSolvers = function() {
             if (!Collision.collide(shape1, shape2, contactArr)) {
                 continue;
             }
+
+            this.numContacts += contactArr.length;
 
             if (shape1.type > shape2.type) {
                 var temp = shape1;
@@ -275,13 +280,17 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration, allowSleep) {
     //
     for (var i in this.jointHash) {
         var joint = this.jointHash[i];
-        var awake1 = joint.body1.isAwake();
-        var awake2 = joint.body2.isAwake();
+        var body1 = joint.body1;
+        var body2 = joint.body2;
+
+        var awake1 = body1.isAwake() && !body1.isStatic();
+        var awake2 = body2.isAwake() && !body2.isStatic();
+
         if (awake1 ^ awake2) {
             if (!awake1)
-                joint.body1.awake(true);
+                body1.awake(true);
             if (!awake2)
-                joint.body2.awake(true);
+                body2.awake(true);
         }
     }
 
