@@ -94,7 +94,7 @@ App = function() {
 
         initScene();
 
-		window.requestAnimFrame(function() { runFrame(); });        
+	window.requestAnimFrame(function() { runFrame(); });        
     }
 
     function initScene() {
@@ -174,7 +174,7 @@ App = function() {
                 var joint = new RevoluteJoint(space.staticBody, body, new vec2(-100, 45));
                 joint.collideConnected = false;
                 space.addJoint(joint);
-            }            
+            }
             else {
                 var joint = new RevoluteJoint(body_prev, body, new vec2(-100 + i * 20, 45));
                 joint.collideConnected = false;
@@ -189,7 +189,7 @@ App = function() {
         space.addJoint(joint);        
 
         // Car body
-        shape = new ShapeBox(72, 20, 0, 0);
+        shape = new ShapeBox(75, 20, 0, 0);
         shape.e = 0.5;
         shape.u = 0.5;
         body1 = new Body(0.1);
@@ -209,12 +209,12 @@ App = function() {
         body2 = new Body(0.05);
         body2.addShape(shape);
         body2.resetMassData();
-        body2.p.set(-360, 290);
+        body2.p.set(-360, 288);
         space.addBody(body2);
 
         //joint = new RevoluteJoint(body1, body2, new vec2(-345, 250));
         joint = new DistanceJoint(body1, body2, new vec2(-20, 5), new vec2(0, 0));
-        joint.setSpringCoeffs(5, 0.5);
+        joint.setSpringCoeffs(6, 0.7);
         joint.collideConnected = false;
         space.addJoint(joint);
 
@@ -232,12 +232,12 @@ App = function() {
         body3 = new Body(0.05);
         body3.addShape(shape);
         body3.resetMassData();
-        body3.p.set(-320, 290);
+        body3.p.set(-320, 288);
         space.addBody(body3);
 
         //joint = new RevoluteJoint(body1, body3, new vec2(-255, 250));
         joint = new DistanceJoint(body1, body3, new vec2(20, 5), new vec2(0, 0));
-        joint.setSpringCoeffs(5, 0.5);
+        joint.setSpringCoeffs(6, 0.7);
         joint.collideConnected = false;
         space.addJoint(joint);
 
@@ -254,7 +254,7 @@ App = function() {
         shape = new ShapeBox(100, 40);
         shape.e = 0.5;
         shape.u = 0.5;
-        var body1 = new Body(0.2);
+        var body1 = new Body(0.1);
         body1.addShape(shape);
         body1.resetMassData();
         body1.p.set(340, 300);
@@ -263,7 +263,7 @@ App = function() {
         shape = new ShapeCircle(18);
         shape.e = 0.1;
         shape.u = 0.97;
-        var body2 = new Body(0.4);
+        var body2 = new Body(0.2);
         body2.addShape(shape);
         body2.resetMassData();
         body2.p.set(310, 280);
@@ -272,7 +272,7 @@ App = function() {
         shape = new ShapeCircle(18);
         shape.e = 0.1;
         shape.u = 0.97;
-        var body3 = new Body(0.4);
+        var body3 = new Body(0.2);
         body3.addShape(shape);
         body3.resetMassData();
         body3.p.set(370, 280);
@@ -871,7 +871,7 @@ App = function() {
             return "#888";
         return randomColor[(body.id) % randomColor.length];
     }
-
+    
     function runFrame() {
         var time = Date.now();
         var frameTime = time - lastTime;
@@ -889,7 +889,7 @@ App = function() {
 
             while (timeOffset >= 1000 / 60 && steps < 10) {
                 var t0 = Date.now();
-                space.step(1 / 60, config.velocityIterations, config.positionIterations);
+                space.step(1 / 60, config.velocityIterations, config.positionIterations, true);
                 stats.timeStep = Date.now() - t0;
 
                 timeOffset -= 1000 / 60;
@@ -963,7 +963,7 @@ App = function() {
             ctx.textBaseline = "top";
             ctx.fillText("step: " + stats.timeStep + " draw: " + stats.timeDrawFrame, 15, 2);
             ctx.fillText("col: " + stats.timeCollision + " init_sv: " + stats.timeInitSolver + " vel_sv: " + stats.timeVelocitySolver + " pos_sv: " + stats.timePositionSolver, 15, 20);
-            ctx.fillText("pos_iter: " + stats.positionIterations, 15, 38);
+            ctx.fillText("bodies: " + space.numBodies + " joints: " + space.numJoints + " contacts: " + space.contactSolverArr.length + " pos_iter: " + stats.positionIterations, 15, 38);
             ctx.restore();
 
             clearBounds.copy(canvasBounds);
@@ -1206,17 +1206,17 @@ App = function() {
     }
 
     function onMouseUp(e) { 
-	    if (mouseDown) {
+        if (mouseDown) {
             mouseDown = false;
             
             if (mouseJoint) {
                 space.removeJoint(mouseJoint);
                 mouseJoint = null;
             }
-		}
+        }
 
         e.preventDefault();
-	}
+    }
 
     function onMouseMove(e) {
         var point = getMousePoint(e);

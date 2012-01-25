@@ -26,10 +26,6 @@ DistanceJoint = function(body1, body2, anchor1, anchor2) {
 	// Rest distance
 	this.restLength = vec2.dist(p1, p2);
 
-	// Spring coefficients
-	this.frequencyHz = 0;
-	this.dampingRatio = 0;
-
 	// Soft constraint coefficients
 	this.gamma = 0;
 	this.bias = 0;
@@ -41,9 +37,15 @@ DistanceJoint = function(body1, body2, anchor1, anchor2) {
 DistanceJoint.prototype = new Joint;
 DistanceJoint.prototype.constructor = DistanceJoint;
 
-DistanceJoint.prototype.setSpringCoeffs = function(frequencyHz, dampingRatio) {
-	this.frequencyHz = frequencyHz;
-	this.dampingRatio = dampingRatio;
+DistanceJoint.prototype.setSpringCoeffs = function(frequencyHz, dampingRatio) {	
+	// Frequency
+	var omega = 2 * Math.PI * frequencyHz;
+
+	// Spring stiffness
+	this.k = omega * omega;
+
+	// Damping coefficients
+	this.d = 2 * dampingRatio * omega;
 }
 
 DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
@@ -80,21 +82,17 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.em = em_inv == 0 ? 0 : 1 / em_inv;
 
 	// Compute soft constraint parameters
-	if (this.frequencyHz > 0) {
+	if (this.k > 0) {
 		var c = dist - this.restLength;
-
-		// Frequency
-		var omega = 2 * Math.PI * this.frequencyHz;
-
-		// Spring stiffness
-		var k = this.em * (omega * omega);
-
-		// Damping coefficients
-		var d = this.em * 2 * this.dampingRatio * omega;	
+		
+		// Spring coefficients				
+		var k = this.em * this.k;
+		var d = this.em * this.d;
 
 		// Soft constraint formulas
 		var gamma = dt * (d + k * dt);
 		this.gamma = gamma == 0 ? 0 : 1 / gamma;
+
 		var beta = dt * k * this.gamma;
 		this.bias = c * beta;
 
@@ -143,7 +141,7 @@ DistanceJoint.prototype.solveVelocityConstraints = function() {
 
 DistanceJoint.prototype.solvePositionConstraints = function() {
 	// There is no position correction for soft constraints
-	if (this.frequencyHz > 0) {
+	if (this.k > 0) {
 		return true;
 	}
 

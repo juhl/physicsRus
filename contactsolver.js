@@ -111,6 +111,11 @@ ContactSolver.prototype.solveVelocityConstraints = function() {
     var body1 = this.shape1.body;
     var body2 = this.shape2.body;
 
+    var m1_inv = body1.m_inv;
+    var i1_inv = body1.i_inv;
+    var m2_inv = body2.m_inv;
+    var i2_inv = body2.i_inv;
+
     for (var i = 0; i < this.contactArr.length; i++) {
         var con = this.contactArr[i];
         var n = con.n;
@@ -145,11 +150,11 @@ ContactSolver.prototype.solveVelocityConstraints = function() {
         //var j = vec2.rotate(n, new vec2(jn, jt));
         var j = new vec2(n.x * jn - n.y * jt, n.x * jt + n.y * jn);        
 
-        body1.v.mad(j, -body1.m_inv);
-        body1.w -= vec2.cross(r1, j) * body1.i_inv;
+        body1.v.mad(j, -m1_inv);
+        body1.w -= vec2.cross(r1, j) * i1_inv;
 
-        body2.v.mad(j, body2.m_inv);
-        body2.w += vec2.cross(r2, j) * body2.i_inv;
+        body2.v.mad(j, m2_inv);
+        body2.w += vec2.cross(r2, j) * i2_inv;
     }   
 }
 
@@ -157,7 +162,11 @@ ContactSolver.prototype.solvePositionConstraints = function() {
     var body1 = this.shape1.body;
     var body2 = this.shape2.body;
 
-    var sum_m_inv = body1.m_inv + body2.m_inv;
+    var m1_inv = body1.m_inv;
+    var i1_inv = body1.i_inv;
+    var m2_inv = body2.m_inv;
+    var i2_inv = body2.i_inv;
+    var sum_m_inv = m1_inv + m2_inv;
 
     var max_penetration = 0;
 
@@ -200,11 +209,11 @@ ContactSolver.prototype.solvePositionConstraints = function() {
         // Apply correction impulses
         var j = vec2.scale(n, jp);
 
-        body1.p.mad(j, -body1.m_inv);
-        body1.a -= sn1 * jp * body1.i_inv;
+        body1.p.mad(j, -m1_inv);
+        body1.a -= sn1 * jp * i1_inv;
         
-        body2.p.mad(j, body2.m_inv);
-        body2.a += sn2 * jp * body2.i_inv;
+        body2.p.mad(j, m2_inv);
+        body2.a += sn2 * jp * i2_inv;
     }
 
     return max_penetration <= ContactSolver.COLLISION_SLOP * 3;

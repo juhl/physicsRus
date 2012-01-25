@@ -16,5 +16,4 @@ Todo
 --------------
 
 - Broad phase collision detection
-- Freezing bodies
 - CCD

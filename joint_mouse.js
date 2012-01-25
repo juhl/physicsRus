@@ -17,9 +17,15 @@ MouseJoint = function(mouseBody, body, anchor1, anchor2) {
 
 	this.anchor1 = anchor1;
 	this.anchor2 = anchor2;
+	
+	// Spring stiffness
+	var frequencyHz = 7;
+	var omega = 2 * Math.PI * frequencyHz;
+	this.k = omega * omega;
 
-	this.frequencyHz = 8;
-	this.dampingRatio = 1.0;
+	// Damping coefficients
+	var dampingRatio = 1.0;
+	this.d = 2 * dampingRatio * omega;
 
 	// Accumulated impulse
 	this.lambda_acc = new vec2(0, 0);
@@ -47,20 +53,16 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.em_inv = new mat2(k11, k12, k12, k22);
 
 	// Position constraint
-	var c = vec2.sub(vec2.add(body2.p, this.r2), body1.p);
-
-	// Frequency
-	var omega = 2 * Math.PI * this.frequencyHz;
-
-	// Spring stiffness
-	var k = body2.m * (omega * omega);
-
-	// Damping coefficients
-	var d = body2.m * 2 * this.dampingRatio * omega;
+	var c = vec2.sub(vec2.add(body2.p, this.r2), body1.p);	
+	
+	// Spring coefficients
+	var k = body2.m * this.k;
+	var d = body2.m * this.d;
 
 	// Soft constraint formulas
 	var gamma = dt * (d + k * dt);
 	this.gamma = gamma == 0 ? 0 : 1 / gamma;
+
 	var beta = dt * k * this.gamma;
 	this.bias = vec2.scale(c, beta);
 

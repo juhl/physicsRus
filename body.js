@@ -52,7 +52,7 @@ Body.prototype.addStaticShape = function(shape) {
     shape.body = this;
     this.shapeArr.push(shape);
     
-    this.space.activeShapeArr.push(shape);
+    this.space.shapeArr.push(shape);
     shape.cacheData(new vec2(0, 0), 0);
 }
 
