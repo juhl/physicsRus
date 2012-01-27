@@ -94,7 +94,7 @@ App = function() {
 
         initScene();
 
-	window.requestAnimFrame(function() { runFrame(); });        
+	   window.requestAnimFrame(function() { runFrame(); });        
     }
 
     function initScene() {
@@ -958,12 +958,12 @@ App = function() {
         if (showStats) {
             ctx.save();
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.font = "12pt menlo";
+            ctx.font = "8pt menlo";
             ctx.fillStyle = "#333";
             ctx.textBaseline = "top";
-            ctx.fillText("step: " + stats.timeStep + " draw: " + stats.timeDrawFrame, 15, 2);
-            ctx.fillText("col: " + stats.timeCollision + " init_sv: " + stats.timeInitSolver + " vel_sv: " + stats.timeVelocitySolver + " pos_sv: " + stats.timePositionSolver, 15, 20);
-            ctx.fillText("bodies: " + space.numBodies + " joints: " + space.numJoints + " contacts: " + space.numContacts + " pos_iter: " + stats.positionIterations, 15, 38);
+            ctx.fillText("step: " + stats.timeStep + " draw: " + stats.timeDrawFrame, 10, 2);
+            ctx.fillText("col: " + stats.timeCollision + " init_sv: " + stats.timeInitSolver + " vel_sv: " + stats.timeVelocitySolver + " pos_sv: " + stats.timePositionSolver, 10, 14);
+            ctx.fillText("bodies: " + space.numBodies + " joints: " + space.numJoints + " contacts: " + space.numContacts + " pos_iter: " + stats.positionIterations, 10, 26);
             ctx.restore();
 
             clearBounds.copy(canvasBounds);

@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <div id="info">      
+    <div id="info">
       1, 2, 3, 4, 5, 6, 7, 8 - select scene</br>
       r - reset scene</br>
       b - toggle bounding boxes</br>
@@ -28,11 +28,26 @@
       s - toggle statistics</br>
       u - toggle clear rect</br>
     </div>
+
+    <div id="comments">
+      <div class="fb-comments" data-href="http://peppercode.net/" data-num-posts="8" data-width="800"></div>      
+    </div>
   </div>
 
   <footer>
     Copyright © 2011 Peppercode. All Rights Reserved.
   </footer>
+
+  <div id="fb-root"></div>
+  <script>
+    (function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/ko_KR/all.js#xfbml=1&appId=240528552691710";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+  </script>
 
   <script type="text/javascript" src="math.js"></script>
   <script type="text/javascript" src="util.js"></script>

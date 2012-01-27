@@ -1,6 +1,6 @@
 html, body {
   margin:0px 0px; padding:0px;
-  font-family: Lucida Grande, Verdana, sans-serif;
+  font-family: Verdana, times new roman, NanumGothic, sans-serif;  
   text-align: center;
 }
 div#content {
@@ -28,9 +28,14 @@ div#info {
 }
 header {
   padding-top: 0px;
+  font-family: Lucida Grande, Verdana, sans-serif;
   text-align: center;
   line-height: 1.5;
   text-shadow: 0.1em 0.1em 0.3em gray
+}
+div#comments {
+  width: 800px; 
+  margin: 0px auto;
 }
 footer {
   padding-top: 0px;

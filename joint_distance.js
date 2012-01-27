@@ -85,7 +85,7 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	if (this.k > 0) {
 		var c = dist - this.restLength;
 		
-		// Spring coefficients				
+		// Spring coefficients
 		var k = this.em * this.k;
 		var d = this.em * this.d;
 
