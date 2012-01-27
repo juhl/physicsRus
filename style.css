@@ -34,7 +34,8 @@ header {
   text-shadow: 0.1em 0.1em 0.3em gray
 }
 div#comments, div#like {
-  width: 800px; 
+  padding: 4px;
+  width: 800px;
   margin: 0px auto;
 }
 footer {
