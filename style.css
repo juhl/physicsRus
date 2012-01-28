@@ -31,12 +31,18 @@ header {
   font-family: Lucida Grande, Verdana, sans-serif;
   text-align: center;
   line-height: 1.5;
-  text-shadow: 0.1em 0.1em 0.3em gray
+  text-shadow: 0.1em 0.1em 0.3em gray;
 }
-div#comments, div#like {
+div#comments {
   padding: 4px;
   width: 800px;
   margin: 0px auto;
+}
+div#share {
+  padding: 4px;  
+  margin: 0px auto;
+  margin-top: 5px;
+  width: 800px;
 }
 footer {
   padding-top: 0px;

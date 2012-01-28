@@ -30,8 +30,16 @@
       u - toggle clear rect</br>
     </div>
 
-    <div id="like">
-      <div class="fb-like" data-send="true" data-layout="button_count" data-width="800" data-show-faces="false"></div>
+    <div id="share">
+       <!-- AddThis Button BEGIN -->
+        <div class="addthis_toolbox addthis_default_style ">
+          <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+          <a class="addthis_button_tweet"></a>
+          <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+          <a class="addthis_counter addthis_pill_style"></a>
+        </div>
+        <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4f237bd10e0ef75f"></script>
+        <!-- AddThis Button END -->
     </div>
     <div id="comments">
       <div class="fb-comments" data-href="http://peppercode.net/rigid-dyn2d" data-num-posts="8" data-width="800"></div>      
@@ -41,17 +49,6 @@
   <footer>
     Copyright © 2011 Peppercode. All Rights Reserved.
   </footer>
-  
-  <div id="fb-root"></div>
-  <script>
-    (function(d, s, id) {
-      var js, fjs = d.getElementsByTagName(s)[0];
-      if (d.getElementById(id)) return;
-      js = d.createElement(s); js.id = id;
-      js.src = "//connect.facebook.net/ko_KR/all.js#xfbml=1&appId=240528552691710";
-      fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'facebook-jssdk'));
-  </script>  
 
   <div id="fb-root"></div>
   <script>
