@@ -15,8 +15,9 @@ MouseJoint = function(mouseBody, body, anchor1, anchor2) {
 
 	Joint.call(this, mouseBody, body, true);
 
-	this.anchor1 = anchor1;
-	this.anchor2 = anchor2;
+	// Local anchor points
+	this.anchor1 = mouseBody.worldToLocal(anchor1);
+	this.anchor2 = body.worldToLocal(anchor2);
 	
 	// Spring stiffness
 	var frequencyHz = 7;
@@ -24,7 +25,7 @@ MouseJoint = function(mouseBody, body, anchor1, anchor2) {
 	this.k = omega * omega;
 
 	// Damping coefficients
-	var dampingRatio = 1.0;
+	var dampingRatio = 0.9;
 	this.d = 2 * dampingRatio * omega;
 
 	// Accumulated impulse
@@ -41,8 +42,8 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	// Max impulse
 	this.maxImpulse = this.maxForce * dt;
 		
-	// Transformed r
-	this.r2 = vec2.rotate(this.anchor2, body2.a);
+	// Transformed r	
+	this.r2 = vec2.rotate(this.anchor2, body2.a);	
 		
 	// invEM = J * invM * JT
 	var r2 = this.r2;

@@ -114,9 +114,10 @@ vec2.prototype.rotation = function(angle) {
     return this;
 }
 
-vec2.prototype.rotate = function(r) {
-    var vec = vec2.prototype.isPrototypeOf(r) ? r : new vec2(Math.cos(r), Math.sin(r));
-    return this.set(this.x * vec.x - this.y * vec.y, this.x * vec.y + this.y * vec.x);
+vec2.prototype.rotate = function(angle) {
+    var c = Math.cos(angle);
+    var s = Math.sin(angle);
+    return this.set(this.x * c - this.y * s, this.x * s + this.y * c);
 }
 
 vec2.prototype.lerp = function(v1, v2, t) {
@@ -164,9 +165,10 @@ vec2.rotation = function(angle) {
     return new vec2(Math.cos(angle), Math.sin(angle));
 }
 
-vec2.rotate = function(v, r) {
-    var vec = vec2.prototype.isPrototypeOf(r) ? r : new vec2(Math.cos(r), Math.sin(r));
-    return new vec2(v.x * vec.x - v.y * vec.y, v.x * vec.y + v.y * vec.x);
+vec2.rotate = function(v, angle) {
+    var c = Math.cos(angle);
+    var s = Math.sin(angle);
+    return new vec2(v.x * c - v.y * s, v.x * s + v.y * c);
 }
 
 // Return perpendicular vector (90 degree rotation)
@@ -568,6 +570,36 @@ mat3.mul = function(m1, m2) {
         m1._31 * m2._11 + m1._32 * m2._21 + m1._33 * m2._31,
         m1._31 * m2._12 + m1._32 * m2._22 + m1._33 * m2._32,
         m1._31 * m2._13 + m1._32 * m2._23 + m1._33 * m2._33);
+}
+
+//-----------------------------------
+// 2D Transform
+//-----------------------------------
+
+Transform = function(x, y, angle) {
+    this.t = new vec2(x, y);
+    this.c = Math.cos(angle);
+    this.s = Math.sin(angle);    
+}
+
+Transform.prototype.set = function(x, y, angle) {
+    this.t = new vec2(x, y);
+    this.c = Math.cos(angle);
+    this.s = Math.sin(angle);
+    return this;
+}
+
+Transform.prototype.identity = function() {
+    this.t.set(0, 0);
+    this.c = 1;
+    this.s = 0;
+    return this;
+}
+
+Transform.prototype.transform = function(v) {
+    return new vec2(
+        v.x * this.c - v.y * this.s + this.t.x, 
+        v.x * this.s + v.y * this.c + this.t.y);
 }
 
 //-----------------------------------

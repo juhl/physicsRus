@@ -32,7 +32,7 @@ ShapePoly.prototype = new Shape;
 ShapePoly.prototype.constructor = ShapePoly;
 
 ShapePoly.prototype.recenter = function(c) {
-    for (var i = 0; i < this.numVerts; i++) {
+    for (var i = 0; i < this.verts.length; i++) {
         this.verts[i].subself(c);
     }
 }
@@ -49,9 +49,9 @@ ShapePoly.prototype.inertia = function(mass) {
     return inertiaForPoly(mass, this.verts, vec2.zero);
 }
 
-ShapePoly.prototype.cacheData = function(pos, angle) {
+ShapePoly.prototype.cacheData = function(pos, centroid, angle) {
     for (var i = 0; i < this.verts.length; i++) {
-        this.tverts[i] = vec2.add(pos, vec2.rotate(this.verts[i], angle));
+        this.tverts[i] = vec2.add(pos, vec2.rotate(vec2.sub(this.verts[i], centroid), angle));
     }
 
     for (var i = 0; i < this.verts.length; i++) {
@@ -129,7 +129,7 @@ ShapeTriangle = function(p1, p2, p3) {
 // Box
 //--------------------------------
 
-ShapeBox = function(w, h, offset_x, offset_y) {
+ShapeBox = function(offset_x, offset_y, w, h) {
     offset_x = offset_x || 0;
     offset_y = offset_y || 0;
 

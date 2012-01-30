@@ -16,15 +16,11 @@ DistanceJoint = function(body1, body2, anchor1, anchor2) {
 	Joint.call(this, body1, body2, true);
 
 	// Local anchor points
-	this.anchor1 = anchor1;
-	this.anchor2 = anchor2;
-
-	// World anchor points
-	var p1 = vec2.add(body1.p, vec2.rotate(anchor1, body1.a));
-	var p2 = vec2.add(body2.p, vec2.rotate(anchor2, body2.a));
+	this.anchor1 = body1.worldToLocal(anchor1);
+	this.anchor2 = body2.worldToLocal(anchor2);
 
 	// Rest distance
-	this.restLength = vec2.dist(p1, p2);
+	this.restLength = vec2.dist(anchor1, anchor2);	
 
 	// Soft constraint coefficients
 	this.gamma = 0;
@@ -200,15 +196,16 @@ DistanceJoint.prototype.getReactionTorque = function(dt_inv) {
 MaxDistanceJoint = function(body1, body2, anchor1, anchor2, minDist, maxDist) {
 	Joint.call(this, body1, body2, true);
 
-	this.anchor1 = anchor1;
-	this.anchor2 = anchor2;	
+	// Local anchor points
+	this.anchor1 = body1.worldToLocal(anchor1);
+	this.anchor2 = body2.worldToLocal(anchor2);
 
 	this.minDist = minDist || 0;
 	this.maxDist = maxDist;
 
 	if (maxDist == undefined) {
-		var p1 = vec2.add(body1.p, vec2.rotate(anchor1, body1.a));
-		var p2 = vec2.add(body2.p, vec2.rotate(anchor2, body2.a));
+		var p1 = vec2.add(vec2.rotate(this.anchor1, body1.a), body1.p);
+		var p2 = vec2.add(vec2.rotate(this.anchor2, body2.a), body2.p);
 
 		this.maxDist = vec2.dist(p1, p2);
 	}
@@ -227,9 +224,9 @@ MaxDistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	// max impulse
 	this.maxImpulse = this.maxForce * dt;
 
-	// transformed r1, r2
-	this.r1 = vec2.rotate(this.anchor1, body1.a);
-	this.r2 = vec2.rotate(this.anchor2, body2.a);
+	// transformed r1, r2	
+	this.r1 = vec2.rotate(vec2.sub(this.anchor1, body1.centroid), body1.a);
+	this.r2 = vec2.rotate(vec2.sub(this.anchor2, body2.centroid), body2.a);
 
 	// delta vector between two anchors
 	var d = vec2.sub(vec2.add(body2.p, this.r2), vec2.add(body1.p, this.r1));
@@ -310,12 +307,16 @@ MaxDistanceJoint.prototype.solvePositionConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
-	// transformed r1, r2
-	var r1 = vec2.rotate(this.anchor1, body1.a);
-	var r2 = vec2.rotate(this.anchor2, body2.a);
+	// transformed r1, r2	
+	var r1 = vec2.rotate(vec2.sub(this.anchor1, body1.centroid), body1.a);
+	var r2 = vec2.rotate(vec2.sub(this.anchor2, body2.centroid), body2.a);
+
+	// World Center points
+	var pc1 = vec2.add(body1.p, body1.centroid);
+	var pc2 = vec2.add(body2.p, body2.centroid);
 
 	// delta vector between two anchors
-	var d = vec2.sub(vec2.add(body2.p, r2), vec2.add(body1.p, r1));
+	var d = vec2.sub(vec2.add(pc2, r2), vec2.add(pc1, r1));
 
 	// distance between two anchors
 	var dist = d.length();

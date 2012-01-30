@@ -2,7 +2,8 @@ function Space() {
     this.gravity = new vec2(0, 0);
     this.damping = 1.0;
 
-    this.staticBody = new Body(Infinity);
+    this.staticBody = new Body();
+    this.staticBody.m = Infinity;
     this.staticBody.resetMassData();
     this.staticBody.space = this;
 
@@ -161,7 +162,7 @@ Space.prototype.genTemporalContactSolvers = function() {
             }
 
             var contactArr = [];
-            if (!Collision.collide(shape1, shape2, contactArr)) {
+            if (!collision.collide(shape1, shape2, contactArr)) {
                 continue;
             }
 

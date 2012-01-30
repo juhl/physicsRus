@@ -19,11 +19,11 @@
 // JT * lambda = [ -lambda_xy, -(cross(r1, lambda_xy) + lambda_z), lambda_xy, cross(r1, lambda_xy) + lambda_z ]
 //-------------------------------------------------------------------------------------------------
 
-WeldJoint = function(body1, body2, pivot) {
+WeldJoint = function(body1, body2, anchor) {
 	Joint.call(this, body1, body2, true);
 
-	this.anchor1 = body1.worldToLocal(pivot);
-	this.anchor2 = body2.worldToLocal(pivot);
+	this.anchor1 = body1.worldToLocal(anchor);
+	this.anchor2 = body2.worldToLocal(anchor);
 
 	// Accumulated lambda
 	this.lambda_acc = new vec3(0, 0, 0);
@@ -41,7 +41,7 @@ WeldJoint.prototype.initSolver = function(dt, warmStarting) {
 		
 	// Transformed r1, r2
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
-	this.r2 = vec2.rotate(this.anchor2, body2.a);
+	this.r2 = vec2.rotate(this.anchor2, body2.a);	
 	
 	// invEM = J * invM * JT	
 	var sum_m_inv = body1.m_inv + body2.m_inv;

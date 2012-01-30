@@ -19,11 +19,11 @@
 // JT * lambda = [ -lambda_xy, -(cross(r1, lambda_xy) + lambda_z), lambda_xy, cross(r1, lambda_xy) + lambda_z ]
 //-------------------------------------------------------------------------------------------------
 
-RevoluteJoint = function(body1, body2, pivot) {
+RevoluteJoint = function(body1, body2, anchor) {
 	Joint.call(this, body1, body2, true);
 
-	this.anchor1 = body1.worldToLocal(pivot);
-	this.anchor2 = body2.worldToLocal(pivot);
+	this.anchor1 = body1.worldToLocal(anchor);
+	this.anchor2 = body2.worldToLocal(anchor);
 
 	// Initial angle difference
 	this.refAngle = body2.a - body1.a;
@@ -111,7 +111,7 @@ RevoluteJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
 	this.r2 = vec2.rotate(this.anchor2, body2.a);
 
-	// invEM = J * invM * JT	
+	// invEM = J * invM * JT
 	var sum_m_inv = body1.m_inv + body2.m_inv;
 	var r1 = this.r1;
 	var r2 = this.r2;
@@ -290,7 +290,7 @@ RevoluteJoint.prototype.solvePositionConstraints = function() {
 		var r2 = vec2.rotate(this.anchor2, body2.a);
 
 		// Position constraint
-		var c = vec2.sub(vec2.add(body2.p, r2), vec2.add(body1.p, r1));		
+		var c = vec2.sub(vec2.add(body2.p, r2), vec2.add(body1.p, r1));
 		var correction = vec2.truncate(c, Joint.MAX_LINEAR_CORRECTION);
 		positionError = correction.length();
 

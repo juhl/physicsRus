@@ -18,13 +18,11 @@
 LineJoint = function(body1, body2, anchor1, anchor2) {
 	Joint.call(this, body1, body2, true);
 
-	this.anchor1 = anchor1;
-	this.anchor2 = anchor2;
+	// Local anchor points
+	this.anchor1 = body1.worldToLocal(anchor1);
+	this.anchor2 = body2.worldToLocal(anchor2);
 
-	var p1 = vec2.add(body1.p, vec2.rotate(anchor1, body1.a));
-	var p2 = vec2.add(body2.p, vec2.rotate(anchor2, body2.a));
-
-	var d = vec2.sub(p2, p1);
+	var d = vec2.sub(anchor2, anchor1);
 
    	// Body1's local line normal
    	this.n_local = vec2.normalize(vec2.rotate(vec2.perp(d), -body1.a));
@@ -68,7 +66,7 @@ LineJoint.prototype.initSolver = function(dt, warmStarting) {
 		
 	// Transformed r1, r2
 	this.r1 = vec2.rotate(this.anchor1, body1.a);
-	this.r2 = vec2.rotate(this.anchor2, body2.a);
+	this.r2 = vec2.rotate(this.anchor2, body2.a);	
 
 	// World anchor points
 	var p1 = vec2.add(body1.p, this.r1);

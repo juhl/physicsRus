@@ -3,6 +3,20 @@ html, body {
   font-family: Verdana, times new roman, NanumGothic, sans-serif;  
   text-align: center;
 }
+header {
+  padding-top: 0px;
+  font-family: Lucida Grande, Verdana, sans-serif;
+  text-align: center;
+  line-height: 1.5;
+  text-shadow: 0.1em 0.1em 0.3em gray;
+}
+footer {
+  padding-top: 0px;  
+  font-size: 80%;
+  text-align: center;
+  line-height: 1.5;
+  color: #404040;
+}
 div#content {
   margin: 0px auto;
   text-align: center;
@@ -17,21 +31,15 @@ div#screen {
   background-color: white;
 }
 div#info {
-  margin: 16px auto;
-  padding: 10px;
-  width: 790px;
+  margin: 10px auto;
+  padding: 4px;
+  font-size: 80%;
+  width: 800px;
   text-align: left;
   background-color: #eeeeee;
   -webkit-border-radius: .4em;
   -moz-border-radius: .4em;
   border-radius: .4em;
-}
-header {
-  padding-top: 0px;
-  font-family: Lucida Grande, Verdana, sans-serif;
-  text-align: center;
-  line-height: 1.5;
-  text-shadow: 0.1em 0.1em 0.3em gray;
 }
 div#comments {
   padding: 4px;
@@ -43,10 +51,4 @@ div#share {
   margin: 0px auto;
   margin-top: 5px;
   width: 800px;
-}
-footer {
-  padding-top: 0px;
-  text-align: center;
-  line-height: 1.5;
-  color: #404040;
 }

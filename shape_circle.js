@@ -2,9 +2,9 @@
 // ShapeCircle
 //------------------------------------------
 
-ShapeCircle = function(radius, offset) {
+ShapeCircle = function(offset_x, offset_y, radius) {
     Shape.call(this, Shape.TYPE_CIRCLE);
-    this.c = offset || vec2.zero;
+    this.c = new vec2(offset_x || 0, offset_y || 0);
     this.r = radius;
 
     this.tc = vec2.zero;    
@@ -22,15 +22,15 @@ ShapeCircle.prototype.area = function() {
 }
 
 ShapeCircle.prototype.centroid = function() {
-    return new vec2(0, 0);
+    return this.c.duplicate();
 }
 
 ShapeCircle.prototype.inertia = function(mass) {
     return inertiaForCircle(mass, this.c, this.r, 0);
 }
 
-ShapeCircle.prototype.cacheData = function(pos, angle) {
-    this.tc = vec2.add(pos, vec2.rotate(this.c, angle));
+ShapeCircle.prototype.cacheData = function(pos, centroid, angle) {
+    this.tc = vec2.add(pos, vec2.rotate(vec2.sub(this.c, centroid), angle));
     this.bounds.mins.set(this.tc.x - this.r, this.tc.y - this.r);
     this.bounds.maxs.set(this.tc.x + this.r, this.tc.y + this.r);
 }

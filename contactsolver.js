@@ -96,8 +96,8 @@ ContactSolver.prototype.warmStart = function() {
         var jt = con.jt_acc;
 
         // Apply accumulated impulses
-        //var j = vec2.rotate(n, new vec2(jn, jt));
-        var j = new vec2(n.x * jn - n.y * jt, n.x * jt + n.y * jn);
+        //var j = vec2.rotate_vec(new vec2(jn, jt), n);
+        var j = new vec2(jn * n.x - jt * n.y, jt * n.x + jn * n.y);
 
         body1.v.mad(j, -body1.m_inv);
         body1.w -= vec2.cross(con.r1, j) * body1.i_inv;
@@ -147,8 +147,8 @@ ContactSolver.prototype.solveVelocityConstraints = function() {
         jt = con.jt_acc - jt_old;
 
 		// Apply the final impulses
-        //var j = vec2.rotate(n, new vec2(jn, jt));
-        var j = new vec2(n.x * jn - n.y * jt, n.x * jt + n.y * jn);        
+        //var j = vec2.rotate_vec(new vec2(jn, jt), n);
+        var j = new vec2(jn * n.x - jt * n.y, jt * n.x + jn * n.y);
 
         body1.v.mad(j, -m1_inv);
         body1.w -= vec2.cross(r1, j) * i1_inv;

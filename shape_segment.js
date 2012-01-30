@@ -35,9 +35,9 @@ ShapeSegment.prototype.inertia = function(mass) {
     return inertiaForSegment(mass, this.a, this.b);
 }
 
-ShapeSegment.prototype.cacheData = function(pos, angle) {
-    this.ta = vec2.add(pos, vec2.rotate(this.a, angle));
-	this.tb = vec2.add(pos, vec2.rotate(this.b, angle));
+ShapeSegment.prototype.cacheData = function(pos, centroid, angle) {
+    this.ta = vec2.add(pos, vec2.rotate(vec2.sub(this.a, centroid), angle));
+	this.tb = vec2.add(pos, vec2.rotate(vec2.sub(this.b, centroid), angle));
 	this.tn = vec2.rotate(this.n, angle);
 
     if (this.ta.x < this.tb.x) {
