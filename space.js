@@ -300,7 +300,7 @@ Space.prototype.genTemporalContactSolvers = function() {
     return newContactSolverArr;
 }
 
-Space.prototype.initSolver = function(dt, dt_inv) {
+Space.prototype.initSolver = function(dt, dt_inv, warmStarting) {
     var t0 = Date.now();
 
     // Initialize contact solvers
@@ -310,7 +310,14 @@ Space.prototype.initSolver = function(dt, dt_inv) {
 
     // Initialize joint solver
     for (var i in this.jointHash) {
-        this.jointHash[i].initSolver(dt, true);
+        this.jointHash[i].initSolver(dt, warmStarting);
+    }
+
+    // Warm starting (apply cached impulse)
+    if (warmStarting) {
+        for (var i = 0; i < this.contactSolverArr.length; i++) {
+            this.contactSolverArr[i].warmStart();
+        }
     }
 
     stats.timeInitSolver = Date.now() - t0;
@@ -318,11 +325,6 @@ Space.prototype.initSolver = function(dt, dt_inv) {
 
 Space.prototype.velocitySolver = function(iteration) {
     var t0 = Date.now();
-
-    // Warm start (apply cached impulse)
-    for (var i = 0; i < this.contactSolverArr.length; i++) {
-        this.contactSolverArr[i].warmStart();
-    }
     
     for (var i = 0; i < iteration; i++) {
         for (var j in this.jointHash) {
@@ -372,14 +374,14 @@ Space.prototype.positionSolver = function(iteration) {
     return positionSolved;
 }
 
-Space.prototype.step = function(dt, vel_iteration, pos_iteration, allowSleep) {
+Space.prototype.step = function(dt, vel_iteration, pos_iteration, warmStarting, allowSleep) {
     var dt_inv = 1 / dt;
 
     // Generate contact & contactSolver
     this.contactSolverArr = this.genTemporalContactSolvers();
 
     // Initialize contacts & joints solver
-    this.initSolver(dt, dt_inv);
+    this.initSolver(dt, dt_inv, warmStarting);
 
     //
     for (var i in this.jointHash) {

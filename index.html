@@ -1,60 +1,61 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
 <head>
-<meta name="Author" content="Ju-Hyung Lee, jufoot@gmail.com">
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<meta property="fb:app_id" content="240528552691710"/>
-<title>RigidDyn2D</title>
-<link rel="stylesheet" type="text/css" href="style.css">
+  <meta name="Author" content="Ju-Hyung Lee, jufoot@gmail.com">
+  <meta charset="UTF-8">
+  <meta property="fb:app_id" content="240528552691710" />
+  <title>RigidDyn2D</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
-  <div id="container">
-    <header>
-      <h1>RigidDyn2D</h1>
-    </header>
+<body>  
+  <header>
+    <h1>RigidDyn2D</h1>
+  </header>
 
-    <div id="content">
-      <div id="screen">
-        <canvas width="800" height="480" id="canvas"></canvas>
-      </div><div id="toolbar">
-        <div class="combo">
-          Scene:<select id="scene" onchange="App.onChangedScene(this.selectedIndex);">            
-          </select>
-        </div>
-        <div align="right">
-          Velocity Iterations:<input type="number" id="v_iters" min="1" max="99" onchange="App.onChangedVelocityIterations(this.value);" /><br />
-          Position Iterations:<input type="number" id="p_iters" min="0" max="99" onchange="App.onChangedPositionIterations(this.value);" /><br />
-        </div>
-        <div>
-          <input type="checkbox" name="showBounds" onclick="App.onClickedShowBounds();" />Show bounding boxes<br />
-          <input type="checkbox" name="showContacts" onclick="App.onClickedShowContacts();" />Show contacts<br />
-          <input type="checkbox" name="showJoints" checked="true" onclick="App.onClickedShowJoints();" />Show joints<br />
-          <input type="checkbox" name="showStats" onclick="App.onClickedShowStats();" />Show statistics<br />
-          <input type="checkbox" name="showClearRect" onclick="App.onClickedShowClearRect();" />Show clear rect<br />
-          <input type="button" name="resetScene" value="Restart" onclick="App.onClickedResetScene();" /><br />
-        </div>
+  <div id="content">
+    <div id="screen">
+      <canvas width="800" height="480" id="canvas"></canvas>
+    </div><div id="toolbar">
+      <div class="combo">
+        <label for="scene">Scene:</label><select id="scene" onchange="App.onChangedScene(this.selectedIndex);">            
+        </select>
+      </div>
+      <div align="right">
+        <label for="frameRateHz">Frame rate:</label><input type="number" id="frameRateHz" size="5" min="10" max="120" onchange="App.onChangedFrameRateHz(this.value);" /><br />
+        <label for="v_iters">Velocity iters:</label><input type="number" id="v_iters" size="5" min="1" max="100" onchange="App.onChangedVelocityIterations(this.value);" /><br />
+        <label for="p_iters">Position iters:</label><input type="number" id="p_iters" size="5" min="0" max="100" onchange="App.onChangedPositionIterations(this.value);" /><br />        
+      </div>
+      <div>
+        <input type="checkbox" name="warmStarting" checked="true" onclick="App.onClickedWarmStarting();" />Warm starting<br />
+        <input type="checkbox" name="allowSleeping" checked="true" onclick="App.onClickedAllowSleeping();" />Allow sleeping<br />
+        <input type="checkbox" name="showBounds" onclick="App.onClickedShowBounds();" />Show bounding boxes<br />
+        <input type="checkbox" name="showContacts" onclick="App.onClickedShowContacts();" />Show contacts<br />
+        <input type="checkbox" name="showJoints" checked="true" onclick="App.onClickedShowJoints();" />Show joints<br />
+        <input type="checkbox" name="showStats" onclick="App.onClickedShowStats();" />Show statistics<br />
+        <input type="checkbox" name="showClearRect" onclick="App.onClickedShowClearRect();" />Show clear rect<br />
+        <input type="button" name="resetScene" value="Restart" onclick="App.onClickedResetScene();" /><br />
       </div>
     </div>
+  </div>
 
-    <div id="info">
-      <b>RigidDyn2D</b> is lightweight 2D physics engine written in Javascript. You can download source code from <a href="http://github.com/juhl/rigid-dyn2d/">github</a>.<br />      
-    </div>
+  <div id="info">
+    <b>RigidDyn2D</b> is lightweight 2D physics engine written in Javascript. You can download source code from <a href="http://github.com/juhl/rigid-dyn2d/">github</a>.<br />      
+  </div>
 
-    <div id="share">
-       <!-- AddThis Button BEGIN -->
-        <div class="addthis_toolbox addthis_default_style ">
-          <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
-          <a class="addthis_button_tweet"></a>
-          <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
-          <a class="addthis_counter addthis_pill_style"></a>
-        </div>
-        <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4f237bd10e0ef75f"></script>
-        <!-- AddThis Button END -->
-    </div>
-    <div id="comments">
-      <div class="fb-comments" data-href="http://peppercode.net/rigid-dyn2d" data-num-posts="8" data-width="800"></div>      
-    </div>
+  <div id="share">
+     <!-- AddThis Button BEGIN -->
+      <div class="addthis_toolbox addthis_default_style ">
+        <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+        <a class="addthis_button_tweet"></a>
+        <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+        <a class="addthis_counter addthis_pill_style"></a>
+      </div>
+      <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4f237bd10e0ef75f"></script>
+      <!-- AddThis Button END -->
+  </div>
+  <div id="comments">
+    <div class="fb-comments" data-href="http://peppercode.net/rigid-dyn2d" data-num-posts="8" data-width="800"></div>      
   </div>
 
   <footer>
@@ -72,27 +73,27 @@
     }(document, 'script', 'facebook-jssdk'));
   </script>
 
-  <script type="text/javascript" src="math.js"></script>
-  <script type="text/javascript" src="util.js"></script>
-  <script type="text/javascript" src="collision.js"></script>
-  <script type="text/javascript" src="body.js"></script>
-  <script type="text/javascript" src="joint.js"></script>
-  <script type="text/javascript" src="joint_angle.js"></script>
-  <script type="text/javascript" src="joint_distance.js"></script>
-  <script type="text/javascript" src="joint_revolute.js"></script>
-  <script type="text/javascript" src="joint_weld.js"></script>
-  <script type="text/javascript" src="joint_line.js"></script>
-  <script type="text/javascript" src="joint_prismatic.js"></script>
-  <script type="text/javascript" src="joint_mouse.js"></script>
-  <script type="text/javascript" src="shape.js"></script>
-  <script type="text/javascript" src="shape_circle.js"></script>
-  <script type="text/javascript" src="shape_segment.js"></script>
-  <script type="text/javascript" src="shape_poly.js"></script>
-  <script type="text/javascript" src="contact.js"></script>
-  <script type="text/javascript" src="contactsolver.js"></script>
-  <script type="text/javascript" src="space.js"></script>
-  <script type="text/javascript" src="json2.js"></script>
-  <script type="text/javascript" src="app.js"></script>
-  <script type="text/javascript">App.main();</script>
+  <script src="math.js"></script>
+  <script src="util.js"></script>
+  <script src="collision.js"></script>
+  <script src="body.js"></script>
+  <script src="joint.js"></script>
+  <script src="joint_angle.js"></script>
+  <script src="joint_distance.js"></script>
+  <script src="joint_revolute.js"></script>
+  <script src="joint_weld.js"></script>
+  <script src="joint_line.js"></script>
+  <script src="joint_prismatic.js"></script>
+  <script src="joint_mouse.js"></script>
+  <script src="shape.js"></script>
+  <script src="shape_circle.js"></script>
+  <script src="shape_segment.js"></script>
+  <script src="shape_poly.js"></script>
+  <script src="contact.js"></script>
+  <script src="contactsolver.js"></script>
+  <script src="space.js"></script>
+  <script src="json2.js"></script>
+  <script src="app.js"></script>
+  <script>App.main();</script>
 </body>
 </html>

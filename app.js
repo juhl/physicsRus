@@ -1,8 +1,3 @@
-var config = {
-    velocityIterations: 8,
-    positionIterations: 4,
-};
-
 var stats = {};
 
 App = function() {
@@ -25,6 +20,11 @@ App = function() {
     var mouseJoint;
     var sceneNumber = 1;
 
+    var frameRateHz = 60;
+    var velocityIterations = 8;
+    var positionIterations = 4;
+    var warmStarting = true;
+    var allowSleeping = true;
     var showBounds = false;
     var showContacts = false;
     var showJoints = true;
@@ -41,11 +41,14 @@ App = function() {
             combobox.add(option);
         }
 
+        var editbox = document.getElementById("frameRateHz");
+        editbox.value = frameRateHz;
+
         var editbox = document.getElementById("v_iters");
-        editbox.value = config.velocityIterations;
+        editbox.value = velocityIterations;
         
         var editbox = document.getElementById("p_iters");
-        editbox.value = config.positionIterations;
+        editbox.value = positionIterations;
 
         canvas = document.getElementById("canvas");
         if (!canvas.getContext) {
@@ -636,7 +639,7 @@ App = function() {
         var body_prev;
         for (var i = 0; i < 24; i++) {            
             var body = new Body(Body.DYNAMIC, 8 + i * 16, 320);
-            var shape = new ShapeBox(0, 0, 16, 4);
+            var shape = new ShapeBox(0, 0, 20, 4);
             shape.e = 0.0;
             shape.u = 0.5;
             shape.density = 0.1;
@@ -786,15 +789,15 @@ App = function() {
             mouseBody.p = mousePoint;
         }
 
-        if (timeOffset >= 1000 / 60) {
+        if (timeOffset >= 1000 / frameRateHz) {
             var steps = 0;
 
-            while (timeOffset >= 1000 / 60 && steps < 10) {
+            while (timeOffset >= 1000 / frameRateHz && steps < 10) {
                 var t0 = Date.now();
-                space.step(1 / 60, config.velocityIterations, config.positionIterations, true);
+                space.step(1 / frameRateHz, velocityIterations, positionIterations, warmStarting, allowSleeping);
                 stats.timeStep = Date.now() - t0;
 
-                timeOffset -= 1000 / 60;
+                timeOffset -= 1000 / frameRateHz;
                 steps++;
             }
 
@@ -864,12 +867,12 @@ App = function() {
         if (showStats) {
             ctx.save();
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.font = "8pt menlo";
+            ctx.font = "9pt menlo";
             ctx.fillStyle = "#333";
             ctx.textBaseline = "top";
             ctx.fillText("step: " + stats.timeStep + " draw: " + stats.timeDrawFrame, 10, 2);
-            ctx.fillText("col: " + stats.timeCollision + " init_sv: " + stats.timeInitSolver + " vel_sv: " + stats.timeVelocitySolver + " pos_sv: " + stats.timePositionSolver, 10, 14);
-            ctx.fillText("bodies: " + space.numBodies + " joints: " + space.numJoints + " contacts: " + space.numContacts + " pos_iter: " + stats.positionIterations, 10, 26);
+            ctx.fillText("col: " + stats.timeCollision + " init_sv: " + stats.timeInitSolver + " vel_sv: " + stats.timeVelocitySolver + " pos_sv: " + stats.timePositionSolver, 10, 18);
+            ctx.fillText("bodies: " + space.numBodies + " joints: " + space.numJoints + " contacts: " + space.numContacts + " pos_iter: " + stats.positionIterations, 10, 34);
             ctx.restore();
 
             clearBounds.copy(canvasBounds);
@@ -1232,12 +1235,24 @@ App = function() {
         initScene();
     }
 
+    function onChangedFrameRateHz(value) {
+        frameRateHz = value;
+    }
+
     function onChangedVelocityIterations(value) {
-        config.velocityIterations = value;
+        velocityIterations = value;
     }
 
     function onChangedPositionIterations(value) {
-        config.positionIterations = value;
+        positionIterations = value;
+    }
+
+    function onClickedWarmStarting() {
+        warmStarting = !warmStarting;
+    }
+
+    function onClickedAllowSleeping() {
+        allowSleeping = !allowSleeping;
     }
 
     function onClickedShowBounds() {
@@ -1267,8 +1282,11 @@ App = function() {
     return { 
         main: main,
         onChangedScene: onChangedScene,
+        onChangedFrameRateHz: onChangedFrameRateHz,
         onChangedVelocityIterations: onChangedVelocityIterations,
-        onChangedPositionIterations: onChangedPositionIterations,
+        onChangedPositionIterations: onChangedPositionIterations,        
+        onClickedWarmStarting: onClickedWarmStarting,
+        onClickedAllowSleeping: onClickedAllowSleeping,
         onClickedShowBounds: onClickedShowBounds,
         onClickedShowContacts: onClickedShowContacts,
         onClickedShowJoints: onClickedShowJoints,
