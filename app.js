@@ -16,6 +16,8 @@ App = function() {
     var clearBounds;
     var paintBounds;
     var randomColor;
+    var screenZoomScale = 1.0;
+    var screenOffset = new vec2(0, 0);
 
     var space;
     var mouseBody;
@@ -30,22 +32,34 @@ App = function() {
     var showClearBounds = false;
 
     function main() {
+        var sceneNameArr = ["Car", "Rag-doll", "See-saw", "Pyramid", "Crank", "Rope", "Web", "Bounce-test"];
+        var combobox = document.getElementById("scene");
+        for (var i = 0; i < sceneNameArr.length; i++) {
+            var option = document.createElement("option");
+            option.text = sceneNameArr[i];
+            option.value = 0;
+            combobox.add(option);
+        }
+
+        var editbox = document.getElementById("v_iters");
+        editbox.value = config.velocityIterations;
+        
+        var editbox = document.getElementById("p_iters");
+        editbox.value = config.positionIterations;
+
         canvas = document.getElementById("canvas");
         if (!canvas.getContext) {
             alert("Couldn't get canvas object !");
         }
 
         // Main canvas context
-        ctx = canvas.getContext("2d");
-
-        // Transform coordinate system to y-axis is up and origin is bottom center
-        ctx.translate(canvas.width * 0.5, canvas.height);
-        ctx.scale(1, -1);
+        ctx = canvas.getContext("2d");       
 
         canvas.addEventListener("mousedown", function(e) { onMouseDown(e) }, false);
         canvas.addEventListener("mouseup", function(e) { onMouseUp(e) }, false);
         canvas.addEventListener("mousemove", function(e) { onMouseMove(e) }, false);
         canvas.addEventListener("mouseout", function(e) { onMouseOut(e) }, false);
+        //canvas.addEventListener("mousewheel", function(e) { onMouseWheel(e) }, false);
 
         canvas.addEventListener("touchstart", touchHandler, false);
         canvas.addEventListener("touchend", touchHandler, false);
@@ -95,7 +109,7 @@ App = function() {
 
         initScene();
 
-	   window.requestAnimFrame(function() { runFrame(); });        
+        window.requestAnimFrame(function() { runFrame(); });        
     }
 
     function initScene() {
@@ -731,7 +745,7 @@ App = function() {
         space.gravity = new vec2(0, -800);
 
         var staticBody = new Body(Body.STATIC);
-        staticBody.addShape(new ShapeBox(0, 0, 790, 10));
+        staticBody.addShape(new ShapeBox(0, 0, 800, 10));
         staticBody.addShape(new ShapeBox(-400, 250, 10, 500));
         staticBody.addShape(new ShapeBox(400, 250, 10, 500));
         staticBody.resetMassData();
@@ -792,10 +806,15 @@ App = function() {
 
     function drawFrame(ms) {
         var t0 = Date.now();
+
+        // Transform coordinate system to y-axis is up and origin is bottom center
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.translate(canvas.width * 0.5 + screenOffset.x, canvas.height + screenOffset.y);
+        ctx.scale(screenZoomScale, -screenZoomScale);
             
         // Clear rect
         if (!clearBounds.isEmpty()) {
-            ctx.clearRect(clearBounds.mins.x, clearBounds.mins.y, clearBounds.maxs.x - clearBounds.mins.x, clearBounds.maxs.y - clearBounds.mins.y);            
+            ctx.clearRect(clearBounds.mins.x, clearBounds.mins.y, clearBounds.maxs.x - clearBounds.mins.x, clearBounds.maxs.y - clearBounds.mins.y);
         }                        
 
         // Update paint bounds for culling
@@ -1127,6 +1146,24 @@ App = function() {
         e.preventDefault();
     }
 
+    function onMouseWheel(e) {        
+        e = e || window.event;
+        var delta = e.detail ? e.detail * -120 : e.wheelDelta;
+        
+        // FIXME !!
+        screenZoomScale += delta * 0.01;
+        screenZoomScale = Math.clamp(screenZoomScale, 0.5, 2.0);
+
+        clearBounds.copy(canvasBounds);
+
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        else {
+            return false;
+        }
+    }
+
     function touchHandler(e) {
         var touches = e.changedTouches;
         var first = touches[0];
@@ -1195,6 +1232,14 @@ App = function() {
         initScene();
     }
 
+    function onChangedVelocityIterations(value) {
+        config.velocityIterations = value;
+    }
+
+    function onChangedPositionIterations(value) {
+        config.positionIterations = value;
+    }
+
     function onClickedShowBounds() {
         showBounds = !showBounds;
     }
@@ -1222,6 +1267,8 @@ App = function() {
     return { 
         main: main,
         onChangedScene: onChangedScene,
+        onChangedVelocityIterations: onChangedVelocityIterations,
+        onChangedPositionIterations: onChangedPositionIterations,
         onClickedShowBounds: onClickedShowBounds,
         onClickedShowContacts: onClickedShowContacts,
         onClickedShowJoints: onClickedShowJoints,

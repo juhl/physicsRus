@@ -45,7 +45,7 @@ DistanceJoint.prototype.serialize = function() {
 	};
 }
 
-DistanceJoint.prototype.setSpringCoeffs = function(frequencyHz, dampingRatio) {	
+DistanceJoint.prototype.setSpringCoeffs = function(frequencyHz, dampingRatio) {
 	// Frequency
 	var omega = 2 * Math.PI * frequencyHz;
 

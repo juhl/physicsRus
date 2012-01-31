@@ -19,29 +19,26 @@
         <canvas width="800" height="480" id="canvas"></canvas>
       </div><div id="toolbar">
         <div class="combo">
-          Scene:          
-          <select name="Scene" onchange="App.onChangedScene(this.selectedIndex);">
-            <option selected>Car
-            <option>Rag-doll
-            <option>See-saw
-            <option>Pyramid
-            <option>Crank
-            <option>Rope
-            <option>Web
-            <option>Bounce-test
-          </select><br/>
-          <input type="checkbox" name="showBounds" onclick="App.onClickedShowBounds();">Show bounding boxes<br/>
-          <input type="checkbox" name="showContacts" onclick="App.onClickedShowContacts();">Show contacts<br/>
-          <input type="checkbox" name="showJoints" checked="true" onclick="App.onClickedShowJoints();">Show joints<br/>
-          <input type="checkbox" name="showStats" onclick="App.onClickedShowStats();">Show statistics<br/>
-          <input type="checkbox" name="showClearRect" onclick="App.onClickedShowClearRect();">Show clear rect<br/>
-          <input type="button" name="resetScene" value="Reset Scene" onclick="App.onClickedResetScene();"><br/>
+          Scene:<select id="scene" onchange="App.onChangedScene(this.selectedIndex);">            
+          </select>
+        </div>
+        <div align="right">
+          Velocity Iterations:<input type="number" id="v_iters" min="1" max="99" onchange="App.onChangedVelocityIterations(this.value);" /><br />
+          Position Iterations:<input type="number" id="p_iters" min="0" max="99" onchange="App.onChangedPositionIterations(this.value);" /><br />
+        </div>
+        <div>
+          <input type="checkbox" name="showBounds" onclick="App.onClickedShowBounds();" />Show bounding boxes<br />
+          <input type="checkbox" name="showContacts" onclick="App.onClickedShowContacts();" />Show contacts<br />
+          <input type="checkbox" name="showJoints" checked="true" onclick="App.onClickedShowJoints();" />Show joints<br />
+          <input type="checkbox" name="showStats" onclick="App.onClickedShowStats();" />Show statistics<br />
+          <input type="checkbox" name="showClearRect" onclick="App.onClickedShowClearRect();" />Show clear rect<br />
+          <input type="button" name="resetScene" value="Restart" onclick="App.onClickedResetScene();" /><br />
         </div>
       </div>
     </div>
 
     <div id="info">
-      <b>RigidDyn2D</b> is lightweight 2D physics engine written in Javascript. You can download source code from <a href="http://github.com/juhl/rigid-dyn2d/">github</a>.<br/>      
+      <b>RigidDyn2D</b> is lightweight 2D physics engine written in Javascript. You can download source code from <a href="http://github.com/juhl/rigid-dyn2d/">github</a>.<br />      
     </div>
 
     <div id="share">

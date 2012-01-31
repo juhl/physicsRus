@@ -46,7 +46,7 @@ Space.prototype.toJSON = function(key) {
     };
 }
 
-Space.prototype.save = function() {
+Space.prototype.save = function(name) {
     var text = JSON.stringify(this);
     return text;
 }
@@ -88,7 +88,7 @@ Space.prototype.load = function(text) {
         body.resetMassData();
         this.addBody(body);
     }
-    return;
+
     for (var i = 0; i < config.joints.length; i++) {
         var config_joint = config.joints[i];
         var body1 = this.bodyHash[config_joint.body1];
