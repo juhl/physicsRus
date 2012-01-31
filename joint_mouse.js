@@ -20,7 +20,7 @@ MouseJoint = function(mouseBody, body, anchor1, anchor2) {
 	this.anchor2 = body.worldToLocal(anchor2);
 	
 	// Spring stiffness
-	var frequencyHz = 7;
+	var frequencyHz = 3;
 	var omega = 2 * Math.PI * frequencyHz;
 	this.k = omega * omega;
 
@@ -54,7 +54,7 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.em_inv = new mat2(k11, k12, k12, k22);
 
 	// Position constraint
-	var c = vec2.sub(vec2.add(body2.p, this.r2), body1.p);	
+	var c = vec2.sub(vec2.add(body2.p, this.r2), body1.p);
 	
 	// Spring coefficients
 	var k = body2.m * this.k;

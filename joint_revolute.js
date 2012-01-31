@@ -47,6 +47,21 @@ RevoluteJoint = function(body1, body2, anchor) {
 RevoluteJoint.prototype = new Joint;
 RevoluteJoint.prototype.constructor = RevoluteJoint;
 
+RevoluteJoint.prototype.serialize = function() {
+	return {
+		"type": "revolute",
+		"body1": this.body1.id, 
+		"body2": this.body2.id,
+		"anchor": this.body1.localToWorld(this.anchor1),		
+		"limitEnabled": this.limitEnabled,
+		"limitLowerAngle": this.limitLowerAngle,
+		"limitUpperAngle": this.limitUpperAngle,
+		"motorEnabled": this.motorEnabled,
+		"motorSpeed": this.motorSpeed,
+		"maxMotorTorque": this.maxMotorTorque
+	};
+}
+
 RevoluteJoint.prototype.enableMotor = function(flag) {
 	this.motorEnabled = flag;
 }

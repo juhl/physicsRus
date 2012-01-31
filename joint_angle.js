@@ -21,6 +21,14 @@ AngleJoint = function(body1, body2) {
 AngleJoint.prototype = new Joint;
 AngleJoint.prototype.constructor = AngleJoint;
 
+AngleJoint.prototype.serialize = function() {
+	return {
+		"type": "angle",
+		"body1": this.body1.id,
+		"body2": this.body2.id,		
+	};
+}
+
 AngleJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;

@@ -33,6 +33,18 @@ DistanceJoint = function(body1, body2, anchor1, anchor2) {
 DistanceJoint.prototype = new Joint;
 DistanceJoint.prototype.constructor = DistanceJoint;
 
+DistanceJoint.prototype.serialize = function() {
+	return {
+		"type": "distance",
+		"body1": this.body1.id,
+		"body2": this.body2.id,
+		"anchor1": this.body1.localToWorld(this.anchor1),
+		"anchor2": this.body2.localToWorld(this.anchor2),
+		"k": this.k,
+		"d": this.d	
+	};
+}
+
 DistanceJoint.prototype.setSpringCoeffs = function(frequencyHz, dampingRatio) {	
 	// Frequency
 	var omega = 2 * Math.PI * frequencyHz;

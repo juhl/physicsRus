@@ -17,20 +17,31 @@
     <div id="content">
       <div id="screen">
         <canvas width="800" height="480" id="canvas"></canvas>
+      </div><div id="toolbar">
+        <div class="combo">
+          Scene:          
+          <select name="Scene" onchange="App.onChangedScene(this.selectedIndex);">
+            <option selected>Car
+            <option>Rag-doll
+            <option>See-saw
+            <option>Pyramid
+            <option>Crank
+            <option>Rope
+            <option>Web
+            <option>Bounce-test
+          </select><br/>
+          <input type="checkbox" name="showBounds" onclick="App.onClickedShowBounds();">Show bounding boxes<br/>
+          <input type="checkbox" name="showContacts" onclick="App.onClickedShowContacts();">Show contacts<br/>
+          <input type="checkbox" name="showJoints" checked="true" onclick="App.onClickedShowJoints();">Show joints<br/>
+          <input type="checkbox" name="showStats" onclick="App.onClickedShowStats();">Show statistics<br/>
+          <input type="checkbox" name="showClearRect" onclick="App.onClickedShowClearRect();">Show clear rect<br/>
+          <input type="button" name="resetScene" value="Reset Scene" onclick="App.onClickedResetScene();"><br/>
+        </div>
       </div>
     </div>
 
     <div id="info">
-      <b>RigidDyn2D</b> is simple 2D physics engine written in Javascript. You can download source code from <a href="http://github.com/juhl/rigid-dyn2d/">github</a>.<br/>
-      <br />
-      Instruction:<br/>
-      1, 2, 3, 4, 5, 6, 7, 8 - select scene</br>
-      r - reset scene</br>
-      b - toggle bounding boxes</br>
-      c - toggle contacts</br>
-      j - toggle joints</br>
-      s - toggle statistics</br>
-      u - toggle clear rect</br>
+      <b>RigidDyn2D</b> is lightweight 2D physics engine written in Javascript. You can download source code from <a href="http://github.com/juhl/rigid-dyn2d/">github</a>.<br/>      
     </div>
 
     <div id="share">
@@ -83,6 +94,7 @@
   <script type="text/javascript" src="contact.js"></script>
   <script type="text/javascript" src="contactsolver.js"></script>
   <script type="text/javascript" src="space.js"></script>
+  <script type="text/javascript" src="json2.js"></script>
   <script type="text/javascript" src="app.js"></script>
   <script type="text/javascript">App.main();</script>
 </body>

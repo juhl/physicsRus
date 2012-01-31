@@ -47,6 +47,16 @@ PrismaticJoint = function(body1, body2, anchor1, anchor2) {
 PrismaticJoint.prototype = new Joint;
 PrismaticJoint.prototype.constructor = PrismaticJoint;
 
+PrismaticJoint.prototype.serialize = function() {
+	return {
+		"type": "prismatic",
+		"body1": this.body1.id, 		
+		"body2": this.body2.id,
+		"anchor1": this.body1.localToWorld(this.anchor1),
+		"anchor2": this.body2.localToWorld(this.anchor2)		
+	};
+}
+
 PrismaticJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;

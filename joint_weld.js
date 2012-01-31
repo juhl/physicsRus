@@ -32,6 +32,16 @@ WeldJoint = function(body1, body2, anchor) {
 WeldJoint.prototype = new Joint;
 WeldJoint.prototype.constructor = WeldJoint;
 
+WeldJoint.prototype.serialize = function() {
+	return {
+		"type": "weld",
+		"body1": this.body1.id, 
+		"body2": this.body2.id,
+		"anchor1": this.body1.localToWorld(this.anchor1),
+		"anchor2": this.body2.localToWorld(this.anchor2)		
+	};
+}
+
 WeldJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;

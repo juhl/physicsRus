@@ -19,22 +19,38 @@ footer {
 }
 div#content {
   margin: 0px auto;
+  border: 1px solid #000;
+  padding: 0px;
+  width: 960px;
+  height: 480px;
   text-align: center;
-  vertical-align: middle;
+  vertical-align: middle;  
 }
 div#screen {
-  margin: 0px auto;
-  border: 1px dashed #000;
+  margin: 0px auto;  
   padding: 0px;
   width: 800px;
   height: 480px;
-  background-color: white;
+  background-color: white;  
+  display: inline-block;
+}
+div#toolbar {
+  vertical-align: top;
+  margin: 0px auto;
+  padding: 5px;
+  font-size: 50%;
+  text-align: left;
+  width: 150px;
+  height: 470px;
+  color: #FFF;
+  background-color: #444;
+  display: inline-block;
 }
 div#info {
-  margin: 10px auto;
+  margin: 10px auto;  
   padding: 4px;
   font-size: 80%;
-  width: 800px;
+  width: 960px;
   text-align: left;
   background-color: #eeeeee;
   -webkit-border-radius: .4em;
@@ -43,7 +59,7 @@ div#info {
 }
 div#comments {
   padding: 4px;
-  width: 800px;
+  width: 960px;
   margin: 0px auto;
 }
 div#share {

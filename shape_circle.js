@@ -13,6 +13,17 @@ ShapeCircle = function(offset_x, offset_y, radius) {
 ShapeCircle.prototype = new Shape;
 ShapeCircle.prototype.constructor = ShapeCircle;
 
+ShapeCircle.prototype.serialize = function() {
+    return {
+        "type": "circle",
+        "e": this.e,
+        "u": this.u,
+        "density": this.density,
+        "center": this.c,
+        "radius": this.r
+    };
+}
+
 ShapeCircle.prototype.recenter = function(c) {
     this.c.subself(c);
 }

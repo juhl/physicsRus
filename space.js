@@ -1,29 +1,132 @@
 function Space() {
-    this.gravity = new vec2(0, 0);
-    this.damping = 1.0;
-
-    this.staticBody = new Body();
-    this.staticBody.m = Infinity;
-    this.staticBody.resetMassData();
-    this.staticBody.space = this;
+    this.shapeArr = [];
 
     this.bodyHash = {};
     this.numBodies = 0;
 
     this.jointHash = {};
-    this.numJoints = 0;
-
-    this.shapeArr = [];
+    this.numJoints = 0;    
     
     this.contactSolverArr = [];
     this.numContacts = 0;
 
     this.postSolve = function(arb) {};
+
+    this.gravity = new vec2(0, 0);
+    this.damping = 1.0;
 }
 
 Space.TIME_TO_SLEEP = 0.5;
 Space.SLEEP_LINEAR_TOLERANCE = 0.01;
 Space.SLEEP_ANGULAR_TOLERANCE = deg2rad(2);
+
+Space.prototype.clear = function() {
+    for (var i in this.bodyHash) {
+        this.removeBody(this.bodyHash[i]);
+    }
+
+    this.contactSolverArr = [];
+}
+
+Space.prototype.toJSON = function(key) {
+    var bodies = [];
+    for (var i in this.bodyHash) {
+        bodies.push(this.bodyHash[i].serialize());
+    }
+
+    var joints = [];
+    for (var i in this.jointHash) {
+        joints.push(this.jointHash[i].serialize());
+    }
+
+    return {
+        gravity: this.gravity,
+        bodies: bodies,
+        joints: joints
+    };
+}
+
+Space.prototype.save = function() {
+    var text = JSON.stringify(this);
+    return text;
+}
+
+Space.prototype.load = function(text) {
+    var config = JSON.parse(text);
+
+    this.clear();
+    this.gravity.copy(config.gravity);
+
+    for (var i = 0; i < config.bodies.length; i++) {
+        var config_body = config.bodies[i];
+        var type = config_body.type == "static" ? Body.STATIC : Body.DYNAMIC;
+        var body = new Body(type, config_body.position.x, config_body.position.y, config_body.angle);
+
+        for (var j = 0; j < config_body.shapes.length; j++) {
+            var config_shape = config_body.shapes[j];
+            var shape;
+
+            switch (config_shape.type) {
+                case "circle":
+                    shape = new ShapeCircle(config_shape.center.x, config_shape.center.y, config_shape.radius);                
+                    break;
+                case "segment":
+                    shape = new ShapeSegment(config_shape.a, config_shape.b, config_shape.radius);
+                    break;
+                case "poly":
+                    shape = new ShapePoly(config_shape.verts);
+                    break;
+            }
+            
+            shape.e = config_shape.e;
+            shape.u = config_shape.u;
+            shape.density = config_shape.density;
+
+            body.addShape(shape);
+        }
+        
+        body.resetMassData();
+        this.addBody(body);
+    }
+    return;
+    for (var i = 0; i < config.joints.length; i++) {
+        var config_joint = config.joints[i];
+        var body1 = this.bodyHash[config_joint.body1];
+        var body2 = this.bodyHash[config_joint.body2];
+        var joint;
+
+        switch (config_joint.type) {
+            case "angle":
+                joint = new AngleJoint(body1, body2);
+                break;
+            case "revolute":
+                joint = new RevoluteJoint(body1, body2, config_joint.anchor);
+                joint.enableLimit(config_joint.limitEnabled);
+                joint.setLimits(config_joint.limitLowerAngle, config_joint.limitUpperAngle);
+                joint.enableMotor(config_joint.motorEnabled);
+                joint.setMotorSpeed(config_joint.motorSpeed);
+                joint.setMaxMotorTorque(config_joint.maxMotorTorque);
+                break;
+            case "weld":
+                joint = new WeldJoint(body1, body2, config_joint.anchor);
+                break;
+            case "distance":                
+                joint = new DistanceJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
+                joint.k = config_joint.k;
+                joint.d = config_joint.d;
+                break;
+            case "line":
+                joint = new LineJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
+                joint.enableMotor(config_joint.motorEnabled);
+                joint.setMotorSpeed(config_joint.motorSpeed);
+                joint.setMaxMotorTorque(config_joint.maxMotorTorque);
+                break;
+            case "prismatic":
+                joint = new PrismaticJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
+                break;
+        }
+    }
+}
 
 Space.prototype.addBody = function(body) {
     if (this.bodyHash[body.id]) {
@@ -118,7 +221,7 @@ Space.prototype.isCollidable = function(body1, body2) {
     if (body1 == body2)
         return false;
 
-    if (body1 == this.staticBody && body2 == this.staticBody)
+    if (body1.isStatic() && body2.isStatic())
         return false;
 
     for (var i in body1.jointHash) {
@@ -299,7 +402,7 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration, allowSleep) {
     var damping = this.damping < 1 ? Math.pow(this.damping, dt) : 1;
     for (var i in this.bodyHash) {
         var body = this.bodyHash[i];
-        if (body.isAwake()) {
+        if (!body.isStatic() && body.isAwake()) {
             body.updateVelocity(this.gravity, damping, dt);
         }
     }
@@ -310,7 +413,7 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration, allowSleep) {
     // Intergrate position
     for (var i in this.bodyHash) {
         var body = this.bodyHash[i];
-        if (body.isAwake()) {
+        if (!body.isStatic() && body.isAwake()) {
             body.updatePosition(dt);
         }
     }
@@ -335,7 +438,7 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration, allowSleep) {
 
     for (var i in this.bodyHash) {
         var body = this.bodyHash[i];
-        if (body.isAwake()) {
+        if (!body.isStatic() && body.isAwake()) {
             body.cacheData();
         }
     }

@@ -18,6 +18,18 @@ ShapeSegment = function(a, b, radius) {
 ShapeSegment.prototype = new Shape;
 ShapeSegment.prototype.constructor = ShapeSegment;
 
+ShapeSegment.prototype.serialize = function() {
+    return {
+    	"type": "segment",
+    	"e": this.e,
+        "u": this.u,
+        "density": this.density,
+    	"a": this.a, 
+        "b": this.b,
+        "radius": this.r
+    };
+}
+
 ShapeSegment.prototype.recenter = function(c) {
     this.a.subself(c);
     this.b.subself(c);

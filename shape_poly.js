@@ -5,7 +5,7 @@
 ShapePoly = function(verts) {
     Shape.call(this, Shape.TYPE_POLY);
     this.verts = verts;
-    this.planes = []; 
+    this.planes = [];
    
     this.tverts = [];
     this.tplanes = [];
@@ -30,6 +30,16 @@ ShapePoly = function(verts) {
 
 ShapePoly.prototype = new Shape;
 ShapePoly.prototype.constructor = ShapePoly;
+
+ShapePoly.prototype.serialize = function() {
+    return {
+        "type": "poly",
+        "e": this.e,
+        "u": this.u,
+        "density": this.density,
+        "verts": this.verts
+    };
+}
 
 ShapePoly.prototype.recenter = function(c) {
     for (var i = 0; i < this.verts.length; i++) {

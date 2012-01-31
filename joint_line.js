@@ -40,6 +40,19 @@ LineJoint = function(body1, body2, anchor1, anchor2) {
 LineJoint.prototype = new Joint;
 LineJoint.prototype.constructor = LineJoint;
 
+LineJoint.prototype.serialize = function() {
+	return {
+		"type": "line",
+		"body1": this.body1.id, 
+		"body2": this.body2.id,
+		"anchor1": this.body1.localToWorld(this.anchor1),
+		"anchor2": this.body2.localToWorld(this.anchor2),		
+		"motorEnabled": this.motorEnabled,
+		"motorSpeed": this.motorSpeed,
+		"maxMotorTorque": this.maxMotorTorque
+	};
+}
+
 LineJoint.prototype.enableMotor = function(flag) {
 	this.motorEnabled = flag;
 }

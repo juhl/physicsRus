@@ -1,10 +1,17 @@
-Body = function(x, y, angle) {
+Body = function(type, x, y, angle) {
     if (Body.id_counter == undefined) {
         Body.id_counter = 0;
     }
 
     this.id = Body.id_counter++;
 
+    // Identifier
+    this.name = "body" + this.id;
+
+    // STATIC or DYNAMIC
+    this.type = type;    
+
+    // Default values
     x = x || 0;
     y = y || 0;
     angle = angle || 0;
@@ -43,21 +50,32 @@ Body = function(x, y, angle) {
     this.jointHash = {};
 }
 
+Body.STATIC = 1;
+Body.DYNAMIC = 2;
+
+Body.prototype.serialize = function() {
+    var shapes = [];
+    for (var i = 0; i < this.shapeArr.length; i++) {
+        var obj = this.shapeArr[i].serialize();
+        shapes.push(obj);
+    }
+
+    return {
+        "type": this.type == Body.STATIC ? "static" : "dynamic",
+        "name": this.name,
+        "position": this.xf.t,
+        "angle": this.xf.a,
+        "shapes": shapes
+    };
+}
+
 Body.prototype.isStatic = function() {
-    return this.m == Infinity ? true : false;
+    return this.type == Body.STATIC ? true : false;
 }
 
 Body.prototype.addShape = function(shape) {
     shape.body = this;
     this.shapeArr.push(shape);
-}
-
-Body.prototype.addStaticShape = function(shape) {
-    shape.body = this;
-    this.shapeArr.push(shape);
-    
-    this.space.shapeArr.push(shape);
-    shape.cacheData(vec2.zero, vec2.zero, 0);
 }
 
 // Internal function
@@ -80,7 +98,7 @@ Body.prototype.setInertia = function(inertia) {
 }
 
 Body.prototype.resetMassData = function() {
-    if (this.m == Infinity) {
+    if (this.isStatic()) {
         this.setMass(Infinity);
         this.setInertia(Infinity);
         this.centroid = new vec2(0, 0);
