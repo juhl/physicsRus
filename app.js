@@ -4,8 +4,6 @@ App = function() {
     var canvas;
     var ctx;
 
-    var lastTime;
-    var timeOffset;
     var mouseDown;
     var canvasBounds;
     var clearBounds;
@@ -13,12 +11,15 @@ App = function() {
     var randomColor;
     var screenZoomScale = 1.0;
     var screenOffset = new vec2(0, 0);
+    var lastTime;
 
     var space;
     var mouseBody;
     var mousePoint;
     var mouseJoint;
     var sceneNumber = 1;
+    var pause = false;
+    var step = false;
 
     var frameRateHz = 60;
     var velocityIterations = 8;
@@ -123,9 +124,7 @@ App = function() {
         eval('initScene' + sceneNumber + '()');
         
         clearBounds.copy(canvasBounds);
-        
-        timeOffset = 0;
-        frameSkip = 0;
+
         lastTime = Date.now();
     }
 
@@ -780,29 +779,21 @@ App = function() {
     function runFrame() {
         var time = Date.now();
         var frameTime = time - lastTime;
-
         lastTime = time;
-
-        timeOffset += frameTime;
 
         if (mouseJoint) {
             mouseBody.p = mousePoint;
         }
 
-        if (timeOffset >= 1000 / frameRateHz) {
-            var steps = 0;
-
-            while (timeOffset >= 1000 / frameRateHz && steps < 10) {
-                var t0 = Date.now();
-                space.step(1 / frameRateHz, velocityIterations, positionIterations, warmStarting, allowSleeping);
-                stats.timeStep = Date.now() - t0;
-
-                timeOffset -= 1000 / frameRateHz;
-                steps++;
-            }
+        if (!pause || step) {
+            var t0 = Date.now();
+            space.step(1 / frameRateHz, velocityIterations, positionIterations, warmStarting, allowSleeping);
+            stats.timeStep = Date.now() - t0;
 
             drawFrame(frameTime);
         }
+
+        step = false;
 
         window.requestAnimFrame(function() { runFrame(); });   
     }
@@ -818,7 +809,7 @@ App = function() {
         // Clear rect
         if (!clearBounds.isEmpty()) {
             ctx.clearRect(clearBounds.mins.x, clearBounds.mins.y, clearBounds.maxs.x - clearBounds.mins.x, clearBounds.maxs.y - clearBounds.mins.y);
-        }                        
+        }
 
         // Update paint bounds for culling
         paintBounds.clear();
@@ -1279,6 +1270,19 @@ App = function() {
         initScene();
     }
 
+    function onClickedPause() {    
+        var button = document.getElementById("pause");
+        button.value = pause ? "Pause" : "Play";
+        pause = !pause;
+    }
+
+    function onClickedStep() {        
+        var button = document.getElementById("pause");
+        button.value = "Play";
+        pause = true;
+        step = true;
+    }
+
     return { 
         main: main,
         onChangedScene: onChangedScene,
@@ -1292,6 +1296,8 @@ App = function() {
         onClickedShowJoints: onClickedShowJoints,
         onClickedShowStats: onClickedShowStats,
         onClickedShowClearRect: onClickedShowClearRect,
-        onClickedResetScene: onClickedResetScene
+        onClickedResetScene: onClickedResetScene,
+        onClickedPause: onClickedPause,
+        onClickedStep: onClickedStep
     };
 }();

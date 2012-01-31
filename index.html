@@ -27,14 +27,16 @@
         <label for="p_iters">Position iters:</label><input type="number" id="p_iters" size="5" min="0" max="100" onchange="App.onChangedPositionIterations(this.value);" /><br />        
       </div>
       <div>
-        <input type="checkbox" name="warmStarting" checked="true" onclick="App.onClickedWarmStarting();" />Warm starting<br />
-        <input type="checkbox" name="allowSleeping" checked="true" onclick="App.onClickedAllowSleeping();" />Allow sleeping<br />
-        <input type="checkbox" name="showBounds" onclick="App.onClickedShowBounds();" />Show bounding boxes<br />
-        <input type="checkbox" name="showContacts" onclick="App.onClickedShowContacts();" />Show contacts<br />
-        <input type="checkbox" name="showJoints" checked="true" onclick="App.onClickedShowJoints();" />Show joints<br />
-        <input type="checkbox" name="showStats" onclick="App.onClickedShowStats();" />Show statistics<br />
-        <input type="checkbox" name="showClearRect" onclick="App.onClickedShowClearRect();" />Show clear rect<br />
-        <input type="button" name="resetScene" value="Restart" onclick="App.onClickedResetScene();" /><br />
+        <input type="checkbox" id="warmStarting" checked="true" onclick="App.onClickedWarmStarting();" />Warm starting<br />
+        <input type="checkbox" id="allowSleeping" checked="true" onclick="App.onClickedAllowSleeping();" />Allow sleeping<br />
+        <input type="checkbox" id="showBounds" onclick="App.onClickedShowBounds();" />Show bounding boxes<br />
+        <input type="checkbox" id="showContacts" onclick="App.onClickedShowContacts();" />Show contacts<br />
+        <input type="checkbox" id="showJoints" checked="true" onclick="App.onClickedShowJoints();" />Show joints<br />
+        <input type="checkbox" id="showStats" onclick="App.onClickedShowStats();" />Show statistics<br />
+        <input type="checkbox" id="showClearRect" onclick="App.onClickedShowClearRect();" />Show clear rect<br />
+        <input type="button" id="resetScene" value="Restart" style="width:70px" onclick="App.onClickedResetScene();" />
+        <input type="button" id="pause" value="Pause" style="width:70px" onclick="App.onClickedPause();" /><br />
+        <input type="button" id="step" value="Step" style="width:70px" onclick="App.onClickedStep();" /><br />
       </div>
     </div>
   </div>
