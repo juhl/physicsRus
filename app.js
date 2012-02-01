@@ -15,6 +15,7 @@ App = function() {
     var timeOffset;
 
     var space;
+    var gravity = new vec2(0, -700);
     var mouseBody;
     var mouseJoint;
     var sceneNumber = 1;
@@ -41,6 +42,9 @@ App = function() {
     		option.value = 0;
     		combobox.add(option);
     	}
+
+    	var editbox = document.getElementById("gravity");
+    	editbox.value = gravity.y;
 
     	var editbox = document.getElementById("frameRateHz");
     	editbox.value = frameRateHz;
@@ -131,7 +135,7 @@ App = function() {
     // Car
     function initScene1() {
     	space = new Space();
-    	space.gravity = new vec2(0, -800);
+    	space.gravity.copy(gravity);
 
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(-400, 250, 10, 500));
@@ -239,7 +243,7 @@ App = function() {
     // Rag-doll
     function initScene2() {
     	space = new Space();
-    	space.gravity = new vec2(0, -800);
+    	space.gravity.copy(gravity);
 
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(0, 0, 790, 10));
@@ -453,7 +457,7 @@ App = function() {
     // See-saw
     function initScene3() {
     	space = new Space();
-    	space.gravity = new vec2(0, -600);
+    	space.gravity.copy(gravity);
 
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(0, 0, 790, 10));
@@ -507,7 +511,7 @@ App = function() {
     // Pyramid
     function initScene4() {
     	space = new Space();
-    	space.gravity = new vec2(0, -600);
+    	space.gravity.copy(gravity);
 
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(0, 0, 790, 10));
@@ -517,7 +521,7 @@ App = function() {
     	space.addBody(staticBody);
 
     	for (var i = 0; i < 10; i++) {
-    		for (var j = 0; j <= i; j++) {                
+    		for (var j = 0; j <= i; j++) {
     			var body = new Body(Body.DYNAMIC, (j - i * 0.5) * 42, 500 - i * 42);
     			var shape = new ShapeBox(0, 0, 37, 37);
     			shape.e = 0.0;
@@ -542,7 +546,7 @@ App = function() {
     // Crank
     function initScene5() {
     	space = new Space();
-    	space.gravity = new vec2(0, -600);
+    	space.gravity.copy(gravity);
 
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(0, 0, 790, 10));
@@ -628,7 +632,7 @@ App = function() {
     // Rope
     function initScene6() {         
     	space = new Space();
-    	space.gravity = new vec2(0, -800);
+    	space.gravity.copy(gravity);
 
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(0, 0, 790, 10));
@@ -666,7 +670,7 @@ App = function() {
     // Web
     function initScene7() { 
     	space = new Space();
-    	space.gravity = new vec2(0, 0);
+    	space.gravity.copy(gravity);
 
     	var staticBody = new Body(Body.STATIC);        
     	staticBody.resetMassData();
@@ -744,7 +748,7 @@ App = function() {
     // Bounce
     function initScene8() {
     	space = new Space();
-    	space.gravity = new vec2(0, -800);
+    	space.gravity.copy(gravity);    	
 
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(0, 0, 800, 10));
@@ -1239,16 +1243,21 @@ App = function() {
     	initScene();
     }
 
+    function onChangedGravity(value) {
+    	gravity.y = parseFloat(value);
+    	space.gravity.copy(gravity);
+    }
+
     function onChangedFrameRateHz(value) {
-    	frameRateHz = value;
+    	frameRateHz = parseInt(value);
     }
 
     function onChangedVelocityIterations(value) {
-    	velocityIterations = value;
+    	velocityIterations = parseInt(value);
     }
 
     function onChangedPositionIterations(value) {
-    	positionIterations = value;
+    	positionIterations = parseInt(value);
     }
 
     function onClickedWarmStarting() {
@@ -1304,6 +1313,7 @@ App = function() {
     return { 
     	main: main,
     	onChangedScene: onChangedScene,
+    	onChangedGravity: onChangedGravity,
     	onChangedFrameRateHz: onChangedFrameRateHz,
     	onChangedVelocityIterations: onChangedVelocityIterations,
     	onChangedPositionIterations: onChangedPositionIterations,        
