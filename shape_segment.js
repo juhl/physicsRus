@@ -3,40 +3,40 @@
 //------------------------------------------
 
 ShapeSegment = function(a, b, radius) {
-    Shape.call(this, Shape.TYPE_SEGMENT);
-    this.a = a;
-    this.b = b;
-    this.r = radius;
-    this.n = vec2.perp(vec2.sub(b, a));
-    this.n.normalize();
+	Shape.call(this, Shape.TYPE_SEGMENT);
+	this.a = a;
+	this.b = b;
+	this.r = radius;
+	this.n = vec2.perp(vec2.sub(b, a));
+	this.n.normalize();
 
-    this.ta = vec2.zero;
-    this.tb = vec2.zero;
-    this.tn = vec2.zero;
+	this.ta = vec2.zero;
+	this.tb = vec2.zero;
+	this.tn = vec2.zero;
 }
 
 ShapeSegment.prototype = new Shape;
 ShapeSegment.prototype.constructor = ShapeSegment;
 
 ShapeSegment.prototype.serialize = function() {
-    return {
-    	"type": "segment",
-    	"e": this.e,
-        "u": this.u,
-        "density": this.density,
-    	"a": this.a, 
-        "b": this.b,
-        "radius": this.r
-    };
+	return {
+		"type": "segment",
+		"e": this.e,
+		"u": this.u,
+		"density": this.density,
+		"a": this.a, 
+		"b": this.b,
+		"radius": this.r
+	};
 }
 
 ShapeSegment.prototype.recenter = function(c) {
-    this.a.subself(c);
-    this.b.subself(c);
+	this.a.subself(c);
+	this.b.subself(c);
 }
 
 ShapeSegment.prototype.area = function() {
-    return areaForSegment(this.a, this.b, this.r);
+	return areaForSegment(this.a, this.b, this.r);
 }
 
 ShapeSegment.prototype.centroid = function() {
@@ -44,19 +44,19 @@ ShapeSegment.prototype.centroid = function() {
 }
 
 ShapeSegment.prototype.inertia = function(mass) {
-    return inertiaForSegment(mass, this.a, this.b);
+	return inertiaForSegment(mass, this.a, this.b);
 }
 
 ShapeSegment.prototype.cacheData = function(pos, centroid, angle) {
-    this.ta = vec2.add(pos, vec2.rotate(vec2.sub(this.a, centroid), angle));
+	this.ta = vec2.add(pos, vec2.rotate(vec2.sub(this.a, centroid), angle));
 	this.tb = vec2.add(pos, vec2.rotate(vec2.sub(this.b, centroid), angle));
 	this.tn = vec2.rotate(this.n, angle);
 
-    if (this.ta.x < this.tb.x) {
+	if (this.ta.x < this.tb.x) {
 		l = this.ta.x;
 		r = this.tb.x;
 	} 
-    else {
+	else {
 		l = this.tb.x;
 		r = this.ta.x;
 	}
@@ -69,20 +69,20 @@ ShapeSegment.prototype.cacheData = function(pos, centroid, angle) {
 		t = this.ta.y;
 	}
 
-    this.bounds.mins.set(l - this.r, b - this.r);
-    this.bounds.maxs.set(r + this.r, t + this.r);
+	this.bounds.mins.set(l - this.r, b - this.r);
+	this.bounds.maxs.set(r + this.r, t + this.r);
 }
 
 ShapeSegment.prototype.pointQuery = function(p) {
-    if (!this.bounds.containPoint(p)) {
-        return false;
-    }
-    
+	if (!this.bounds.containPoint(p)) {
+		return false;
+	}
+	
 	var dn = vec2.dot(seg.tn, p) - vec2.dot(seg.ta, seg.tn);
 	var dist = Math.abs(dn) - seg.r;
 	if (dist > 0) {
-        return false;
-    }
+		return false;
+	}
 	
 	var dt = vec2.cross(p, seg.tn);
 	var dtMin = vec2.cross(seg.ta, seg.tn);
@@ -95,20 +95,20 @@ ShapeSegment.prototype.pointQuery = function(p) {
 
 		return vec2.distsq(seg.ta, p) < (seg.r * seg.r);
 	} 
-    else if (dt > dtMax) {
+	else if (dt > dtMax) {
 		if (dt > dtMax + seg.r) {
-		    return false;
-        }
+			return false;
+		}
 
 		return vec2.distsq(seg.tb, p) < (seg.r * seg.r);
-    }
+	}
 	
 	return true;
 }
 
 ShapeSegment.prototype.distanceOnPlane = function(n, d) {
-    var a = vec2.dot(n, this.ta) - this.r;
-    var b = vec2.dot(n, this.tb) - this.r;
-    
-    return Math.min(a, b) - d;
+	var a = vec2.dot(n, this.ta) - this.r;
+	var b = vec2.dot(n, this.tb) - this.r;
+	
+	return Math.min(a, b) - d;
 }

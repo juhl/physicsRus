@@ -1,24 +1,24 @@
 Shape = function(type) {
-    if (arguments.length == 0)
-        return;
+	if (arguments.length == 0)
+		return;
 
-    if (Shape.id_counter == undefined)
-        Shape.id_counter = 0;
-    
-    this.id = Shape.id_counter++;
-    this.type = type;
+	if (Shape.id_counter == undefined)
+		Shape.id_counter = 0;
+	
+	this.id = Shape.id_counter++;
+	this.type = type;
 
-    // Coefficient of restitution (elasticity)
-    this.e = 0.0;
+	// Coefficient of restitution (elasticity)
+	this.e = 0.0;
 
-    // Frictional coefficient
-    this.u = 1.0;
+	// Frictional coefficient
+	this.u = 1.0;
 
-    // Mass density
-    this.density = 0.1;
+	// Mass density
+	this.density = 0.1;
 
-    // Axis-aligned bounding box
-    this.bounds = new Bounds;    
+	// Axis-aligned bounding box
+	this.bounds = new Bounds;    
 }
 
 Shape.TYPE_CIRCLE = 0;
