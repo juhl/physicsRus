@@ -9,18 +9,18 @@
 // JT * lambda = [ lambda_xy, cross(r2, lambda_xy) ]
 //-------------------------------------------------------------------------------------------------
 
-MouseJoint = function(mouseBody, body, anchor1, anchor2) {
+MouseJoint = function(mouseBody, body, anchor) {
 	if (arguments.length == 0)
 		return;
 
 	Joint.call(this, mouseBody, body, true);
 
 	// Local anchor points
-	this.anchor1 = mouseBody.worldToLocal(anchor1);
-	this.anchor2 = body.worldToLocal(anchor2);
+	this.anchor1 = mouseBody.worldToLocal(anchor);
+	this.anchor2 = body.worldToLocal(anchor);
 	
 	// Spring stiffness
-	var frequencyHz = 3;
+	var frequencyHz = 6;
 	var omega = 2 * Math.PI * frequencyHz;
 	this.k = omega * omega;
 
@@ -55,7 +55,7 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 
 	// Position constraint
 	var c = vec2.sub(vec2.add(body2.p, this.r2), body1.p);
-	
+		
 	// Spring coefficients
 	var k = body2.m * this.k;
 	var d = body2.m * this.d;

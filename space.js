@@ -375,13 +375,22 @@ Space.prototype.positionSolver = function(iteration) {
 }
 
 Space.prototype.step = function(dt, vel_iteration, pos_iteration, warmStarting, allowSleep) {
-    var dt_inv = 1 / dt;
-
+    var dt_inv = 1 / dt;      
+    
     // Generate contact & contactSolver
     this.contactSolverArr = this.genTemporalContactSolvers();
 
     // Initialize contacts & joints solver
-    this.initSolver(dt, dt_inv, warmStarting);
+    this.initSolver(dt, dt_inv, warmStarting);    
+
+    // Intergrate velocity
+    var damping = this.damping < 1 ? Math.pow(this.damping, dt) : 1;
+    for (var i in this.bodyHash) {
+        var body = this.bodyHash[i];
+        if (!body.isStatic() && body.isAwake()) {
+            body.updateVelocity(this.gravity, damping, dt);
+        }
+    }
 
     //
     for (var i in this.jointHash) {
@@ -397,15 +406,6 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration, warmStarting, 
                 body1.awake(true);
             if (!awake2)
                 body2.awake(true);
-        }
-    }
-
-    // Intergrate velocity
-    var damping = this.damping < 1 ? Math.pow(this.damping, dt) : 1;
-    for (var i in this.bodyHash) {
-        var body = this.bodyHash[i];
-        if (!body.isStatic() && body.isAwake()) {
-            body.updateVelocity(this.gravity, damping, dt);
         }
     }
 

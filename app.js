@@ -12,10 +12,10 @@ App = function() {
     var screenZoomScale = 1.0;
     var screenOffset = new vec2(0, 0);
     var lastTime;
+    var timeOffset;
 
     var space;
     var mouseBody;
-    var mousePoint;
     var mouseJoint;
     var sceneNumber = 1;
     var pause = false;
@@ -108,7 +108,6 @@ App = function() {
         collision.init();
 
         mouseBody = new Body(Body.STATIC);
-        mouseBody.m = Infinity;
         mouseBody.resetMassData();
 
         initScene();
@@ -126,6 +125,7 @@ App = function() {
         clearBounds.copy(canvasBounds);
 
         lastTime = Date.now();
+        timeOffset = 0;
     }
 
     // Car
@@ -447,7 +447,7 @@ App = function() {
         joint.setLimits(deg2rad(-160), deg2rad(30));
         space.addJoint(joint);
 
-        bodyHead.applyLinearImpulse(new vec2(1200000, 0), vec2.zero);
+        bodyHead.applyLinearImpulse(new vec2(1300000, 0), vec2.zero);
     }
 
     // See-saw
@@ -778,27 +778,36 @@ App = function() {
     
     function runFrame() {
         var time = Date.now();
-        var frameTime = time - lastTime;
-        lastTime = time;
-
-        if (mouseJoint) {
-            mouseBody.p = mousePoint;
-        }
+        var frameTime = (time - lastTime) / 1000;
+        lastTime = time;        
+        
+        var h = 1 / frameRateHz;
 
         if (!pause || step) {
-            var t0 = Date.now();
-            space.step(1 / frameRateHz, velocityIterations, positionIterations, warmStarting, allowSleeping);
-            stats.timeStep = Date.now() - t0;
+            timeOffset += frameTime;
+
+            if (step) {
+                step = false;
+                timeOffset = h;
+            }
+
+            for (var maxSteps = 10; maxSteps > 0 && timeOffset >= h; timeOffset -= h, maxSteps--) {
+                var t0 = Date.now();
+                space.step(h, velocityIterations, positionIterations, warmStarting, allowSleeping);
+                stats.timeStep = Date.now() - t0;
+            }
+
+            if (timeOffset > h) {
+                timeOffset = 0;
+            }
 
             drawFrame(frameTime);
-        }
-
-        step = false;
+        }        
 
         window.requestAnimFrame(function() { runFrame(); });   
     }
 
-    function drawFrame(ms) {
+    function drawFrame(frameTime) {
         var t0 = Date.now();
 
         // Transform coordinate system to y-axis is up and origin is bottom center
@@ -1093,11 +1102,10 @@ App = function() {
         var p = new vec2(point.x - canvas.width * 0.5, canvas.height - point.y);
         var shape = space.findShapeByPoint(p);
         if (shape) {
-            mouseBody.p = p;
-            mousePoint = p;
+            mouseBody.p.copy(p);
 
             var body = shape.body;
-            mouseJoint = new MouseJoint(mouseBody, body, p, p);
+            mouseJoint = new MouseJoint(mouseBody, body, p);
             mouseJoint.maxForce = body.m * 10000;
             space.addJoint(mouseJoint);
         }
@@ -1120,8 +1128,8 @@ App = function() {
 
     function onMouseMove(e) {
         var point = getMousePoint(e);
-        if (mouseDown) {
-            mousePoint = new vec2(point.x - canvas.width * 0.5, canvas.height - point.y);
+        if (mouseJoint) {
+            mouseBody.p.set(point.x - canvas.width * 0.5, canvas.height - point.y);
         }
 
         e.preventDefault();
@@ -1266,21 +1274,26 @@ App = function() {
         showClearBounds = !showClearBounds;
     }
 
+    function updatePauseButton() {
+        var button = document.getElementById("pause");
+        button.value = pause ? "Play" : "Pause";
+    }
+
     function onClickedResetScene() {
         initScene();
+        pause = false;
+        updatePauseButton();
     }
 
-    function onClickedPause() {    
-        var button = document.getElementById("pause");
-        button.value = pause ? "Pause" : "Play";
+    function onClickedPause() {
         pause = !pause;
+        updatePauseButton();
     }
 
-    function onClickedStep() {        
-        var button = document.getElementById("pause");
-        button.value = "Play";
+    function onClickedStep() {
         pause = true;
         step = true;
+        updatePauseButton();
     }
 
     return { 
