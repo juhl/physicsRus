@@ -18,11 +18,10 @@
       <canvas width="800" height="480" id="canvas"></canvas>
     </div><div id="toolbar">
       <div class="combo">
-        <label for="scene">Scene:</label><select id="scene" onchange="App.onChangedScene(this.selectedIndex);">            
-        </select>
+        <label for="scene">Scene:</label><select id="scene" onchange="App.onChangedScene(this.selectedIndex);"></select>
       </div>
       <div align="right">
-        <label for="gravity">Gravity:</label><input type="number" id="gravity" size="8" min="-1000" max="1000" onchange="App.onChangedGravity(this.value);" /><br />
+        <label for="gravity">Gravity:</label><input type="number" id="gravity" size="8" min="-999" max="999" onchange="App.onChangedGravity(this.value);" /><br />
         <label for="frameRateHz">Frame rate:</label><input type="number" id="frameRateHz" size="5" min="10" max="120" onchange="App.onChangedFrameRateHz(this.value);" /><br />
         <label for="v_iters">Velocity iters:</label><input type="number" id="v_iters" size="5" min="1" max="100" onchange="App.onChangedVelocityIterations(this.value);" /><br />
         <label for="p_iters">Position iters:</label><input type="number" id="p_iters" size="5" min="0" max="100" onchange="App.onChangedPositionIterations(this.value);" /><br />        

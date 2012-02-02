@@ -3,25 +3,26 @@ var stats = {};
 App = function() {
     var canvas;
     var ctx;
+    var ws;
 
     var mouseDown;
     var canvasBounds;
     var clearBounds;
     var paintBounds;
-    var randomColor;
-    var screenZoomScale = 1.0;
-    var screenOffset = new vec2(0, 0);
+    var randomColor;    
     var lastTime;
     var timeOffset;
+    var editMode = false;
+    var screenZoomScale = 1.0;
+    var screenOffset = new vec2(0, 0);
 
-    var space;
-    var gravity = new vec2(0, -700);
+    var space;    
     var mouseBody;
     var mouseJoint;
+    var gravity = new vec2(0, -627.2);
     var sceneNumber = 1;
     var pause = false;
     var step = false;
-
     var frameRateHz = 60;
     var velocityIterations = 8;
     var positionIterations = 4;
@@ -34,6 +35,11 @@ App = function() {
     var showClearBounds = false;
 
     function main() {
+    	//ws = new WebSocket("ws://peppercode.net:70000");
+    	//ws.onopen = onopen;
+    	//ws.onmessage = onmessage;
+    	//ws.onclose = onclose;
+
     	var sceneNameArr = ["Car", "Rag-doll", "See-saw", "Pyramid", "Crank", "Rope", "Web", "Bounce-test"];
     	var combobox = document.getElementById("scene");
     	for (var i = 0; i < sceneNameArr.length; i++) {
@@ -41,7 +47,7 @@ App = function() {
     		option.text = sceneNameArr[i];
     		option.value = 0;
     		combobox.add(option);
-    	}
+    	}    	
 
     	var editbox = document.getElementById("gravity");
     	editbox.value = gravity.y;
@@ -100,7 +106,7 @@ App = function() {
     		window.oRequestAnimationFrame || 
     		window.msRequestAnimationFrame || 
     		function(callback, element) { window.setTimeout(callback, 1000 / 60); };
-    	})();
+    	})();    	
 
     	// Random color for bodies
     	randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"];        
@@ -114,18 +120,44 @@ App = function() {
     	mouseBody = new Body(Body.STATIC);
     	mouseBody.resetMassData();
 
+    	space = new Space();
+
     	initScene();
 
     	window.requestAnimFrame(function() { runFrame(); });        
     }
 
+    function readRemoteText(uri, async, callback) {
+    	var request = new XMLHttpRequest();
+		request.onreadystatechange = function () {
+			if (request.readyState == 4 && request.status == 200) {
+				var text = request.responseText;
+				callback(text);
+		    }
+		}
+
+		request.open('GET', uri, async);
+		request.overrideMimeType('text/plain');
+		request.setRequestHeader('Content-Type', 'text/plain');
+		request.send();
+    }
+
+    function sendRemoteText(uri, async, text) {
+		var request = new XMLHttpRequest();
+		request.open('POST', uri, async);
+		request.overrideMimeType('text/plain');
+		request.setRequestHeader('Content-Type', 'text/plain');
+		request.send(text);
+    }
+
     function initScene() {
-    	Shape.id_counter = 0;
-    	Body.id_counter = 0;
-    	Joint.id_counter = 0;
+    	space.clear();
+    	space.gravity.copy(gravity);
 
     	eval('initScene' + sceneNumber + '()');
 
+    	//readRemoteText("http://peppercode.net/rigid-dyn2d/scenes/car.json", false, function(text) { space.load(text); });
+    	
     	clearBounds.copy(canvasBounds);
 
     	lastTime = Date.now();
@@ -134,9 +166,6 @@ App = function() {
 
     // Car
     function initScene1() {
-    	space = new Space();
-    	space.gravity.copy(gravity);
-
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(-400, 250, 10, 500));
     	staticBody.addShape(new ShapeBox(400, 250, 10, 500));
@@ -234,17 +263,12 @@ App = function() {
     	joint.collideConnected = false;
     	space.addJoint(joint);
 
-    	//space.load(space.save());
-
     	// Both wheels constrained to be same rotation        
     	//space.addJoint(new AngleJoint(body2, body3));
     }
 
     // Rag-doll
     function initScene2() {
-    	space = new Space();
-    	space.gravity.copy(gravity);
-
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(0, 0, 790, 10));
     	staticBody.addShape(new ShapeBox(-400, 250, 10, 500));
@@ -456,9 +480,6 @@ App = function() {
 
     // See-saw
     function initScene3() {
-    	space = new Space();
-    	space.gravity.copy(gravity);
-
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(0, 0, 790, 10));
     	staticBody.addShape(new ShapeBox(-400, 250, 10, 500));
@@ -510,9 +531,6 @@ App = function() {
 
     // Pyramid
     function initScene4() {
-    	space = new Space();
-    	space.gravity.copy(gravity);
-
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(0, 0, 790, 10));
     	staticBody.addShape(new ShapeBox(-400, 250, 10, 500));
@@ -523,7 +541,7 @@ App = function() {
     	for (var i = 0; i < 10; i++) {
     		for (var j = 0; j <= i; j++) {
     			var body = new Body(Body.DYNAMIC, (j - i * 0.5) * 42, 500 - i * 42);
-    			var shape = new ShapeBox(0, 0, 37, 37);
+    			var shape = new ShapeBox(0, 0, 36, 36);
     			shape.e = 0.0;
     			shape.u = 1.0;
     			shape.density = 0.8;
@@ -545,9 +563,6 @@ App = function() {
 
     // Crank
     function initScene5() {
-    	space = new Space();
-    	space.gravity.copy(gravity);
-
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(0, 0, 790, 10));
     	staticBody.addShape(new ShapeBox(-400, 250, 10, 500));
@@ -631,9 +646,6 @@ App = function() {
 
     // Rope
     function initScene6() {         
-    	space = new Space();
-    	space.gravity.copy(gravity);
-
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(0, 0, 790, 10));
     	staticBody.resetMassData();
@@ -669,9 +681,6 @@ App = function() {
 
     // Web
     function initScene7() { 
-    	space = new Space();
-    	space.gravity.copy(gravity);
-
     	var staticBody = new Body(Body.STATIC);        
     	staticBody.resetMassData();
     	space.addBody(staticBody);
@@ -747,9 +756,6 @@ App = function() {
 
     // Bounce
     function initScene8() {
-    	space = new Space();
-    	space.gravity.copy(gravity);    	
-
     	var staticBody = new Body(Body.STATIC);
     	staticBody.addShape(new ShapeBox(0, 0, 800, 10));
     	staticBody.addShape(new ShapeBox(-400, 250, 10, 500));

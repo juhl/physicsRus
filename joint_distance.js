@@ -40,6 +40,9 @@ DistanceJoint.prototype.serialize = function() {
 		"body2": this.body2.id,
 		"anchor1": this.body1.localToWorld(this.anchor1),
 		"anchor2": this.body2.localToWorld(this.anchor2),
+		"collideConnected": this.collideConnected,
+		"maxForce": this.maxForce,
+		"breakable": this.breakable,
 		"k": this.k,
 		"d": this.d	
 	};

@@ -25,7 +25,8 @@ AngleJoint.prototype.serialize = function() {
 	return {
 		"type": "angle",
 		"body1": this.body1.id,
-		"body2": this.body2.id,		
+		"body2": this.body2.id,
+		"collideConnected": this.collideConnected
 	};
 }
 

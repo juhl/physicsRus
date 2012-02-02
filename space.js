@@ -17,10 +17,14 @@ function Space() {
 }
 
 Space.TIME_TO_SLEEP = 0.5;
-Space.SLEEP_LINEAR_TOLERANCE = 0.01;
+Space.SLEEP_LINEAR_TOLERANCE = 0.5;
 Space.SLEEP_ANGULAR_TOLERANCE = deg2rad(2);
 
 Space.prototype.clear = function() {
+	Shape.id_counter = 0;
+    Body.id_counter = 0;
+    Joint.id_counter = 0;
+
 	for (var i in this.bodyHash) {
 		this.removeBody(this.bodyHash[i]);
 	}
@@ -40,14 +44,13 @@ Space.prototype.toJSON = function(key) {
 	}
 
 	return {
-		gravity: this.gravity,
 		bodies: bodies,
 		joints: joints
 	};
 }
 
 Space.prototype.save = function(name) {
-	var text = JSON.stringify(this);
+	var text = JSON.stringify(this, null, "\t");
 	return text;
 }
 
@@ -55,7 +58,6 @@ Space.prototype.load = function(text) {
 	var config = JSON.parse(text);
 
 	this.clear();
-	this.gravity.copy(config.gravity);
 
 	for (var i = 0; i < config.bodies.length; i++) {
 		var config_body = config.bodies[i];
@@ -125,6 +127,12 @@ Space.prototype.load = function(text) {
 				joint = new PrismaticJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
 				break;
 		}
+
+		joint.collideConnected = config_joint.collideConnected;
+		joint.maxForce = config_joint.maxForce;
+		joint.breakable = config_joint.breakable;
+
+		this.addJoint(joint);
 	}
 }
 
