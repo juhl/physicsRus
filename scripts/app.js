@@ -60,9 +60,9 @@ App = function() {
 		//canvas.addEventListener("mousewheel", function(e) { onMouseWheel(e) }, false);
 
 		canvas.addEventListener("touchstart", touchHandler, false);
-		window.addEventListener("touchend", touchHandler, false);
-		window.addEventListener("touchmove", touchHandler, false);
-		window.addEventListener("touchcancel", touchHandler, false);
+		canvas.addEventListener("touchend", touchHandler, false);
+		canvas.addEventListener("touchmove", touchHandler, false);
+		canvas.addEventListener("touchcancel", touchHandler, false);
 
 		// Prevent elastic scrolling on iOS
 		//document.body.addEventListener('touchmove', function(event) { event.preventDefault(); }, false);
@@ -481,7 +481,7 @@ App = function() {
 			}
 
 			e.preventDefault();
-		}		
+		}
 	}
 
 	function onMouseLeave(e) {
