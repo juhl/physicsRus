@@ -426,8 +426,12 @@ App = function() {
 	}
 
 	function onResize(e) {
-		canvas.width = window.innerWidth - document.getElementById("toolbar").clientWidth;
+		canvas.width = window.innerWidth;
 		canvas.height = window.innerHeight;
+
+		var toolbar = document.getElementById("toolbar");
+		toolbar.style.position = "absolute";
+		toolbar.style.left = (canvas.width - toolbar.clientWidth) + "px";		
 
 		canvasBounds.mins = new vec2(-canvas.width * 0.5, 0);
 		canvasBounds.maxs = new vec2(canvas.width * 0.5, canvas.height);

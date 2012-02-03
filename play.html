@@ -14,7 +14,7 @@
 <body>
   <div id="screen">
     <canvas id="canvas"></canvas>
-  </div><div id="toolbar">
+    <div id="toolbar">
     <div class="combo" align="right">
       <label for="scene">Scene: </label><select id="scene" style="width:100px" onchange="App.onChangedScene(this.selectedIndex);"></select>
     </div>
@@ -36,6 +36,7 @@
       <input type="button" id="pause" value="Pause" style="width:78px" onclick="App.onClickedPause();"/><br/>
       <input type="button" id="step" value="Step" style="width:78px" onclick="App.onClickedStep();"/><br/>
     </div>
+  </div>
   </div>
 
   <script src="scripts/math.js"></script>

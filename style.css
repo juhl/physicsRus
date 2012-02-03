@@ -35,15 +35,17 @@ div#toolbar {
   font-size: 7pt;  
   margin: 0px auto;
   padding: 5px;
+  top: 0px;
   width: 160px;
   color: #FFF;
   background-color: #444;
+  position:absolute;
   display: inline-block;
 }
 div#info {
   margin: 10px auto;  
   padding: 4px;
-  font-size: 10pt;
+  font-size: 10pt;  
   width: 960px;
   text-align: left;
   background-color: #eeeeee;

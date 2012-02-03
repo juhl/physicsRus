@@ -3,10 +3,10 @@ DemoCar = function() {
 	function init(s) {
 		space = s;
 		var staticBody = new Body(Body.STATIC);
-		staticBody.addShape(new ShapeBox(-380, 250, 40, 100));
-		staticBody.addShape(new ShapeBox(380, 250, 40, 100));
-		staticBody.addShape(new ShapePoly([new vec2(-400, 0), new vec2(-100, 0), new vec2(-100, 50), new vec2(-360, 200), new vec2(-400, 200)]));
-		staticBody.addShape(new ShapePoly([new vec2(100, 0), new vec2(400, 0), new vec2(400, 200), new vec2(360, 200), new vec2(100, 50)]));
+		staticBody.addShape(new ShapeBox(-492, 250, 40, 100));
+		staticBody.addShape(new ShapeBox(492, 250, 40, 100));
+		staticBody.addShape(new ShapePoly([new vec2(-512, 0), new vec2(-100, 0), new vec2(-100, 50), new vec2(-472, 200), new vec2(-512, 200)]));
+		staticBody.addShape(new ShapePoly([new vec2(100, 0), new vec2(512, 0), new vec2(512, 200), new vec2(472, 200), new vec2(100, 50)]));
 		staticBody.resetMassData();
 		space.addBody(staticBody);
 
