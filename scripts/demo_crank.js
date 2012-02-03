@@ -4,8 +4,8 @@ DemoCrank = function() {
 		space = s;
 		var staticBody = new Body(Body.STATIC);
 		staticBody.addShape(new ShapeBox(0, 10, 1024, 20));
-		staticBody.addShape(new ShapeBox(-502, 250, 20, 500));
-		staticBody.addShape(new ShapeBox(502, 250, 20, 500));
+		staticBody.addShape(new ShapeBox(-502, 270, 20, 500));
+		staticBody.addShape(new ShapeBox(502, 270, 20, 500));
 		staticBody.resetMassData();
 		space.addBody(staticBody);
 
