@@ -429,9 +429,15 @@ App = function() {
 		canvas.width = window.innerWidth;
 		canvas.height = window.innerHeight;
 
+		canvas.style.position = "absolute";
+  		canvas.style.left = "0px";
+  		canvas.style.top = "0px";
+
 		var toolbar = document.getElementById("toolbar");
 		toolbar.style.position = "absolute";
-		toolbar.style.left = (canvas.width - toolbar.clientWidth) + "px";		
+		toolbar.style.left = (canvas.width - toolbar.clientWidth) + "px";
+		toolbar.style.top = "0px";
+		//toolbar.style.height = toolbar.clientHeight + "px";
 
 		canvasBounds.mins = new vec2(-canvas.width * 0.5, 0);
 		canvasBounds.maxs = new vec2(canvas.width * 0.5, canvas.height);

@@ -20,10 +20,7 @@ footer {
 }
 canvas {
   margin: 0px 0px;
-  padding: 0px;
-  position: absolute;
-  left: 0px;
-  top: 0px;
+  padding: 0px;  
 }
 div#content {
   margin: 0px auto; 
@@ -47,12 +44,15 @@ div#toolbar {
   width: 160px;
   color: #FFF;
   background-color: black;
-  position:absolute;
+  position: absolute;
   display: inline-block;
-  filter:alpha(opacity=80);
-  -moz-opacity: 0.8;
-  -khtml-opacity: 0.8;
-  opacity: 0.8;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  filter:alpha(opacity=75);
+  -moz-opacity: 0.75;
+  -khtml-opacity: 0.75;
+  opacity: 0.75;
 }
 div#info {
   margin: 10px auto; 

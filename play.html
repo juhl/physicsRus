@@ -15,10 +15,10 @@
   <div id="screen">
     <canvas id="canvas"></canvas>
     <div id="toolbar">
-    <div class="combo" align="right">
-      <label for="scene">Scene: </label><select id="scene" style="width:116px" onchange="App.onChangedScene(this.selectedIndex);"></select>
+    <div class="combo" style="text-align:right">
+      <label for="scene">Scene: </label><select id="scene" style="width:110 px" onchange="App.onChangedScene(this.selectedIndex);"></select>
     </div>
-    <div align="right">
+    <div style="text-align:right">
       <label for="gravity">Gravity: </label><input type="number" id="gravity" size="8" min="-999" max="999" onchange="App.onChangedGravity(this.value);"/><br/>
       <label for="frameRateHz">Frame rate: </label><input type="number" id="frameRateHz" size="5" min="10" max="120" onchange="App.onChangedFrameRateHz(this.value);"/><br/>
       <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="5" min="1" max="100" onchange="App.onChangedVelocityIterations(this.value);"/><br/>
@@ -32,9 +32,9 @@
       <input type="checkbox" id="showJoints" checked="true" onclick="App.onClickedShowJoints();"/>Show joints<br/>
       <input type="checkbox" id="showStats" onclick="App.onClickedShowStats();"/>Show statistics<br/>
       <input type="checkbox" id="showClearRect" onclick="App.onClickedShowClearRect();"/>Show clear rect<br/>
-      <input type="button" id="restart" value="Restart" style="width:78px" onclick="App.onClickedRestart();"/>
-      <input type="button" id="pause" value="Pause" style="width:78px" onclick="App.onClickedPause();"/><br/>
-      <input type="button" id="step" value="Step" style="width:78px" onclick="App.onClickedStep();"/><br/>
+      <input type="button" id="restart" value="Restart" style="width:73px" onclick="App.onClickedRestart();"/>
+      <input type="button" id="pause" value="Pause" style="width:73px" onclick="App.onClickedPause();"/><br/>
+      <input type="button" id="step" value="Step" style="width:73px" onclick="App.onClickedStep();"/><br/>
     </div>
   </div>
   </div>
