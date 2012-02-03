@@ -1,5 +1,6 @@
 html, body {
-  margin:0px 0px; padding:0px;
+  margin: 0px 0px; 
+  padding: 0px;
   font-family: Verdana, times new roman, NanumGothic, sans-serif;  
   text-align: center;
 }
@@ -17,14 +18,21 @@ footer {
   line-height: 1.5;
   color: #404040;
 }
+canvas {
+  margin: 0px 0px;
+  padding: 0px;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+}
 div#content {
-  margin: 0px auto;
+  margin: 0px auto; 
   padding: 0px;
   text-align: center;
   vertical-align: middle;  
 }
 div#screen {
-  margin: 0px auto;  
+  margin: 0px auto; 
   padding: 0px;
   background-color: white;  
   display: inline-block;
@@ -33,17 +41,21 @@ div#toolbar {
   vertical-align: top;
   text-align: left;
   font-size: 7pt;  
-  margin: 0px auto;
-  padding: 5px;
+  margin: 0px auto; 
+  padding: 4px;
   top: 0px;
   width: 160px;
   color: #FFF;
-  background-color: #444;
+  background-color: black;
   position:absolute;
   display: inline-block;
+  filter:alpha(opacity=80);
+  -moz-opacity: 0.8;
+  -khtml-opacity: 0.8;
+  opacity: 0.8;
 }
 div#info {
-  margin: 10px auto;  
+  margin: 10px auto; 
   padding: 4px;
   font-size: 10pt;  
   width: 960px;
@@ -54,13 +66,13 @@ div#info {
   border-radius: .4em;
 }
 div#comments {
+  margin: 0px auto; 
   padding: 4px;
   width: 960px;
-  margin: 0px auto;
 }
 div#share {
+  margin: 0px auto; 
   padding: 4px;  
-  margin: 0px auto;
   margin-top: 5px;
   width: 960px;
 }
