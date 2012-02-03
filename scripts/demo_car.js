@@ -3,10 +3,10 @@ DemoCar = function() {
 	function init(s) {
 		space = s;
 		var staticBody = new Body(Body.STATIC);
-		staticBody.addShape(new ShapeBox(-400, 250, 10, 500));
-		staticBody.addShape(new ShapeBox(400, 250, 10, 500));
-		staticBody.addShape(new ShapePoly([new vec2(-400, 0), new vec2(-100, 0), new vec2(-100, 50), new vec2(-360, 190), new vec2(-400, 190)]));
-		staticBody.addShape(new ShapePoly([new vec2(100, 0), new vec2(400, 0), new vec2(400, 190), new vec2(360, 190), new vec2(100, 50)]));
+		staticBody.addShape(new ShapeBox(-380, 250, 40, 100));
+		staticBody.addShape(new ShapeBox(380, 250, 40, 100));
+		staticBody.addShape(new ShapePoly([new vec2(-400, 0), new vec2(-100, 0), new vec2(-100, 50), new vec2(-360, 200), new vec2(-400, 200)]));
+		staticBody.addShape(new ShapePoly([new vec2(100, 0), new vec2(400, 0), new vec2(400, 200), new vec2(360, 200), new vec2(100, 50)]));
 		staticBody.resetMassData();
 		space.addBody(staticBody);
 
@@ -41,7 +41,7 @@ DemoCar = function() {
 		space.addJoint(joint);
 
 		// Car body        
-		var body1 = new Body(Body.DYNAMIC, -340, 250);
+		var body1 = new Body(Body.DYNAMIC, -320, 250);
 		var shape = new ShapeBox(0, 10, 75, 20);
 		shape.e = 0.5;
 		shape.u = 1.0;
@@ -56,7 +56,7 @@ DemoCar = function() {
 		space.addBody(body1);
 
 		// Wheel 1        
-		var body2 = new Body(Body.DYNAMIC, -360, 245);
+		var body2 = new Body(Body.DYNAMIC, -340, 245);
 		var shape = new ShapeCircle(0, 0, 14);
 		shape.e = 0.1;
 		shape.u = 0.97;
@@ -65,12 +65,12 @@ DemoCar = function() {
 		body2.resetMassData();
 		space.addBody(body2);
 
-		var joint = new DistanceJoint(body1, body2, new vec2(-360, 270), new vec2(-360, 245));
+		var joint = new DistanceJoint(body1, body2, new vec2(-340, 270), new vec2(-340, 245));
 		joint.setSpringCoeffs(7, 0.7);
 		joint.collideConnected = false;
 		space.addJoint(joint);
 
-		var joint = new LineJoint(body1, body2, new vec2(-360, 270), new vec2(-360, 245));
+		var joint = new LineJoint(body1, body2, new vec2(-340, 270), new vec2(-340, 245));
 		joint.enableMotor(true);
 		joint.setMotorSpeed(deg2rad(-1500));
 		joint.setMaxMotorTorque(1400000);
@@ -78,7 +78,7 @@ DemoCar = function() {
 		space.addJoint(joint);
 
 		// Wheel 2        
-		var body3 = new Body(Body.DYNAMIC, -320, 245);
+		var body3 = new Body(Body.DYNAMIC, -300, 245);
 		var shape = new ShapeCircle(0, 0, 14);
 		shape.e = 0.1;
 		shape.u = 0.97;
@@ -87,12 +87,12 @@ DemoCar = function() {
 		body3.resetMassData();
 		space.addBody(body3);
 
-		var joint = new DistanceJoint(body1, body3, new vec2(-320, 270), new vec2(-320, 245));
+		var joint = new DistanceJoint(body1, body3, new vec2(-300, 270), new vec2(-300, 245));
 		joint.setSpringCoeffs(7, 0.7);
 		joint.collideConnected = false;
 		space.addJoint(joint);
 
-		var joint = new LineJoint(body1, body3, new vec2(-320, 270), new vec2(-320, 245));
+		var joint = new LineJoint(body1, body3, new vec2(-300, 270), new vec2(-300, 245));
 		//joint.enableMotor(true);        
 		//joint.setMotorSpeed(deg2rad(-1200));
 		//joint.setMaxMotorTorque(10000000);

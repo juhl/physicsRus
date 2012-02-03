@@ -3,9 +3,9 @@ DemoRagDoll = function() {
 	function init(s) {
 		space = s;
 		var staticBody = new Body(Body.STATIC);
-		staticBody.addShape(new ShapeBox(0, 0, 790, 10));
-		staticBody.addShape(new ShapeBox(-400, 250, 10, 500));
-		staticBody.addShape(new ShapeBox(400, 250, 10, 500));
+		staticBody.addShape(new ShapeBox(0, 10, 800, 20));
+		staticBody.addShape(new ShapeBox(-410, 250, 20, 500));
+		staticBody.addShape(new ShapeBox(410, 250, 20, 500));
 		staticBody.resetMassData();
 		space.addBody(staticBody);
 

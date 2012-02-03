@@ -6,9 +6,9 @@ App = function() {
 	var ws;
 
 	var mouseDown;
-	var canvasBounds;
-	var clearBounds;
-	var paintBounds;
+	var canvasBounds = new Bounds;
+	var clearBounds = new Bounds;
+	var paintBounds = new Bounds;
 	var randomColor;    
 	var lastTime;
 	var timeOffset;	
@@ -43,16 +43,17 @@ App = function() {
 	var showClearBounds = false;
 
 	function main() {
+		// Horizontal & vertical scrollbar will be hidden
+		document.documentElement.style.overflowX = "hidden";
+		document.documentElement.style.overflowY = "hidden";
+		document.body.scroll = "no"; // ie only
+
 		canvas = document.getElementById("canvas");
 		if (!canvas.getContext) {
 			alert("Couldn't get canvas object !");
 		}
-
-		// Main canvas context
-		ctx = canvas.getContext("2d");
-
-		Renderer.init(ctx);
-
+		
+		window.addEventListener("resize", function(e) { onResize(e) }, false);
 		canvas.addEventListener("mousedown", function(e) { onMouseDown(e) }, false);
 		window.addEventListener("mouseup", function(e) { onMouseUp(e) }, false);
 		window.addEventListener("mousemove", function(e) { onMouseMove(e) }, false);		
@@ -129,13 +130,14 @@ App = function() {
 
 		var editbox = document.getElementById("p_iters");
 		editbox.value = positionIterations;		
+		
+		// Main canvas context
+		ctx = canvas.getContext("2d");
+
+		Renderer.init(ctx);
 
 		// Random color for bodies
 		randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"];
-
-		canvasBounds = new Bounds(new vec2(-canvas.width * 0.5, 0), new vec2(canvas.width * 0.5, canvas.height));
-		clearBounds = new Bounds;
-		paintBounds = new Bounds;
 
 		collision.init();		
 
@@ -145,7 +147,9 @@ App = function() {
 		mouseBody.resetMassData();
 		space.addBody(mouseBody);
 
-		initScene();
+		onResize();
+
+		initScene();		
 
 		window.requestAnimFrame(function() { runFrame(); });
 	}
@@ -259,7 +263,7 @@ App = function() {
 		updateScreen(frameTime);
 	}
 
-	function updateScreen(frameTime) {
+	function updateScreen(frameTime) {	
 		var t0 = Date.now();
 		drawFrame(frameTime);
 		stats.timeDrawFrame = Date.now() - t0;
@@ -409,16 +413,26 @@ App = function() {
 
 		Renderer.drawLine(p1, p2, strokeStyle);
 
-		bounds = new Bounds;
-		bounds.addPoint(p1);
-		bounds.addPoint(p2);
-		clearBounds.addBounds(bounds);
+		if (body1.isAwake() || body2.isAwake()) {
+			bounds = new Bounds;
+			bounds.addPoint(p1);
+			bounds.addPoint(p2);
+			bounds.expand(3, 3);
+			clearBounds.addBounds(bounds);
+		}
 
-		Renderer.drawCircle(p1, 2.5, 0, "#808");
-		clearBounds.addBounds(new Bounds(new vec2(p1.x - 3, p1.y - 3), new vec2(p1.x + 3, p1.y + 3)));
+		Renderer.drawCircle(p1, 2.5, 0, "#808");		
+		Renderer.drawCircle(p2, 2.5, 0, "#808");		
+	}
 
-		Renderer.drawCircle(p2, 2.5, 0, "#808");
-		clearBounds.addBounds(new Bounds(new vec2(p2.x - 3, p2.y - 3), new vec2(p2.x + 3, p2.y + 3)));
+	function onResize(e) {
+		canvas.width = window.innerWidth - document.getElementById("toolbar").clientWidth;
+		canvas.height = window.innerHeight;
+
+		canvasBounds.mins = new vec2(-canvas.width * 0.5, 0);
+		canvasBounds.maxs = new vec2(canvas.width * 0.5, canvas.height);
+
+		clearBounds.copy(canvasBounds);
 	}
 
 	function getMousePoint(e) {
@@ -441,13 +455,15 @@ App = function() {
 
 		if (!editMode) {
 			var shape = space.findShapeByPoint(p);
-			var body = shape.body;
+			if (shape) {
+				var body = shape.body;
 
-			if (shape && !body.isStatic()) {
-				mouseBody.p.copy(p);
-				mouseJoint = new MouseJoint(mouseBody, body, p);
-				mouseJoint.maxForce = body.m * 10000;
-				space.addJoint(mouseJoint);
+				if (!body.isStatic()) {
+					mouseBody.p.copy(p);
+					mouseJoint = new MouseJoint(mouseBody, body, p);
+					mouseJoint.maxForce = body.m * 10000;
+					space.addJoint(mouseJoint);
+				}
 			}
 		}
 		else {

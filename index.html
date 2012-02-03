@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta property="fb:app_id" content="240528552691710"/>
   <title>RigidDyn2D</title>
+  <!--<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon"/>-->
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -14,31 +15,7 @@
   </header>
 
   <div id="content">
-    <div id="screen">
-      <canvas width="800" height="480" id="canvas"></canvas>
-    </div><div id="toolbar">
-      <div class="combo" align="right">
-        <label for="scene">Scene: </label><select id="scene" style="width:100px" onchange="App.onChangedScene(this.selectedIndex);"></select>
-      </div>
-      <div align="right">
-        <label for="gravity">Gravity: </label><input type="number" id="gravity" size="8" min="-999" max="999" onchange="App.onChangedGravity(this.value);"/><br/>
-        <label for="frameRateHz">Frame rate: </label><input type="number" id="frameRateHz" size="5" min="10" max="120" onchange="App.onChangedFrameRateHz(this.value);"/><br/>
-        <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="5" min="1" max="100" onchange="App.onChangedVelocityIterations(this.value);"/><br/>
-        <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" onchange="App.onChangedPositionIterations(this.value);"/><br/>        
-      </div>
-      <div>
-        <input type="checkbox" id="warmStarting" checked="true" onclick="App.onClickedWarmStarting();"/>Warm starting<br/>
-        <input type="checkbox" id="allowSleep" checked="true" onclick="App.onClickedAllowSleep();"/>Allow sleep<br/>
-        <input type="checkbox" id="showBounds" onclick="App.onClickedShowBounds();"/>Show bounding boxes<br/>
-        <input type="checkbox" id="showContacts" onclick="App.onClickedShowContacts();"/>Show contacts<br/>
-        <input type="checkbox" id="showJoints" checked="true" onclick="App.onClickedShowJoints();"/>Show joints<br/>
-        <input type="checkbox" id="showStats" onclick="App.onClickedShowStats();"/>Show statistics<br/>
-        <input type="checkbox" id="showClearRect" onclick="App.onClickedShowClearRect();"/>Show clear rect<br/>
-        <input type="button" id="restart" value="Restart" style="width:73px" onclick="App.onClickedRestart();"/>
-        <input type="button" id="pause" value="Pause" style="width:73px" onclick="App.onClickedPause();"/><br/>
-        <input type="button" id="step" value="Step" style="width:73px" onclick="App.onClickedStep();"/><br/>
-      </div>
-    </div>
+    <a href="play.html">Play</a>
   </div>
 
   <div id="info">
@@ -74,38 +51,5 @@
       fjs.parentNode.insertBefore(js, fjs);
     }(document, 'script', 'facebook-jssdk'));
   </script>
-
-  <script src="scripts/math.js"></script>
-  <script src="scripts/util.js"></script>
-  <script src="scripts/json2.js"></script>
-  <script src="scripts/collision.js"></script>
-  <script src="scripts/body.js"></script>
-  <script src="scripts/joint.js"></script>
-  <script src="scripts/joint_angle.js"></script>
-  <script src="scripts/joint_distance.js"></script>
-  <script src="scripts/joint_revolute.js"></script>
-  <script src="scripts/joint_weld.js"></script>
-  <script src="scripts/joint_line.js"></script>
-  <script src="scripts/joint_prismatic.js"></script>
-  <script src="scripts/joint_mouse.js"></script>
-  <script src="scripts/shape.js"></script>
-  <script src="scripts/shape_circle.js"></script>
-  <script src="scripts/shape_segment.js"></script>
-  <script src="scripts/shape_poly.js"></script>
-  <script src="scripts/contact.js"></script>
-  <script src="scripts/contactsolver.js"></script>  
-  <script src="scripts/space.js"></script>  
-  <script src="scripts/demo_car.js"></script>
-  <script src="scripts/demo_ragdoll.js"></script>
-  <script src="scripts/demo_seesaw.js"></script>
-  <script src="scripts/demo_pyramid.js"></script>
-  <script src="scripts/demo_crank.js"></script>
-  <script src="scripts/demo_rope.js"></script>
-  <script src="scripts/demo_web.js"></script>
-  <script src="scripts/demo_bounce.js"></script>
-  <script src="scripts/demo_sandbox.js"></script>
-  <script src="scripts/renderer.js"></script>
-  <script src="scripts/app.js"></script>
-  <script>App.main();</script>
 </body>
 </html>

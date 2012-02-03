@@ -3,7 +3,7 @@ DemoRope = function() {
 	function init(s) {
 		space = s;
 		var staticBody = new Body(Body.STATIC);
-		staticBody.addShape(new ShapeBox(0, 0, 790, 10));
+		staticBody.addShape(new ShapeBox(0, 10, 800, 20));
 		staticBody.resetMassData();
 		space.addBody(staticBody);
 
