@@ -3,12 +3,16 @@
 <head>
   <meta name="Author" content="Ju-Hyung Lee, jufoot@gmail.com">
   <meta charset="UTF-8">  
-  <meta name="viewport" content="width=device-width, minimum-scale=0.9375, maximum-scale=1.0, user-scalable=0">
+  <meta name="viewport" content="maximum-scale=1.0, user-scalable=0">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style">
-  <title>RigidDyn2D</title>
-  <!--<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon"/>-->
+  <meta name="apple-mobile-web-app-status-bar-style">  
+  <!--<link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon"/>-->
+  <link rel="apple-touch-icon-precomposed" href="img/apple-touch-icon-precomposed.png"> 
+  <link rel="apple-touch-startup-image" href="img/startup-ipad-landscape.png" media="screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:landscape)">
+  <link rel="apple-touch-startup-image" href="img/startup-ipad-portrait.png" media="screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:portrait)">
+  <link rel="apple-touch-startup-image" href="img/startup.png" media="screen and (max-device-width: 320px)">
   <link rel="stylesheet" href="style.css">
+  <title>RigidDyn2D</title>
 </head>
 
 <body>
@@ -67,7 +71,8 @@
   <script src="scripts/demo_rope.js"></script>
   <script src="scripts/demo_web.js"></script>
   <script src="scripts/demo_bounce.js"></script>
-  <script src="scripts/renderer.js"></script>
+  <script src="scripts/renderer_canvas.js"></script>
+  <script src="scripts/renderer_webgl.js"></script>
   <script src="scripts/app.js"></script>
   <script>App.main();</script>
 </body>

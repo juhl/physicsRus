@@ -8,12 +8,12 @@ DemoRope = function() {
 		space.addBody(staticBody);
 
 		var body_prev;
-		for (var i = 0; i < 24; i++) {            
+		for (var i = 0; i < 22; i++) {            
 			var body = new Body(Body.DYNAMIC, 8 + i * 16, 320);
 			var shape = new ShapeBox(0, 0, 20, 4);
 			shape.e = 0.0;
 			shape.u = 0.5;
-			shape.density = 0.1;
+			shape.density = 0.01;
 			body.addShape(shape);
 			body.resetMassData();
 			space.addBody(body);

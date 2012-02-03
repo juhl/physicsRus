@@ -1,8 +1,12 @@
 Renderer = function() {
 	var ctx;
 
-	function init(canvas_context) {
-		ctx = canvas_context;
+	function init(canvas) {
+		if (!canvas.getContext) {
+            console.log("Your browser doesn't support canvas.");
+        }
+
+		ctx = canvas.getContext("2d");
 	}
 
 	function clearRect(x, y, width, height) {

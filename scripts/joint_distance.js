@@ -81,7 +81,7 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 		this.u = vec2.scale(d, 1 / dist);
 	}
 	else {
-		this.u.set(0, 0);
+		this.u = vec2.zero;
 	}
 	
 	// s1, s2

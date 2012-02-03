@@ -130,11 +130,11 @@ App = function() {
 
 		var editbox = document.getElementById("p_iters");
 		editbox.value = positionIterations;		
+
+		Renderer.init(canvas);
 		
 		// Main canvas context
-		ctx = canvas.getContext("2d");
-
-		Renderer.init(ctx);
+		ctx = canvas.getContext("2d");		
 
 		// Random color for bodies
 		randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"];

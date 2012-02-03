@@ -21,6 +21,7 @@ footer {
 canvas {
   margin: 0px 0px;
   padding: 0px;  
+  background-color: #eee;
 }
 div#content {
   margin: 0px auto; 
@@ -31,7 +32,7 @@ div#content {
 div#screen {
   margin: 0px auto; 
   padding: 0px;
-  background-color: white;  
+  background-color: #eee;  
   display: inline-block;
 }
 div#toolbar {
