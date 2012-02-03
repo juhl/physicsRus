@@ -3,7 +3,7 @@
 <head>
   <meta name="Author" content="Ju-Hyung Lee, jufoot@gmail.com">
   <meta charset="UTF-8">
-  <meta property="fb:app_id" content="240528552691710" />
+  <meta property="fb:app_id" content="240528552691710"/>
   <title>RigidDyn2D</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -21,28 +21,28 @@
         <label for="scene">Scene: </label><select id="scene" style="width:100px" onchange="App.onChangedScene(this.selectedIndex);"></select>
       </div>
       <div align="right">
-        <label for="gravity">Gravity: </label><input type="number" id="gravity" size="8" min="-999" max="999" onchange="App.onChangedGravity(this.value);" /><br />
-        <label for="frameRateHz">Frame rate: </label><input type="number" id="frameRateHz" size="5" min="10" max="120" onchange="App.onChangedFrameRateHz(this.value);" /><br />
-        <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="5" min="1" max="100" onchange="App.onChangedVelocityIterations(this.value);" /><br />
-        <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" onchange="App.onChangedPositionIterations(this.value);" /><br />        
+        <label for="gravity">Gravity: </label><input type="number" id="gravity" size="8" min="-999" max="999" onchange="App.onChangedGravity(this.value);"/><br/>
+        <label for="frameRateHz">Frame rate: </label><input type="number" id="frameRateHz" size="5" min="10" max="120" onchange="App.onChangedFrameRateHz(this.value);"/><br/>
+        <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="5" min="1" max="100" onchange="App.onChangedVelocityIterations(this.value);"/><br/>
+        <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" onchange="App.onChangedPositionIterations(this.value);"/><br/>        
       </div>
       <div>
-        <input type="checkbox" id="warmStarting" checked="true" onclick="App.onClickedWarmStarting();" />Warm starting<br />
-        <input type="checkbox" id="allowSleep" checked="true" onclick="App.onClickedAllowSleep();" />Allow sleep<br />
-        <input type="checkbox" id="showBounds" onclick="App.onClickedShowBounds();" />Show bounding boxes<br />
-        <input type="checkbox" id="showContacts" onclick="App.onClickedShowContacts();" />Show contacts<br />
-        <input type="checkbox" id="showJoints" checked="true" onclick="App.onClickedShowJoints();" />Show joints<br />
-        <input type="checkbox" id="showStats" onclick="App.onClickedShowStats();" />Show statistics<br />
-        <input type="checkbox" id="showClearRect" onclick="App.onClickedShowClearRect();" />Show clear rect<br />
-        <input type="button" id="restart" value="Restart" style="width:73px" onclick="App.onClickedRestart();" />
-        <input type="button" id="pause" value="Pause" style="width:73px" onclick="App.onClickedPause();" /><br />
-        <input type="button" id="step" value="Step" style="width:73px" onclick="App.onClickedStep();" /><br />
+        <input type="checkbox" id="warmStarting" checked="true" onclick="App.onClickedWarmStarting();"/>Warm starting<br/>
+        <input type="checkbox" id="allowSleep" checked="true" onclick="App.onClickedAllowSleep();"/>Allow sleep<br/>
+        <input type="checkbox" id="showBounds" onclick="App.onClickedShowBounds();"/>Show bounding boxes<br/>
+        <input type="checkbox" id="showContacts" onclick="App.onClickedShowContacts();"/>Show contacts<br/>
+        <input type="checkbox" id="showJoints" checked="true" onclick="App.onClickedShowJoints();"/>Show joints<br/>
+        <input type="checkbox" id="showStats" onclick="App.onClickedShowStats();"/>Show statistics<br/>
+        <input type="checkbox" id="showClearRect" onclick="App.onClickedShowClearRect();"/>Show clear rect<br/>
+        <input type="button" id="restart" value="Restart" style="width:73px" onclick="App.onClickedRestart();"/>
+        <input type="button" id="pause" value="Pause" style="width:73px" onclick="App.onClickedPause();"/><br/>
+        <input type="button" id="step" value="Step" style="width:73px" onclick="App.onClickedStep();"/><br/>
       </div>
     </div>
   </div>
 
   <div id="info">
-    <b>RigidDyn2D</b> is lightweight 2D physics engine written in Javascript. You can download source code from <a href="http://github.com/juhl/rigid-dyn2d/">github</a>.<br />      
+    <b>RigidDyn2D</b> is lightweight 2D physics engine written in Javascript. You can download source code from <a href="http://github.com/juhl/rigid-dyn2d/">github</a>.<br/>      
   </div>
 
   <div id="share">

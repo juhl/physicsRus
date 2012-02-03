@@ -43,49 +43,11 @@ App = function() {
 	var showClearBounds = false;
 
 	function main() {
-		// Add scenes from demos
-		var combobox = document.getElementById("scene");
-		for (var i = 0; i < demoArr.length; i++) {
-			var option = document.createElement("option");
-			var name = demoArr[i].name();
-			option.text = name;
-			option.value = name;
-			combobox.add(option);
-			sceneNameArr.push(name);
-		}		
-
-		// Add scenes from server files
-		httpGetText("http://peppercode.net/rigid-dyn2d/cgi-bin/scene.rb?action=list", false, function(text) { 
-			text.replace(/\s*(.+?\.json)/g, function($0, filename) {
-				var option = document.createElement("option");
-				option.text = filename;
-				option.value = filename;
-				combobox.add(option);
-				sceneNameArr.push(filename);
-			});
-		});
-
-		// Select scene
-		sceneIndex = 0;
-		combobox.selectedIndex = sceneIndex;
-
-		var editbox = document.getElementById("gravity");
-		editbox.value = gravity.y;
-
-		var editbox = document.getElementById("frameRateHz");
-		editbox.value = frameRateHz;
-
-		var editbox = document.getElementById("v_iters");
-		editbox.value = velocityIterations;
-
-		var editbox = document.getElementById("p_iters");
-		editbox.value = positionIterations;
-
 		canvas = document.getElementById("canvas");
 		if (!canvas.getContext) {
 			alert("Couldn't get canvas object !");
 		}
-			
+
 		// Main canvas context
 		ctx = canvas.getContext("2d");
 
@@ -129,6 +91,44 @@ App = function() {
 			window.msRequestAnimationFrame || 
 			function(callback, element) { window.setTimeout(callback, 1000 / 60); };
 		})();
+
+		// Add scenes from demos
+		var combobox = document.getElementById("scene");
+		for (var i = 0; i < demoArr.length; i++) {
+			var option = document.createElement("option");
+			var name = demoArr[i].name();
+			option.text = name;
+			option.value = name;
+			combobox.add(option);
+			sceneNameArr.push(name);
+		}		
+
+		// Add scenes from server files
+		httpGetText("http://peppercode.net/rigid-dyn2d/cgi-bin/scene.rb?action=list", false, function(text) { 
+			text.replace(/\s*(.+?\.json)/g, function($0, filename) {
+				var option = document.createElement("option");
+				option.text = filename;
+				option.value = filename;
+				combobox.add(option);
+				sceneNameArr.push(filename);
+			});
+		});
+
+		// Select scene
+		sceneIndex = 0;
+		combobox.selectedIndex = sceneIndex;
+
+		var editbox = document.getElementById("gravity");
+		editbox.value = gravity.y;
+
+		var editbox = document.getElementById("frameRateHz");
+		editbox.value = frameRateHz;
+
+		var editbox = document.getElementById("v_iters");
+		editbox.value = velocityIterations;
+
+		var editbox = document.getElementById("p_iters");
+		editbox.value = positionIterations;		
 
 		// Random color for bodies
 		randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"];
@@ -231,9 +231,9 @@ App = function() {
 		var frameTime = (time - lastTime) / 1000;
 		lastTime = time;
 
-		var h = 1 / frameRateHz;
-
 		if (!pause || step && !editMode) {
+			var h = 1 / frameRateHz;
+
 			timeOffset += frameTime;
 
 			if (step) {
@@ -460,7 +460,7 @@ App = function() {
 		e.preventDefault();        
 	}
 
-	function onMouseUp(e) { 
+	function onMouseUp(e) {
 		if (mouseDown) {
 			mouseDown = false;
 
@@ -468,18 +468,20 @@ App = function() {
 				space.removeJoint(mouseJoint);
 				mouseJoint = null;
 			}
+			
+			e.preventDefault();
 		}
-
-		e.preventDefault();
 	}
 
 	function onMouseMove(e) {
-		var point = getMousePoint(e);
-		if (mouseJoint) {
-			mouseBody.p.set(point.x - canvas.width * 0.5, canvas.height - point.y);
-		}
+		if (mouseDown) {
+			if (mouseJoint) {
+				var point = getMousePoint(e);
+				mouseBody.p.set(point.x - canvas.width * 0.5, canvas.height - point.y);				
+			}
 
-		e.preventDefault();
+			e.preventDefault();
+		}		
 	}
 
 	function onMouseLeave(e) {
@@ -490,26 +492,23 @@ App = function() {
 				space.removeJoint(mouseJoint);
 				mouseJoint = null;
 			}
-		}
 
-		e.preventDefault();
-	}
-
-	function onMouseWheel(e) {        
-		e = e || window.event;
-		var delta = e.detail ? e.detail * -120 : e.wheelDelta;
-
-		// FIXME !!
-		screenZoomScale += delta * 0.01;
-		screenZoomScale = Math.clamp(screenZoomScale, 0.5, 2.0);
-
-		clearBounds.copy(canvasBounds);
-
-		if (e.preventDefault) {
 			e.preventDefault();
 		}
-		else {
-			return false;
+	}
+
+	function onMouseWheel(e) {
+		var point = getMousePoint(e);
+		if (point.x < 0 || point.x >= canvas.width || point.y < 0 || point.y >= canvas.height) {
+			var delta = e.detail ? e.detail * -120 : e.wheelDelta;
+
+			// FIXME !!
+			screenZoomScale += delta * 0.01;
+			screenZoomScale = Math.clamp(screenZoomScale, 0.5, 2.0);
+
+			clearBounds.copy(canvasBounds);
+
+			e.preventDefault();
 		}
 	}
 
@@ -527,7 +526,7 @@ App = function() {
 
 		//initMouseEvent(type, canBubble, cancelable, view, clickCount, 
 		//           screenX, screenY, clientX, clientY, ctrlKey, 
-		//           altKey, shiftKey, metaKey, button, relatedTarget);   
+		//           altKey, shiftKey, metaKey, button, relatedTarget); 
 		var simulatedEvent = document.createEvent("MouseEvent");
 		simulatedEvent.initMouseEvent(type, true, true, window, 1, 
 			first.screenX, first.screenY, 
