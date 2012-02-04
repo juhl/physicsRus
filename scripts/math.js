@@ -32,6 +32,10 @@ vec2.prototype.duplicate = function() {
 	return new vec2(this.x, this.y);
 }
 
+vec2.prototype.equal = function(v) {
+	return this.x != v.x || this.y != v.y ? false : true;
+}
+
 vec2.prototype.add = function(v1, v2) {
 	this.x = v1.x + v2.x;
 	this.y = v1.y + v2.y;
@@ -237,6 +241,10 @@ vec3.prototype.copy = function(v) {
 
 vec3.prototype.duplicate = function() {
 	return new vec3(this.x, this.y, this.z);
+}
+
+vec3.prototype.equal = function(v) {
+	return this.x != v.x || this.y != v.y || this.z != v.z ? false : true;
 }
 
 vec3.prototype.add = function(v1, v2) {
@@ -607,8 +615,8 @@ Transform.prototype.transform = function(v) {
 //-----------------------------------
 
 Bounds = function(mins, maxs) {
-	this.mins = mins ? new vec2(mins.x, mins.y) : new vec2(+999999999, +999999999);
-	this.maxs = maxs ? new vec2(maxs.x, maxs.y) : new vec2(-999999999, -999999999);
+	this.mins = mins ? new vec2(mins.x, mins.y) : new vec2(999999, 999999);
+	this.maxs = maxs ? new vec2(maxs.x, maxs.y) : new vec2(-999999, -999999);
 }
 
 Bounds.prototype.copy = function(b) {
@@ -619,8 +627,8 @@ Bounds.prototype.copy = function(b) {
 }
 
 Bounds.prototype.clear = function() {
-	this.mins.set(+999999999, +999999999);
-	this.maxs.set(-999999999, -999999999);
+	this.mins.set(999999, 999999);
+	this.maxs.set(-999999, -999999);
 
 	return this;
 }

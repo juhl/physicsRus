@@ -450,7 +450,7 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration, warmStarting, 
 
 	// Process sleeping
 	if (allowSleep) {
-		var minSleepTime = 999999999;
+		var minSleepTime = 999999;
 
 		var linTolSqr = Space.SLEEP_LINEAR_TOLERANCE * Space.SLEEP_LINEAR_TOLERANCE;
 		var angTolSqr = Space.SLEEP_ANGULAR_TOLERANCE * Space.SLEEP_ANGULAR_TOLERANCE;

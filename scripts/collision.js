@@ -69,7 +69,7 @@ var collision = {};
 	}
 
 	function circle2Poly(circ, poly, contactArr) {
-		var minDist = -999999999;
+		var minDist = -999999;
 		var minIdx = -1;
 
 		for (var i = 0; i < poly.verts.length; i++) {
@@ -195,7 +195,7 @@ var collision = {};
 			return 0;
 		}
 
-		var poly_d = -999999999;
+		var poly_d = -999999;
 		var poly_i = -1;
 
 		for (var i = 0; i < poly.verts.length; i++) {
@@ -259,7 +259,7 @@ var collision = {};
 	// Find the minimum separating axis for the given poly and plane list.
 	function findMSA(poly, planes, num)
 	{
-		var min_dist = -999999999;
+		var min_dist = -999999;
 		var min_index  = -1;
 
 		for (var i = 0; i < num; i++) {

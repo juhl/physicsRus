@@ -14,22 +14,21 @@ Renderer = function() {
 	}
 
 	function drawLine(p1, p2, strokeStyle) {
-		ctx.strokeStyle = strokeStyle;
 		ctx.beginPath();
-
+		
 		ctx.moveTo(p1.x, p1.y);
 		ctx.lineTo(p2.x, p2.y);
 
-		ctx.save();
+		ctx.closePath();
+		
+		ctx.strokeStyle = strokeStyle;
 		ctx.stroke();
-		ctx.restore();
 	}
 
 	function drawArrow(p1, p2, strokeStyle) {
 		var angle = vec2.toAngle(vec2.sub(p2, p1)) - Math.PI;
 
-		ctx.strokeStyle = strokeStyle;
-		ctx.beginPath();
+		ctx.beginPath();		
 
 		ctx.moveTo(p1.x, p1.y);
 		ctx.lineTo(p2.x, p2.y);
@@ -44,9 +43,12 @@ Renderer = function() {
 		ctx.rotate(Math.PI * 0.3);
 		ctx.lineTo(6, 0);
 
-		ctx.lineJoint = "miter";
-		ctx.stroke();
 		ctx.restore();
+
+		ctx.closePath();
+		ctx.lineJoint = "miter";
+		ctx.strokeStyle = strokeStyle;
+		ctx.stroke();		
 	}    
 
 	function drawBox(mins, maxs, fillStyle, strokeStyle) {
@@ -58,9 +60,10 @@ Renderer = function() {
 			ctx.fill();
 		}
 
-		if (strokeStyle) {            
+		if (strokeStyle) {
+			ctx.closePath();
 			ctx.strokeStyle = strokeStyle;
-			ctx.stroke();
+			ctx.stroke();			
 		}
 	}
 
@@ -74,11 +77,12 @@ Renderer = function() {
 		}
 
 		if (strokeStyle) {
-			ctx.strokeStyle = strokeStyle;
 			ctx.moveTo(center.x, center.y);
 			var rt = vec2.add(center, vec2.scale(vec2.rotation(angle), radius));
 			ctx.lineTo(rt.x, rt.y);
-			ctx.stroke();
+			ctx.closePath();
+			ctx.strokeStyle = strokeStyle;
+			ctx.stroke();			
 		}
 	}
 
@@ -98,7 +102,7 @@ Renderer = function() {
 
 		ds = vec2.scale(dn, radius);
 		var ap = vec2.add(a, ds);
-		ctx.lineTo(ap.x, ap.y);
+		ctx.lineTo(ap.x, ap.y);		
 
 		if (fillStyle) {
 			ctx.fillStyle = fillStyle;
@@ -106,8 +110,9 @@ Renderer = function() {
 		}
 
 		if (strokeStyle) {
+			ctx.closePath();
 			ctx.strokeStyle = strokeStyle;
-			ctx.stroke();
+			ctx.stroke();			
 		}
 	}
 
@@ -120,7 +125,7 @@ Renderer = function() {
 		}
 
 		ctx.lineTo(verts[verts.length - 1].x, verts[verts.length - 1].y);
-		ctx.closePath();
+		ctx.closePath();		
 
 		if (fillStyle) {
 			ctx.fillStyle = fillStyle;
@@ -129,7 +134,7 @@ Renderer = function() {
 
 		if (strokeStyle) {
 			ctx.strokeStyle = strokeStyle;
-			ctx.stroke();
+			ctx.stroke();			
 		}
 	}
 

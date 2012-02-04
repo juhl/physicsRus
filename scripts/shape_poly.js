@@ -59,24 +59,24 @@ ShapePoly.prototype.inertia = function(mass) {
 	return inertiaForPoly(mass, this.verts, vec2.zero);
 }
 
-ShapePoly.prototype.cacheData = function(pos, centroid, angle) {
-	for (var i = 0; i < this.verts.length; i++) {
+ShapePoly.prototype.cacheData = function(pos, centroid, angle) {	
+	var numVerts = this.verts.length;
+	for (var i = 0; i < numVerts; i++) {
 		this.tverts[i] = vec2.add(pos, vec2.rotate(vec2.sub(this.verts[i], centroid), angle));
 	}
 
-	for (var i = 0; i < this.verts.length; i++) {
+	this.bounds.clear();
+
+	for (var i = 0; i < numVerts; i++) {
 		var a = this.tverts[i];
-		var b = this.tverts[(i + 1) % this.verts.length];
+		var b = this.tverts[(i + 1) % numVerts];
 
 		var n = vec2.normalize(vec2.perp(vec2.sub(a, b)));
 		
 		this.tplanes[i].n = n;
 		this.tplanes[i].d = vec2.dot(n, a);
-	}
 
-	this.bounds.clear();
-	for (var i = 0; i < this.verts.length; i++) {
-		this.bounds.addPoint(this.tverts[i]);
+		this.bounds.addPoint(a);
 	}
 }
 
@@ -89,7 +89,7 @@ ShapePoly.prototype.pointQuery = function(p) {
 }
 
 ShapePoly.prototype.distanceOnPlane = function(n, d) {
-	var min = 999999999;
+	var min = 999999;
 	for (var i = 0; i < this.verts.length; i++) {
 		min = Math.min(min, vec2.dot(n, this.tverts[i]));
 	}

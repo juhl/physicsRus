@@ -189,8 +189,6 @@ RendererWebGL = function() {
 	}
 
 	function drawCircle(center, radius, angle, fillStyle, strokeStyle) {
-		ctx.beginPath();
-
 		ctx.arc(center.x, center.y, radius, 0, Math.PI*2, true);
 		if (fillStyle) {
 			ctx.fillStyle = fillStyle;
@@ -207,8 +205,6 @@ RendererWebGL = function() {
 	}
 
 	function drawSegment(a, b, radius, fillStyle, strokeStyle) {
-		ctx.beginPath();
-
 		var dn = vec2.normalize(vec2.perp(vec2.sub(b, a)));
 		var start_angle = dn.toAngle(); 
 		ctx.arc(a.x, a.y, radius, start_angle, start_angle + Math.PI, false);
@@ -235,8 +231,7 @@ RendererWebGL = function() {
 		}
 	}
 
-	function drawPolygon(verts, fillStyle, strokeStyle) {
-		ctx.beginPath();
+	function drawPolygon(verts, fillStyle, strokeStyle) {		
 		ctx.moveTo(verts[0].x, verts[0].y);
 
 		for (var i = 0; i < verts.length; i++) {
@@ -244,7 +239,6 @@ RendererWebGL = function() {
 		}
 
 		ctx.lineTo(verts[verts.length - 1].x, verts[verts.length - 1].y);
-		ctx.closePath();
 
 		if (fillStyle) {
 			ctx.fillStyle = fillStyle;

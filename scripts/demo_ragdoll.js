@@ -21,7 +21,7 @@ DemoRagDoll = function() {
 
 		// Spine1        
 		var bodySpine1 = new Body(Body.DYNAMIC, 0, 320);
-		var shape = new ShapeBox(0, 0, 70, 15);
+		var shape = new ShapeBox(0, 0, 70, 20);
 		shape.e = 0.4;
 		shape.u = 1.0;
 		shape.density = 0.6;
@@ -31,7 +31,7 @@ DemoRagDoll = function() {
 
 		// Spine2        
 		var bodySpine2 = new Body(Body.DYNAMIC, 0, 290);
-		var shape = new ShapeBox(0, 0, 65, 15);
+		var shape = new ShapeBox(0, 0, 65, 25);
 		shape.e = 0.4;
 		shape.u = 1.0;
 		shape.density = 0.6;
@@ -41,7 +41,7 @@ DemoRagDoll = function() {
 
 		// Spine3       
 		var bodySpine3 = new Body(Body.DYNAMIC, 0, 260);
-		var shape = new ShapeBox(0, 0, 60, 15);
+		var shape = new ShapeBox(0, 0, 60, 25);
 		shape.e = 0.4;
 		shape.u = 1.0;
 		shape.density = 0.6;
@@ -208,7 +208,7 @@ DemoRagDoll = function() {
 		joint.setLimits(deg2rad(-160), deg2rad(30));
 		space.addJoint(joint);
 
-		bodyHead.applyLinearImpulse(new vec2(1300000, 0), vec2.zero);
+		bodyHead.applyLinearImpulse(new vec2(2100000, 0), vec2.zero);
 	}
 
 	function runFrame() {
