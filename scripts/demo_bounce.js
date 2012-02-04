@@ -5,8 +5,9 @@ DemoBounce = function() {
 		space = s;
 		var staticBody = new Body(Body.STATIC);
 		staticBody.addShape(new ShapeBox(0, 10, 1024, 20));
-		staticBody.addShape(new ShapeBox(-502, 270, 20, 500));
-		staticBody.addShape(new ShapeBox(502, 270, 20, 500));
+		staticBody.addShape(new ShapeBox(0, 758, 1024, 20));
+		staticBody.addShape(new ShapeBox(-502, 384, 20, 728));
+		staticBody.addShape(new ShapeBox(502, 384, 20, 728));
 		staticBody.resetMassData();
 		space.addBody(staticBody);
 

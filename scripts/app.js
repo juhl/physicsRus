@@ -45,6 +45,15 @@ App = function() {
 		document.documentElement.style.overflowX = "hidden";
 		document.documentElement.style.overflowY = "hidden";
 		document.body.scroll = "no"; // ie only
+		
+		(function (n) { 			
+			if (n.tagName && (n.tagName.toLowerCase() === "input" || n.tagName.toLowerCase() === "select")) {			
+				n.onblur = function() { window.scrollTo(0, 0); };						
+			}
+			for (var i in n.childNodes) {
+				arguments.callee(n.childNodes[i]);
+			}
+		}) (document.getElementById("toolbar"));
 
 		canvas = document.getElementById("canvas");
 		if (!canvas.getContext) {
@@ -399,6 +408,8 @@ App = function() {
 	}
 
 	function onResize(e) {
+		window.scrollTo(0, 0);
+
 		canvas.width = window.innerWidth;
 		canvas.height = window.innerHeight;
 
@@ -409,8 +420,7 @@ App = function() {
 		var toolbar = document.getElementById("toolbar");
 		toolbar.style.position = "absolute";
 		toolbar.style.left = (canvas.width - toolbar.clientWidth) + "px";
-		toolbar.style.top = "0px";
-		toolbar.style.height = toolbar.clientHeight + "px";
+		toolbar.style.top = "0px";		
 
 		canvasBounds.mins = new vec2(-canvas.width * 0.5, 0);
 		canvasBounds.maxs = new vec2(canvas.width * 0.5, canvas.height);
