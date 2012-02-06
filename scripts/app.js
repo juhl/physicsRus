@@ -6,8 +6,9 @@ App = function() {
 	
 	var lastTime;
 	var timeOffset;
-	var view = { origin: new vec2(0, 0), scale: 1 };
+	var view = { origin: new vec2(0, 0), scale: 1, minScale: 0.75, maxScale: 3.0 };
 	var mouseDown = false;
+	var startMoving = false;
 	var mousePositionOld;
 
 	var editMode = false;
@@ -60,14 +61,14 @@ App = function() {
 		window.addEventListener("mouseleave", onMouseLeave, false);
 		canvas.addEventListener("mousewheel", onMouseWheel, false);
 
-		canvas.addEventListener("touchstart", touchHandler, false);
-		canvas.addEventListener("touchend", touchHandler, false);
-		canvas.addEventListener("touchmove", touchHandler, false);
-		canvas.addEventListener("touchcancel", touchHandler, false);
+		canvas.addEventListener("touchstart", onTouchStart, false);
+		canvas.addEventListener("touchend", onTouchEnd, false);
+		canvas.addEventListener("touchmove", onTouchMove, false);
+		//canvas.addEventListener("touchcancel", onTouchCancel, false);
 
 		canvas.addEventListener("gesturestart", onGestureStart, false);
 		canvas.addEventListener("gestureend", onGestureEnd, false);
-		canvas.addEventListener("gesturechange", onGestureEnd, false);
+		canvas.addEventListener("gesturechange", onGestureChange, false);
 		window.addEventListener("orientationchange", onResize, false);
 
 		// Prevent elastic scrolling on iOS
@@ -278,7 +279,6 @@ App = function() {
 		drawFrame(frameTime);
 		stats.timeDrawFrame = Date.now() - t0;
 
-		// Draw statistics
 		if (showStats) {
 			cc.setTransform(1, 0, 0, 1, 0, 0);
 			cc.font = "9pt menlo";
@@ -329,7 +329,7 @@ App = function() {
 		for (var i = 0; i < body.shapeArr.length; i++) {
 			var shape = body.shapeArr[i];
 
-			// Expand for outline
+			// Expand for outline width
 			var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
 			bounds.expand(2, 2);
 
@@ -338,7 +338,6 @@ App = function() {
 	}
 
 	function drawBodyShape(body, shape, fillColor, outlineColor) {
-		// Draw body shape
 		switch (shape.type) {
 		case Shape.TYPE_CIRCLE:
 			Renderer.drawCircle(shape.tc, shape.r, body.a, fillColor, outlineColor);
@@ -351,9 +350,8 @@ App = function() {
 			break;
 		}
 
-		// Draw bounds
 		if (showBounds) {
-			// expand for outline
+			// Expand for outline width
 			var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
 			bounds.expand(1, 1);
 
@@ -405,6 +403,13 @@ App = function() {
 		};
 	}
 
+	function getTouchPosition(touch) {
+		return {
+			x: document.body.scrollLeft + touch.pageX - canvas.offsetLeft, 
+			y: document.body.scrollTop + touch.pageY - canvas.offsetTop 
+		};
+	}
+
 	function canvasToWorld(p) {
 		return {
 			x: (p.x - canvas.width * 0.5 - view.origin.x) / view.scale, 
@@ -413,15 +418,15 @@ App = function() {
 	}
 
 	function onMouseDown(e) {
-		mouseDown = true;
-		mousePositionOld = getMousePosition(e);
+		mouseDown = true;		
 
 		if (mouseJoint) {
 			space.removeJoint(mouseJoint);
 			mouseJoint = null;
 		}
 
-		var p = canvasToWorld(mousePositionOld);
+		var pos = getMousePosition(e);
+		var p = canvasToWorld(pos);
 		var shape = space.findShapeByPoint(p);
 		if (shape) {
 			var body = shape.body;
@@ -433,11 +438,16 @@ App = function() {
 
 				e.preventDefault();
 			}
-		}		
+		}
+		else if (/*e.metaKey*/1) {
+			startMoving = true;
+			mousePositionOld = pos;
+		}
 	}
 
 	function onMouseUp(e) {
 		mouseDown = false;
+		startMoving = false;
 
 		if (mouseJoint) {
 			space.removeJoint(mouseJoint);
@@ -455,9 +465,11 @@ App = function() {
 
 			e.preventDefault();
 		}
-		else if (mouseDown) {
-			viewOrigin.x += pos.x - mousePositionOld.x;
-			viewOrigin.y += pos.y - mousePositionOld.y;
+		else if (startMoving) {
+			view.origin.x += pos.x - mousePositionOld.x;
+			view.origin.y += pos.y - mousePositionOld.y;
+
+			view.origin.y = Math.clamp(view.origin.y, 0, 0);
 
 			mousePositionOld.x = pos.x;
 			mousePositionOld.y = pos.y;
@@ -475,49 +487,95 @@ App = function() {
 		}
 	}
 
-	function onMouseWheel(e) {		
-		var delta = e.detail ? e.detail : e.wheelDelta;
-
-		view.scale -= delta * 0.001;
-		view.scale = Math.clamp(view.scale, 0.5, 3.0);
+	function onMouseWheel(e) {
+		var deltaY = -e.wheelDeltaY * 0.001;
+		var oldViewScale = view.scale;
+		view.scale = Math.clamp(oldViewScale + deltaY, view.minScale, view.maxScale);
+		deltaY = view.scale - oldViewScale;
 
 		var pos = getMousePosition(e);
-		var p = canvasToWorld(pos);
+		pos = canvasToWorld(pos);
+		view.origin.y += pos.y * deltaY;
+		view.origin.x -= pos.x * deltaY;
+
+		var deltaX = e.wheelDeltaX * 0.2;
+		view.origin.x += deltaX;
+
+		view.origin.y = Math.clamp(view.origin.y, 0, 0);
 
 		e.preventDefault();		
 	}
 
-	function touchHandler(e) {
+	/*function touchHandler(e) {
 		var touches = e.changedTouches;
 		var first = touches[0];
-		var type = { touchstart: "mousedown", touchmove: "mousemove", touchend: "mouseup" }[e.type] || "";
+		
+		if (e.touches.length <= 1) {
+			var type = { touchstart: "mousedown", touchmove: "mousemove", touchend: "mouseup" }[e.type] || "";
+			//initMouseEvent(type, canBubble, cancelable, view, clickCount, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
+			var simulatedEvent = document.createEvent("MouseEvent");
+			simulatedEvent.initMouseEvent(type, true, true, window, 1, first.screenX, first.screenY, first.clientX, first.clientY, false, false, false, false, 0, null);
+			first.target.dispatchEvent(simulatedEvent);
+		}
 
-		//initMouseEvent(type, canBubble, cancelable, view, clickCount, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
-		var simulatedEvent = document.createEvent("MouseEvent");
-		simulatedEvent.initMouseEvent(type, true, true, window, 1, first.screenX, first.screenY, first.clientX, first.clientY, false, false, false, false, 0/*left*/, null);
-		first.target.dispatchEvent(simulatedEvent);
+		e.preventDefault();
+	}*/
 
-		e.preventDefault();		
+	function onTouchStart(e) {
+		if (mouseJoint) {
+			space.removeJoint(mouseJoint);
+			mouseJoint = null;
+		}
+
+		if (e.touches.length == 1) {
+			var first = touches[0];
+			var simulatedEvent = document.createEvent("MouseEvent");
+			simulatedEvent.initMouseEvent("mousestart", true, true, window, 1, first.screenX, first.screenY, first.clientX, first.clientY, false, false, false, false, 0, null);
+			first.target.dispatchEvent(simulatedEvent);
+
+			e.preventDefault();
+		}
+		else if (e.touches.length == 2) {
+			touchPos1 = getTouchPosition(e.touches[0]);
+			touchPos2 = getTouchPosition(e.touches[1]);
+
+			e.preventDefault();
+		}
+	}
+
+	function onTouchMove(e) {
+		if (e.touches.length == 1) {
+			var first = touches[0];
+			var simulatedEvent = document.createEvent("MouseEvent");
+			simulatedEvent.initMouseEvent("mousemove", true, true, window, 1, first.screenX, first.screenY, first.clientX, first.clientY, false, false, false, false, 0, null);
+			first.target.dispatchEvent(simulatedEvent);
+
+			e.preventDefault();			
+		}
+		else if (e.touches.length == 2) {
+			getTouchPosition(e.touches[0]) - touchPos1;
+			getTouchPosition(e.touches[1]) - touchPos2;
+
+			e.preventDefault();
+		}
+	}
+
+	function onTouchEnd(e) {
+		
 	}
 
 	function onGestureStart(e) {
+		gestureStartScale = view.scale;
 		e.preventDefault();
 	}
 
 	function onGestureChange(e) {
-		e.scale;
-		e.rotation;
-
-		viewScale = e.scale;
+		view.scale = Math.clamp(gestureStartScale * e.scale, view.minScale, view.maxScale);
 
 		e.preventDefault();
 	}
 
-	function onGestureEnd(e) {
-		e.scale;
-		viewScale = e.scale;
-
-		e.rotation;
+	function onGestureEnd(e) {		
 	}
 
 	function onKeyDown(e) {
@@ -526,6 +584,9 @@ App = function() {
 		}
 
 		switch (e.keyCode) {
+		case 17: // Ctrl
+			e.preventDefault();			
+			break;
 		case 66: // 'b'
 			break;        
 		case 67: // 'c'
