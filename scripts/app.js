@@ -2,16 +2,13 @@ var stats = {};
 
 App = function() {
 	var canvas;
-	var ctx;
-	var ws;
-
-	var canvasBounds = new Bounds;
-	var clearBounds = new Bounds;
-	var randomColor;    
+	var cc; // canvas context
+	
 	var lastTime;
-	var timeOffset;	
-	var screenZoomScale = 1.0;
-	var screenOffset = new vec2(0, 0);
+	var timeOffset;
+	var view = { origin: new vec2(0, 0), scale: 1 };
+	var mouseDown = false;
+	var mousePositionOld;
 
 	var editMode = false;
 	var selectMode = 0; // 0: Body, 1: Shape, 2: Vertex, 3: Joint
@@ -24,8 +21,9 @@ App = function() {
 	var demoArr = [DemoCar, DemoRagDoll, DemoSeeSaw, DemoPyramid, DemoCrank, DemoRope, DemoWeb, DemoBounce];
 	var sceneNameArr = [];
 	var sceneIndex;
+	var randomColor;
 	var mouseBody;
-	var mouseJoint;
+	var mouseJoint;	
 	var gravity = new vec2(0, -627.2);
 	var pause = false;
 	var step = false;
@@ -38,26 +36,21 @@ App = function() {
 	var showContacts = false;
 	var showJoints = true;
 	var showStats = false;
-	var showClearBounds = false;
 
 	function main() {
-		// Horizontal & vertical scrollbar will be hidden
-		document.documentElement.style.overflowX = "hidden";
-		document.documentElement.style.overflowY = "hidden";
-		document.body.scroll = "no"; // ie only
-		
-		(function (n) { 			
-			if (n.tagName && (n.tagName.toLowerCase() === "input" || n.tagName.toLowerCase() === "select")) {			
-				n.onblur = function() { window.scrollTo(0, 0); };						
-			}
-			for (var i in n.childNodes) {
-				arguments.callee(n.childNodes[i]);
-			}
-		}) (document.getElementById("toolbar"));
-
 		canvas = document.getElementById("canvas");
 		if (!canvas.getContext) {
 			alert("Couldn't get canvas object !");
+		}
+
+		// Horizontal & vertical scrollbar will be hidden
+		document.documentElement.style.overflowX = "hidden";
+		document.documentElement.style.overflowY = "hidden";
+		document.body.scroll = "no"; // ie only	
+
+		var elements = document.getElementById("toolbar").querySelectorAll("select, input");
+		for (var i in elements) {
+			elements[i].onblur = function() { window.scrollTo(0, 0); };			
 		}
 		
 		window.addEventListener("resize", onResize, false);
@@ -65,7 +58,7 @@ App = function() {
 		window.addEventListener("mouseup", onMouseUp, false);
 		window.addEventListener("mousemove", onMouseMove, false);		
 		window.addEventListener("mouseleave", onMouseLeave, false);
-		//canvas.addEventListener("mousewheel", onMouseWheel, false);
+		canvas.addEventListener("mousewheel", onMouseWheel, false);
 
 		canvas.addEventListener("touchstart", touchHandler, false);
 		canvas.addEventListener("touchend", touchHandler, false);
@@ -78,7 +71,7 @@ App = function() {
 		window.addEventListener("orientationchange", onResize, false);
 
 		// Prevent elastic scrolling on iOS
-		document.body.addEventListener('touchmove', function(event) { event.preventDefault(); }, false);
+		document.body.addEventListener("touchmove", function(event) { event.preventDefault(); }, false);
 
 		if (document.addEventListener) {
 			document.addEventListener("keydown", onKeyDown, false);
@@ -94,16 +87,7 @@ App = function() {
 			document.onkeydown = onKeyDown;
 			document.onkeyup = onKeyUp
 			document.onkeypress = onKeyPress;
-		}
-
-		window.requestAnimFrame = (function() {
-			return window.requestAnimationFrame || 
-			window.webkitRequestAnimationFrame || 
-			window.mozRequestAnimationFrame || 
-			window.oRequestAnimationFrame || 
-			window.msRequestAnimationFrame || 
-			function(callback, element) { window.setTimeout(callback, 1000 / 60); };
-		})();
+		}		
 
 		// Add scenes from demos
 		var combobox = document.getElementById("scene");
@@ -115,7 +99,7 @@ App = function() {
 			combobox.add(option);
 			sceneNameArr.push(name);
 		}		
-
+/*
 		// Add scenes from server files
 		httpGetText("http://peppercode.net/rigid-dyn2d/cgi-bin/scene.rb?action=list", false, function(text) { 
 			text.replace(/\s*(.+?\.json)/g, function($0, filename) {
@@ -125,7 +109,7 @@ App = function() {
 				combobox.add(option);
 				sceneNameArr.push(filename);
 			});
-		});
+		});*/
 
 		// Select scene
 		sceneIndex = 0;
@@ -145,8 +129,7 @@ App = function() {
 
 		Renderer.init(canvas);
 		
-		// Main canvas context
-		ctx = canvas.getContext("2d");		
+		cc = canvas.getContext("2d");
 
 		// Random color for bodies
 		randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"];
@@ -161,11 +144,22 @@ App = function() {
 
 		onResize();
 
-		initScene();		
+		initScene();
 
-		window.requestAnimFrame(function() { runFrame(); });
+		window.requestAnimFrame = window.requestAnimationFrame || 
+			window.webkitRequestAnimationFrame || 
+			window.mozRequestAnimationFrame || 
+			window.oRequestAnimationFrame || 
+			window.msRequestAnimationFrame;
+
+		if (window.requestAnimationFrame) {
+			window.requestAnimFrame(function() { window.requestAnimFrame(arguments.callee); runFrame(); });
+		}
+		else {
+			window.setInterval(runFrame, 1000 / 60);
+		}
 	}
-
+	
 	function httpGetText(uri, async, callback) {
 		var request = new XMLHttpRequest();
 		request.onreadystatechange = function () {
@@ -175,9 +169,9 @@ App = function() {
 			}
 		}
 
-		request.open('GET', uri, async);
-		request.overrideMimeType('text/plain');
-		request.setRequestHeader('Content-Type', 'text/plain');
+		request.open("GET", uri, async);
+		request.overrideMimeType("text/plain");
+		request.setRequestHeader("Content-Type", "text/plain");
 		request.send();
 	}
 
@@ -190,23 +184,25 @@ App = function() {
 			}
 		}
 
-		request.open('POST', uri, async);
-		request.overrideMimeType('text/plain');
-		request.setRequestHeader('Content-Type', 'text/plain');
+		request.open("POST", uri, async);
+		request.overrideMimeType("text/plain");
+		request.setRequestHeader("Content-Type", "text/plain");
 		request.send(text);
-	}
+	}	
 
-	function loadSceneFromServer(filename) {
-		var uri = "http://peppercode.net/rigid-dyn2d/scenes/" + encodeURIComponent(filename);
+	function loadSceneFromServer(name) {
+		//var text = window.localStorage.getItem(name, text);
+		var uri = "http://peppercode.net/rigid-dyn2d/scenes/" + encodeURIComponent(name);
 		httpGetText(uri, false, function(text) {
 			space.create(text);
 		});
 	}
 
-	function saveSceneToServer(filename) {
+	function saveSceneToServer(name) {
 		var text = JSON.stringify(space, null, "\t");
-		var uri = "http://peppercode.net/rigid-dyn2d/cgi-bin/scene.rb?action=save&filename=" + encodeURIComponent(filename);
-		httpPostText(uri, true, "file=" + text, function(text) {});
+		//window.localStorage.setItem(name, text);
+		var uri = "http://peppercode.net/rigid-dyn2d/cgi-bin/scene.rb?action=save&filename=" + encodeURIComponent(name);
+		httpPostText(uri, true, "file=" + text, function(text) {});		
 	}
 
 	function initScene() {
@@ -220,9 +216,7 @@ App = function() {
 		else {
 			demo = null;
 			loadSceneFromServer(sceneNameArr[sceneIndex]);
-		}
-		
-		clearBounds.copy(canvasBounds);
+		}		
 
 		lastTime = Date.now();
 		timeOffset = 0;
@@ -241,11 +235,13 @@ App = function() {
 	}
 	
 	function runFrame() {
-		window.requestAnimFrame(function() { runFrame(); });
-
 		var time = Date.now();
 		var frameTime = (time - lastTime) / 1000;
 		lastTime = time;
+
+		if (window.requestAnimFrame) {
+			frameTime = Math.floor(frameTime * 60 + 0.5) / 60;
+		}
 
 		if (!pause || step && !editMode) {
 			var h = 1 / frameRateHz;
@@ -271,8 +267,10 @@ App = function() {
 				timeOffset = 0;
 			}
 		}
-		
-		updateScreen(frameTime);
+
+		if (stats.stepCount > 0) {
+			updateScreen(frameTime);
+		}			
 	}
 
 	function updateScreen(frameTime) {	
@@ -282,36 +280,24 @@ App = function() {
 
 		// Draw statistics
 		if (showStats) {
-			ctx.save();
-			ctx.setTransform(1, 0, 0, 1, 0, 0);
-			ctx.font = "9pt menlo";
-			ctx.textBaseline = "top";
-			ctx.fillStyle = "#333";
-			ctx.fillText("step_cnt: " + stats.stepCount + " tm_step: " + stats.timeStep + " tm_draw: " + stats.timeDrawFrame, 10, 2);
-			ctx.fillText("tm_col: " + stats.timeCollision + " tm_init_sv: " + stats.timeInitSolver + " tm_vel_sv: " + stats.timeVelocitySolver + " tm_pos_sv: " + stats.timePositionSolver, 10, 18);
-			ctx.fillText("bodies: " + space.numBodies + " joints: " + space.numJoints + " contacts: " + space.numContacts + " pos_iters: " + stats.positionIterations, 10, 34);			
-			ctx.restore();
-
-			clearBounds.copy(canvasBounds);
+			cc.setTransform(1, 0, 0, 1, 0, 0);
+			cc.font = "9pt menlo";
+			cc.textBaseline = "top";
+			cc.fillStyle = "#333";
+			cc.fillText(["step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "tm_draw:", stats.timeDrawFrame].join(" "), 10, 2);
+			cc.fillText(["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver].join(" "), 10, 18);
+			cc.fillText(["bodies:", space.numBodies, "joints:", space.numJoints, "contacts:", space.numContacts, "pos_iters:", stats.positionIterations].join(" "), 10, 34);
 		}
 	}
 
 	function drawFrame(frameTime) {
+		cc.setTransform(1, 0, 0, 1, 0, 0);
+		Renderer.clearRect(0, 0, canvas.width, canvas.height);
+
 		// Transform coordinate system to y-axis is up and origin is bottom center
-		ctx.setTransform(1, 0, 0, 1, 0, 0);
-		ctx.translate(canvas.width * 0.5 + screenOffset.x, canvas.height + screenOffset.y);
-		ctx.scale(screenZoomScale, -screenZoomScale);
-
-		// Clear rect
-		if (!clearBounds.isEmpty()) {
-			var x = clearBounds.mins.x;
-			var y = clearBounds.mins.y;
-			var w = clearBounds.maxs.x - x;
-			var h = clearBounds.maxs.y - y;
-
-			Renderer.clearRect(x, y, w, h);
-			clearBounds.clear();
-		}				
+		//cc.setTransform(view.scale, 0, 0, -view.cale, canvas.width * 0.5 + view.origin.x, canvas.height + view.origin.y);
+		cc.translate(canvas.width * 0.5 + view.origin.x, canvas.height + view.origin.y);
+		cc.scale(view.scale, -view.scale);
 
 		// Draw bodies
 		for (var i in space.bodyHash) {
@@ -337,13 +323,6 @@ App = function() {
 				}
 			}
 		}
-
-		// Draw update bounds
-		if (showClearBounds && !clearBounds.isEmpty()) {
-			var bounds = new Bounds(clearBounds.mins, clearBounds.maxs);
-			bounds.expand(-2, -2);
-			Renderer.drawBox(bounds.mins, bounds.maxs, null, "#F00");
-		}
 	}	
 
 	function drawBody(body, fillColor, outlineColor) {
@@ -354,8 +333,6 @@ App = function() {
 			var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
 			bounds.expand(2, 2);
 
-			clearBounds.addBounds(bounds);			
-
 			drawBodyShape(body, shape, fillColor, outlineColor);
 		}
 	}
@@ -363,15 +340,15 @@ App = function() {
 	function drawBodyShape(body, shape, fillColor, outlineColor) {
 		// Draw body shape
 		switch (shape.type) {
-			case Shape.TYPE_CIRCLE:
-				Renderer.drawCircle(shape.tc, shape.r, body.a, fillColor, outlineColor);
-				break;
-			case Shape.TYPE_SEGMENT:
-				Renderer.drawSegment(shape.ta, shape.tb, shape.r, fillColor, outlineColor);
-				break;
-			case Shape.TYPE_POLY:
-				Renderer.drawPolygon(shape.tverts, fillColor, outlineColor);
-				break;
+		case Shape.TYPE_CIRCLE:
+			Renderer.drawCircle(shape.tc, shape.r, body.a, fillColor, outlineColor);
+			break;
+		case Shape.TYPE_SEGMENT:
+			Renderer.drawSegment(shape.ta, shape.tb, shape.r, fillColor, outlineColor);
+			break;
+		case Shape.TYPE_POLY:
+			Renderer.drawPolygon(shape.tverts, fillColor, outlineColor);
+			break;
 		}
 
 		// Draw bounds
@@ -381,7 +358,6 @@ App = function() {
 			bounds.expand(1, 1);
 
 			Renderer.drawBox(bounds.mins, bounds.maxs, null, "#0A0");
-			clearBounds.addBounds(bounds);
 		}
 	}
 
@@ -404,7 +380,6 @@ App = function() {
 		bounds.addPoint(p1);
 		bounds.addPoint(p2);
 		bounds.expand(3, 3);
-		clearBounds.addBounds(bounds);		
 	}
 
 	function onResize(e) {
@@ -420,30 +395,33 @@ App = function() {
 		var toolbar = document.getElementById("toolbar");
 		toolbar.style.position = "absolute";
 		toolbar.style.left = (canvas.width - toolbar.clientWidth) + "px";
-		toolbar.style.top = "0px";		
-
-		canvasBounds.mins = new vec2(-canvas.width * 0.5, 0);
-		canvasBounds.maxs = new vec2(canvas.width * 0.5, canvas.height);
-
-		clearBounds.copy(canvasBounds);
+		toolbar.style.top = "0px";
 	}
 
-	function getMousePoint(e) {
-		return { 
+	function getMousePosition(e) {
+		return {
 			x: document.body.scrollLeft + e.clientX - canvas.offsetLeft, 
 			y: document.body.scrollTop + e.clientY - canvas.offsetTop 
 		};
 	}
 
+	function canvasToWorld(p) {
+		return {
+			x: (p.x - canvas.width * 0.5 - view.origin.x) / view.scale, 
+			y: -(p.y - canvas.height - view.origin.y) / view.scale
+		};
+	}
+
 	function onMouseDown(e) {
+		mouseDown = true;
+		mousePositionOld = getMousePosition(e);
+
 		if (mouseJoint) {
 			space.removeJoint(mouseJoint);
 			mouseJoint = null;
 		}
 
-		var point = getMousePoint(e);
-		var p = new vec2(point.x - canvas.width * 0.5, canvas.height - point.y);
-		
+		var p = canvasToWorld(mousePositionOld);
 		var shape = space.findShapeByPoint(p);
 		if (shape) {
 			var body = shape.body;
@@ -459,6 +437,8 @@ App = function() {
 	}
 
 	function onMouseUp(e) {
+		mouseDown = false;
+
 		if (mouseJoint) {
 			space.removeJoint(mouseJoint);
 			mouseJoint = null;
@@ -467,13 +447,23 @@ App = function() {
 		}
 	}
 
-	function onMouseMove(e) {		
+	function onMouseMove(e) {
+		var pos = getMousePosition(e);
+
 		if (mouseJoint) {
-			var point = getMousePoint(e);
-			mouseBody.p.set(point.x - canvas.width * 0.5, canvas.height - point.y);
+			mouseBody.p.copy(canvasToWorld(pos));
 
 			e.preventDefault();
-		}					
+		}
+		else if (mouseDown) {
+			viewOrigin.x += pos.x - mousePositionOld.x;
+			viewOrigin.y += pos.y - mousePositionOld.y;
+
+			mousePositionOld.x = pos.x;
+			mousePositionOld.y = pos.y;
+
+			e.preventDefault();
+		}
 	}
 
 	function onMouseLeave(e) {
@@ -481,47 +471,32 @@ App = function() {
 			space.removeJoint(mouseJoint);
 			mouseJoint = null;
 		
-			e.preventDefault();			
+			e.preventDefault();
 		}
 	}
 
-	function onMouseWheel(e) {
-		var point = getMousePoint(e);
-		if (point.x < 0 || point.x >= canvas.width || point.y < 0 || point.y >= canvas.height) {
-			var delta = e.detail ? e.detail * -120 : e.wheelDelta;
+	function onMouseWheel(e) {		
+		var delta = e.detail ? e.detail : e.wheelDelta;
 
-			// FIXME !!
-			screenZoomScale += delta * 0.01;
-			screenZoomScale = Math.clamp(screenZoomScale, 0.5, 2.0);
+		view.scale -= delta * 0.001;
+		view.scale = Math.clamp(view.scale, 0.5, 3.0);
 
-			clearBounds.copy(canvasBounds);
+		var pos = getMousePosition(e);
+		var p = canvasToWorld(pos);
 
-			e.preventDefault();
-		}
+		e.preventDefault();		
 	}
 
 	function touchHandler(e) {
 		var touches = e.changedTouches;
 		var first = touches[0];
-		var type = "";
+		var type = { touchstart: "mousedown", touchmove: "mousemove", touchend: "mouseup" }[e.type] || "";
 
-		switch (e.type) {
-			case "touchstart": type = "mousedown"; break;
-			case "touchmove":  type = "mousemove"; break;
-			case "touchend":   type = "mouseup"; break;
-			default: return;
-		}
-
-		//initMouseEvent(type, canBubble, cancelable, view, clickCount, 
-		//           screenX, screenY, clientX, clientY, ctrlKey, 
-		//           altKey, shiftKey, metaKey, button, relatedTarget); 
+		//initMouseEvent(type, canBubble, cancelable, view, clickCount, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
 		var simulatedEvent = document.createEvent("MouseEvent");
-		simulatedEvent.initMouseEvent(type, true, true, window, 1, 
-			first.screenX, first.screenY, 
-			first.clientX, first.clientY, false, 
-			false, false, false, 0/*left*/, null);
-
+		simulatedEvent.initMouseEvent(type, true, true, window, 1, first.screenX, first.screenY, first.clientX, first.clientY, false, false, false, false, 0/*left*/, null);
 		first.target.dispatchEvent(simulatedEvent);
+
 		e.preventDefault();		
 	}
 
@@ -533,11 +508,15 @@ App = function() {
 		e.scale;
 		e.rotation;
 
+		viewScale = e.scale;
+
 		e.preventDefault();
 	}
 
 	function onGestureEnd(e) {
 		e.scale;
+		viewScale = e.scale;
+
 		e.rotation;
 	}
 
@@ -547,24 +526,24 @@ App = function() {
 		}
 
 		switch (e.keyCode) {
-			case 66: // 'b'
-				break;        
-			case 67: // 'c'
-				break;
-			case 74: // 'j'
-				break;
-			case 83: // 's'
-				break;        
-			case 85: // 'u'
-				break;
-			case 49: // '1'            
-			case 50: // '2'
-			case 51: // '3'
-				//number = e.keyCode - 48;
-				break;
-			case 32: // 'space'            
-				break;
-		}
+		case 66: // 'b'
+			break;        
+		case 67: // 'c'
+			break;
+		case 74: // 'j'
+			break;
+		case 83: // 's'
+			break;        
+		case 85: // 'u'
+			break;
+		case 49: // '1'            
+		case 50: // '2'
+		case 51: // '3'
+			//number = e.keyCode - 48;
+			break;
+		case 32: // 'space'
+			break;
+		}					
 	}
 
 	function onKeyUp(e) {
@@ -625,10 +604,6 @@ App = function() {
 		showStats = !showStats;
 	}
 
-	function onClickedShowClearRect() {
-		showClearBounds = !showClearBounds;
-	}
-
 	function updatePauseButton() {
 		var button = document.getElementById("pause");
 		button.value = pause ? "Play" : "Pause";
@@ -664,7 +639,6 @@ App = function() {
 		onClickedShowContacts: onClickedShowContacts,
 		onClickedShowJoints: onClickedShowJoints,
 		onClickedShowStats: onClickedShowStats,
-		onClickedShowClearRect: onClickedShowClearRect,
 		onClickedRestart: onClickedRestart,
 		onClickedPause: onClickedPause,
 		onClickedStep: onClickedStep

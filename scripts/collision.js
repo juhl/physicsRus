@@ -139,25 +139,25 @@ var collision = {};
 
 		switch (idxm) {
 			case 0:
-			s = vec2.dot(vec2.sub(seg2.ta, seg1.ta), u) / vec2.dot(u, u);
-			s = s < 0 ? 0 : (s > 1 ? 1 : s);
-			t = 0;
-			break;
+				s = vec2.dot(vec2.sub(seg2.ta, seg1.ta), u) / vec2.dot(u, u);
+				s = s < 0 ? 0 : (s > 1 ? 1 : s);
+				t = 0;
+				break;
 			case 1:
-			s = vec2.dot(vec2.sub(seg2.tb, seg1.ta), u) / vec2.dot(u, u);
-			s = s < 0 ? 0 : (s > 1 ? 1 : s);
-			t = 1;
-			break;
+				s = vec2.dot(vec2.sub(seg2.tb, seg1.ta), u) / vec2.dot(u, u);
+				s = s < 0 ? 0 : (s > 1 ? 1 : s);
+				t = 1;
+				break;
 			case 2:
-			s = 0;
-			t = vec2.dot(vec2.sub(seg1.ta, seg2.ta), v) / vec2.dot(v, v);
-			t = t < 0 ? 0 : (t > 1 ? 1 : t);
-			break;
+				s = 0;
+				t = vec2.dot(vec2.sub(seg1.ta, seg2.ta), v) / vec2.dot(v, v);
+				t = t < 0 ? 0 : (t > 1 ? 1 : t);
+				break;
 			case 3:
-			s = 1;
-			t = vec2.dot(vec2.sub(seg1.tb, seg2.ta), v) / vec2.dot(v, v);
-			t = t < 0 ? 0 : (t > 1 ? 1 : t);
-			break;
+				s = 1;
+				t = vec2.dot(vec2.sub(seg1.tb, seg2.ta), v) / vec2.dot(v, v);
+				t = t < 0 ? 0 : (t > 1 ? 1 : t);
+				break;
 		}
 
 		var minp1 = vec2.mad(seg1.ta, u, s);

@@ -10,7 +10,7 @@ DemoPyramid = function() {
 		staticBody.resetMassData();
 		space.addBody(staticBody);
 
-		for (var i = 0; i < 8; i++) {
+		for (var i = 0; i < 9; i++) {
 			for (var j = 0; j <= i; j++) {
 				var body = new Body(Body.DYNAMIC, (j - i * 0.5) * 42, 500 - i * 42);
 				var shape = new ShapeBox(0, 0, 36, 36);

@@ -9,7 +9,7 @@ Renderer = function() {
 		ctx = canvas.getContext("2d");
 	}
 
-	function clearRect(x, y, width, height) {
+	function clearRect(x, y, width, height) {		
 		ctx.clearRect(x, y, width, height);
 	}
 

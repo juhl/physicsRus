@@ -93,34 +93,34 @@ Space.prototype.create = function(text) {
 		var joint;
 
 		switch (config_joint.type) {
-			case "angle":
-				joint = new AngleJoint(body1, body2);
-				break;
-			case "revolute":
-				joint = new RevoluteJoint(body1, body2, config_joint.anchor);
-				joint.enableLimit(config_joint.limitEnabled);
-				joint.setLimits(config_joint.limitLowerAngle, config_joint.limitUpperAngle);
-				joint.enableMotor(config_joint.motorEnabled);
-				joint.setMotorSpeed(config_joint.motorSpeed);
-				joint.setMaxMotorTorque(config_joint.maxMotorTorque);
-				break;
-			case "weld":
-				joint = new WeldJoint(body1, body2, config_joint.anchor);
-				break;
-			case "distance":                
-				joint = new DistanceJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
-				joint.k = config_joint.k;
-				joint.d = config_joint.d;
-				break;
-			case "line":
-				joint = new LineJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
-				joint.enableMotor(config_joint.motorEnabled);
-				joint.setMotorSpeed(config_joint.motorSpeed);
-				joint.setMaxMotorTorque(config_joint.maxMotorTorque);
-				break;
-			case "prismatic":
-				joint = new PrismaticJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
-				break;
+		case "angle":
+			joint = new AngleJoint(body1, body2);
+			break;
+		case "revolute":
+			joint = new RevoluteJoint(body1, body2, config_joint.anchor);
+			joint.enableLimit(config_joint.limitEnabled);
+			joint.setLimits(config_joint.limitLowerAngle, config_joint.limitUpperAngle);
+			joint.enableMotor(config_joint.motorEnabled);
+			joint.setMotorSpeed(config_joint.motorSpeed);
+			joint.setMaxMotorTorque(config_joint.maxMotorTorque);
+			break;
+		case "weld":
+			joint = new WeldJoint(body1, body2, config_joint.anchor);
+			break;
+		case "distance":                
+			joint = new DistanceJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
+			joint.k = config_joint.k;
+			joint.d = config_joint.d;
+			break;
+		case "line":
+			joint = new LineJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
+			joint.enableMotor(config_joint.motorEnabled);
+			joint.setMotorSpeed(config_joint.motorSpeed);
+			joint.setMaxMotorTorque(config_joint.maxMotorTorque);
+			break;
+		case "prismatic":
+			joint = new PrismaticJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
+			break;
 		}
 
 		joint.collideConnected = config_joint.collideConnected;
