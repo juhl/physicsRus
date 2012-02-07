@@ -61,10 +61,10 @@ App = function() {
 		window.addEventListener("mouseleave", onMouseLeave, false);
 		canvas.addEventListener("mousewheel", onMouseWheel, false);
 
-		canvas.addEventListener("touchstart", onTouchStart, false);
-		canvas.addEventListener("touchend", onTouchEnd, false);
-		canvas.addEventListener("touchmove", onTouchMove, false);
-		//canvas.addEventListener("touchcancel", onTouchCancel, false);
+		canvas.addEventListener("touchstart", touchHandler, false);
+		canvas.addEventListener("touchend", touchHandler, false);
+		canvas.addEventListener("touchmove", touchHandler, false);
+		canvas.addEventListener("touchcancel", touchHandler, false);
 
 		canvas.addEventListener("gesturestart", onGestureStart, false);
 		canvas.addEventListener("gestureend", onGestureEnd, false);
@@ -295,8 +295,8 @@ App = function() {
 		Renderer.clearRect(0, 0, canvas.width, canvas.height);
 
 		// Transform coordinate system to y-axis is up and origin is bottom center
-		//cc.setTransform(view.scale, 0, 0, -view.cale, canvas.width * 0.5 + view.origin.x, canvas.height + view.origin.y);
-		cc.translate(canvas.width * 0.5 + view.origin.x, canvas.height + view.origin.y);
+		//cc.setTransform(view.scale, 0, 0, -view.cale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
+		cc.translate(canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
 		cc.scale(view.scale, -view.scale);
 
 		// Draw bodies
@@ -403,17 +403,10 @@ App = function() {
 		};
 	}
 
-	function getTouchPosition(touch) {
-		return {
-			x: document.body.scrollLeft + touch.pageX - canvas.offsetLeft, 
-			y: document.body.scrollTop + touch.pageY - canvas.offsetTop 
-		};
-	}
-
 	function canvasToWorld(p) {
 		return {
-			x: (p.x - canvas.width * 0.5 - view.origin.x) / view.scale, 
-			y: -(p.y - canvas.height - view.origin.y) / view.scale
+			x: (p.x - (canvas.width * 0.5 - view.origin.x)) / view.scale, 
+			y: -(p.y - (canvas.height + view.origin.y)) / view.scale
 		};
 	}
 
@@ -466,7 +459,7 @@ App = function() {
 			e.preventDefault();
 		}
 		else if (startMoving) {
-			view.origin.x += pos.x - mousePositionOld.x;
+			view.origin.x -= pos.x - mousePositionOld.x;
 			view.origin.y += pos.y - mousePositionOld.y;
 
 			view.origin.y = Math.clamp(view.origin.y, 0, 0);
@@ -488,38 +481,48 @@ App = function() {
 	}
 
 	function onMouseWheel(e) {
-		var deltaY = -e.wheelDeltaY * 0.001;
+		// Zoom in and out using vertical mouse wheel
+		var ds = -e.wheelDeltaY * 0.001;
 		var oldViewScale = view.scale;
-		view.scale = Math.clamp(oldViewScale + deltaY, view.minScale, view.maxScale);
-		deltaY = view.scale - oldViewScale;
+		view.scale = Math.clamp(oldViewScale + ds, view.minScale, view.maxScale);
+		ds = view.scale - oldViewScale;
 
-		var pos = getMousePosition(e);
-		pos = canvasToWorld(pos);
-		view.origin.y += pos.y * deltaY;
-		view.origin.x -= pos.x * deltaY;
+		// Adjust view origin for focused zoom in and out
+		// p = (1 + ds) * p - ds * p
+		var p = canvasToWorld(getMousePosition(e));
+		view.origin.x += p.x * ds;
+		view.origin.y += p.y * ds;
 
-		var deltaX = e.wheelDeltaX * 0.2;
-		view.origin.x += deltaX;
+		// Horizontal scroll using horizontal mouse wheel
+		var dx = e.wheelDeltaX * 0.2;
+		view.origin.x -= dx;
 
+		// Clamp view origin limit
 		view.origin.y = Math.clamp(view.origin.y, 0, 0);
 
 		e.preventDefault();		
 	}
 
-	/*function touchHandler(e) {
-		var touches = e.changedTouches;
-		var first = touches[0];
+	function touchHandler(e) {
+		var touches = e.changedTouches;		
 		
-		if (e.touches.length <= 1) {
-			var type = { touchstart: "mousedown", touchmove: "mousemove", touchend: "mouseup" }[e.type] || "";
+		if (touches.length <= 1) {
+			var first = touches[0];
+			var type = { touchstart: "mousedown", touchmove: "mousemove", touchend: "mouseup" }[e.type] || "";			
 			//initMouseEvent(type, canBubble, cancelable, view, clickCount, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
-			var simulatedEvent = document.createEvent("MouseEvent");
+			var simulatedEvent = document.createEvent("MouseEvent");			
 			simulatedEvent.initMouseEvent(type, true, true, window, 1, first.screenX, first.screenY, first.clientX, first.clientY, false, false, false, false, 0, null);
 			first.target.dispatchEvent(simulatedEvent);
 		}
+		else {			
+			var handler = [onTouchStart, onTouchEnd, onTouchMove][e.type];
+			if (handler) {
+				handler(e);
+			}
+		}
 
 		e.preventDefault();
-	}*/
+	}
 
 	function onTouchStart(e) {
 		if (mouseJoint) {
@@ -527,34 +530,15 @@ App = function() {
 			mouseJoint = null;
 		}
 
-		if (e.touches.length == 1) {
-			var first = touches[0];
-			var simulatedEvent = document.createEvent("MouseEvent");
-			simulatedEvent.initMouseEvent("mousestart", true, true, window, 1, first.screenX, first.screenY, first.clientX, first.clientY, false, false, false, false, 0, null);
-			first.target.dispatchEvent(simulatedEvent);
-
-			e.preventDefault();
-		}
-		else if (e.touches.length == 2) {
-			touchPos1 = getTouchPosition(e.touches[0]);
-			touchPos2 = getTouchPosition(e.touches[1]);
-
+		if (e.touches.length == 2) {
 			e.preventDefault();
 		}
 	}
 
 	function onTouchMove(e) {
-		if (e.touches.length == 1) {
-			var first = touches[0];
-			var simulatedEvent = document.createEvent("MouseEvent");
-			simulatedEvent.initMouseEvent("mousemove", true, true, window, 1, first.screenX, first.screenY, first.clientX, first.clientY, false, false, false, false, 0, null);
-			first.target.dispatchEvent(simulatedEvent);
-
-			e.preventDefault();			
-		}
-		else if (e.touches.length == 2) {
-			getTouchPosition(e.touches[0]) - touchPos1;
-			getTouchPosition(e.touches[1]) - touchPos2;
+		if (e.touches.length == 2) {
+			touchPos1 = canvasToWorld(getMousePosition(e.touches[0]));
+			touchPos2 = canvasToWorld(getMousePosition(e.touches[1]));
 
 			e.preventDefault();
 		}
@@ -566,16 +550,26 @@ App = function() {
 
 	function onGestureStart(e) {
 		gestureStartScale = view.scale;
+
 		e.preventDefault();
 	}
 
 	function onGestureChange(e) {
+		var oldScale = view.scale;
 		view.scale = Math.clamp(gestureStartScale * e.scale, view.minScale, view.maxScale);
+		var ds = view.scale - oldScale;
+
+		var mid = vec2.lerp(touchPos1, touchPos2, 0.5);
+
+		view.origin.x += mid.x * gestureDeltaScale;
+		view.origin.y += mid.y * gestureDeltaScale;
+
+		view.origin.y = Math.clamp(view.origin.y, 0, 0);
 
 		e.preventDefault();
 	}
 
-	function onGestureEnd(e) {		
+	function onGestureEnd(e) {
 	}
 
 	function onKeyDown(e) {
