@@ -6,11 +6,13 @@ App = function() {
 	
 	var lastTime;
 	var timeOffset;
-	var view = { origin: new vec2(0, 0), scale: 1, minScale: 0.75, maxScale: 3.0 };
+	var view = { origin: new vec2(0, 0), scale: 1, minScale: 0.5, maxScale: 3.0 };
 	var mouseDown = false;
 	var startMoving = false;
 	var mousePositionOld;
 	var touchPosOld = new Array(2);
+	var gestureStartScale;
+	var gestureScale;
 
 	var editMode = false;
 	var selectMode = 0; // 0: Body, 1: Shape, 2: Vertex, 3: Joint
@@ -101,8 +103,8 @@ App = function() {
 			combobox.add(option);
 			sceneNameArr.push(name);
 		}		
-/*
-		// Add scenes from server files
+
+		// Add scenes from list of JSON files in server
 		httpGetText("http://peppercode.net/rigid-dyn2d/cgi-bin/scene.rb?action=list", false, function(text) { 
 			text.replace(/\s*(.+?\.json)/g, function($0, filename) {
 				var option = document.createElement("option");
@@ -111,7 +113,7 @@ App = function() {
 				combobox.add(option);
 				sceneNameArr.push(filename);
 			});
-		});*/
+		});
 
 		// Select scene
 		sceneIndex = 0;
@@ -192,8 +194,7 @@ App = function() {
 		request.send(text);
 	}	
 
-	function loadSceneFromServer(name) {
-		//var text = window.localStorage.getItem(name, text);
+	function loadSceneFromServer(name) {		
 		var uri = "http://peppercode.net/rigid-dyn2d/scenes/" + encodeURIComponent(name);
 		httpGetText(uri, false, function(text) {
 			space.create(text);
@@ -202,7 +203,6 @@ App = function() {
 
 	function saveSceneToServer(name) {
 		var text = JSON.stringify(space, null, "\t");
-		//window.localStorage.setItem(name, text);
 		var uri = "http://peppercode.net/rigid-dyn2d/cgi-bin/scene.rb?action=save&filename=" + encodeURIComponent(name);
 		httpPostText(uri, true, "file=" + text, function(text) {});		
 	}
@@ -395,6 +395,7 @@ App = function() {
 		toolbar.style.position = "absolute";
 		toolbar.style.left = (canvas.width - toolbar.clientWidth) + "px";
 		toolbar.style.top = "0px";
+		//toolbar.style.display = "none";
 	}
 
 	function getMousePosition(e) {
@@ -549,6 +550,13 @@ App = function() {
 
 			touchScaleCenter = canvasToWorld(vec2.lerp(touchPos[0], touchPos[1], d1 / (d1 + d2)));
 
+			var oldScale = view.scale;
+			view.scale = Math.clamp(gestureScale, view.minScale, view.maxScale);
+			var ds = view.scale - oldScale;
+	
+			view.origin.x += touchScaleCenter.x * ds;
+			view.origin.y += touchScaleCenter.y * ds;
+
 			view.origin.x -= (v1.x + v2.x) * 0.5;
 			view.origin.x += (v1.y + v2.y) * 0.5;
 
@@ -572,14 +580,8 @@ App = function() {
 	}
 
 	function onGestureChange(e) {
-		var oldScale = view.scale;
-		view.scale = Math.clamp(gestureStartScale * e.scale, view.minScale, view.maxScale);
-		var ds = view.scale - oldScale;
-	
-		view.origin.x += touchScaleCenter.x * ds;
-		view.origin.y += touchScaleCenter.y * ds;
-
-		view.origin.y = Math.clamp(view.origin.y, 0, 0);
+		var threhold = Math.clamp(e.scale - 1, -0.1, 0.1);
+		gestureScale = gestureStartScale * (e.scale - threhold);
 
 		e.preventDefault();
 	}
