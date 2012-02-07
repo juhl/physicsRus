@@ -527,8 +527,8 @@ App = function() {
 		}
 
 		if (e.touches.length == 2) {
-			touchPosOld[0] = canvasToWorld(getMousePosition(e.touches[0]));
-			touchPosOld[1] = canvasToWorld(getMousePosition(e.touches[1]));
+			touchPosOld[0] = getMousePosition(e.touches[0]);
+			touchPosOld[1] = getMousePosition(e.touches[1]);
 			
 			e.preventDefault();
 		}
@@ -536,7 +536,10 @@ App = function() {
 
 	function onTouchMove(e) {
 		if (e.touches.length == 2) {
-			var touchPos = [getMousePosition(e.touches[0]), getMousePosition(e.touches[1])];
+			var touchPos = [];
+
+			touchPos[0] = getMousePosition(e.touches[0]);
+			touchPos[1] = getMousePosition(e.touches[1]);
 
 			var v1 = vec2.sub(touchPos[0], touchPosOld[0]);
 			var v2 = vec2.sub(touchPos[1], touchPosOld[1]);
@@ -544,14 +547,14 @@ App = function() {
 			var d1 = v1.length();
 			var d2 = v2.length();
 
-			touchScaleCenter = canvasToWorld(vec2.lerp(touchPos[0], touchPos[1], d1 / (d1 + d2)));			
+			touchScaleCenter = canvasToWorld(vec2.lerp(touchPos[0], touchPos[1], d1 / (d1 + d2)));
 
 			view.origin.x -= (v1.x + v2.x) * 0.5;
 			view.origin.x += (v1.y + v2.y) * 0.5;
 
 			view.origin.y = Math.clamp(view.origin.y, 0, 0);
 
-			touchPosOld[0] = touchPos[1];
+			touchPosOld[0] = touchPos[0];
 			touchPosOld[1] = touchPos[1];
 
 			e.preventDefault();
