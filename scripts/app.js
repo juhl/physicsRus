@@ -105,7 +105,7 @@ App = function() {
 		}		
 
 		// Add scenes from list of JSON files in server
-		httpGetText("http://peppercode.net/rigid-dyn2d/cgi-bin/scene.rb?action=list", false, function(text) { 
+		httpGetText("http://peppercode.net/rigid-dyn2d/scene.rb?action=list", false, function(text) { 
 			text.replace(/\s*(.+?\.json)/g, function($0, filename) {
 				var option = document.createElement("option");
 				option.text = filename;
@@ -203,7 +203,7 @@ App = function() {
 
 	function saveSceneToServer(name) {
 		var text = JSON.stringify(space, null, "\t");
-		var uri = "http://peppercode.net/rigid-dyn2d/cgi-bin/scene.rb?action=save&filename=" + encodeURIComponent(name);
+		var uri = "http://peppercode.net/rigid-dyn2d/scene.rb?action=save&filename=" + encodeURIComponent(name);
 		httpPostText(uri, true, "file=" + text, function(text) {});		
 	}
 
