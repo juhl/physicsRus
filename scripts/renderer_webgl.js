@@ -1,16 +1,18 @@
 RendererWebGL = function() {
 	var gl;
-	var config;
+	var config = {};
 
 	var pendingTextureLoads = 0;
 
 	function init(canvas) {
 		if (!canvas.getContext) {
-			console.log("Your browser doesn't support canvas.");
+			console.error("Your browser doesn't support canvas.");
+			return;
 		}
 
 		if (!window.WebGLRenderingContext) {
-			console.log("Your browser doesn't support WebGL.");
+			console.error("Your browser doesn't support WebGL.");
+			return;
 		}
 
 		var names = [ "webgl", "experimental-webgl", "moz-webgl", "webkit-3d" ];
@@ -40,14 +42,11 @@ RendererWebGL = function() {
 		
 		config.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
 		config.maxTextureImageUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
-		//config.maxVertexTextureImageUnits = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
-		//config.maxVertexUniformVectors = gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
-		//config.maxFragmentUniformVectors = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS);
 
-		gl.clearColor(0.0, 0.0, 0.0, 1.0);		
+		gl.clearColor(1.0, 1.0, 1.0, 1.0);
 		gl.frontFace(gl.CCW)
 		gl.cullFace(gl.BACK);
-		gl.enable(gl.CULL_FACE);
+		gl.enable(gl.CULL_FACE);		
 	}
 
 	function checkGLError(msg) {
@@ -75,7 +74,7 @@ RendererWebGL = function() {
 			break;
 		}
 
-		console.log("checkGLError: " + str + " on " + msg);
+		console.warn("checkGLError: " + str + " on " + msg);
 	}
 
 	 function isPowerOfTwo(x) {
@@ -133,127 +132,56 @@ RendererWebGL = function() {
 		return texture;
 	}
 
-	function clearRect(x, y, width, height) {
-		ctx.clearRect(x, y, width, height);
+	function clearRect(x, y, width, height) {		
+		gl.viewport(x, y, width, height);
+        gl.colorMask(true, true, true, true);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+	}
+
+	function scissorRect(x, y, width, height) {
+		
 	}
 
 	function drawLine(p1, p2, strokeStyle) {
-		ctx.strokeStyle = strokeStyle;
-		ctx.beginPath();
-
-		ctx.moveTo(p1.x, p1.y);
-		ctx.lineTo(p2.x, p2.y);
-
-		ctx.save();
-		ctx.stroke();
-		ctx.restore();
+		gl.drawArrays(gl.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}
 
 	function drawArrow(p1, p2, strokeStyle) {
-		var angle = vec2.toAngle(vec2.sub(p2, p1)) - Math.PI;
-
-		ctx.strokeStyle = strokeStyle;
-		ctx.beginPath();
-
-		ctx.moveTo(p1.x, p1.y);
-		ctx.lineTo(p2.x, p2.y);
-
-		ctx.save();
-		ctx.translate(p2.x, p2.y);
-
-		ctx.rotate(angle - Math.PI * 0.15);
-		ctx.moveTo(6, 0);
-		ctx.lineTo(0, 0);
-
-		ctx.rotate(Math.PI * 0.3);
-		ctx.lineTo(6, 0);
-
-		ctx.lineJoint = "miter";
-		ctx.stroke();
-		ctx.restore();
+		gl.drawArrays(gl.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}    
 
 	function drawBox(mins, maxs, fillStyle, strokeStyle) {
-		ctx.beginPath();
-		ctx.rect(mins.x, mins.y, maxs.x - mins.x, maxs.y - mins.y);
-
-		if (fillStyle) {
-			ctx.fillStyle = fillStyle;
-			ctx.fill();
-		}
-
-		if (strokeStyle) {            
-			ctx.strokeStyle = strokeStyle;
-			ctx.stroke();
-		}
+		gl.drawArrays(gl.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}
 
 	function drawCircle(center, radius, angle, fillStyle, strokeStyle) {
-		ctx.arc(center.x, center.y, radius, 0, Math.PI*2, true);
-		if (fillStyle) {
-			ctx.fillStyle = fillStyle;
-			ctx.fill();
-		}
-
-		if (strokeStyle) {
-			ctx.strokeStyle = strokeStyle;
-			ctx.moveTo(center.x, center.y);
-			var rt = vec2.add(center, vec2.scale(vec2.rotation(angle), radius));
-			ctx.lineTo(rt.x, rt.y);
-			ctx.stroke();
-		}
+		gl.drawArrays(gl.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}
 
 	function drawSegment(a, b, radius, fillStyle, strokeStyle) {
-		var dn = vec2.normalize(vec2.perp(vec2.sub(b, a)));
-		var start_angle = dn.toAngle(); 
-		ctx.arc(a.x, a.y, radius, start_angle, start_angle + Math.PI, false);
-
-		var ds = vec2.scale(dn, -radius);
-		var bp = vec2.add(b, ds);
-		ctx.lineTo(bp.x, bp.y);
-
-		start_angle += Math.PI;
-		ctx.arc(b.x, b.y, radius, start_angle, start_angle + Math.PI, false);
-
-		ds = vec2.scale(dn, radius);
-		var ap = vec2.add(a, ds);
-		ctx.lineTo(ap.x, ap.y);
-
-		if (fillStyle) {
-			ctx.fillStyle = fillStyle;
-			ctx.fill();
-		}
-
-		if (strokeStyle) {
-			ctx.strokeStyle = strokeStyle;
-			ctx.stroke();
-		}
+		gl.drawArrays(gl.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}
 
-	function drawPolygon(verts, fillStyle, strokeStyle) {		
-		ctx.moveTo(verts[0].x, verts[0].y);
+	function drawPolygon(verts, fillStyle, strokeStyle) {
+		var buffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 
-		for (var i = 0; i < verts.length; i++) {
-			ctx.lineTo(verts[i].x, verts[i].y);
+		var data = new Float32Array(verts.length * 2);
+		for (var i = 0; i < verts.length;) {
+			data[i++] = verts.x;
+			data[i++] = verts.y;
 		}
 
-		ctx.lineTo(verts[verts.length - 1].x, verts[verts.length - 1].y);
+		gl.bufferData(gl.ARRAY_BUFFER, data, gl.STREAM_DRAW);
+		gl.drawArrays(gl.LINES, 0, verts.length);
 
-		if (fillStyle) {
-			ctx.fillStyle = fillStyle;
-			ctx.fill();
-		}
-
-		if (strokeStyle) {
-			ctx.strokeStyle = strokeStyle;
-			ctx.stroke();
-		}
+		gl.deleteBuffer(buffer);
 	}
 
 	return {
 		init: init,
 		clearRect: clearRect,
+		scissorRect: scissorRect,
 		drawLine: drawLine,
 		drawArrow: drawArrow,
 		drawBox: drawBox,

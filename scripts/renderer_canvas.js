@@ -1,9 +1,10 @@
-Renderer = function() {
+RendererCanvas = function() {
 	var ctx;
 
 	function init(canvas) {
 		if (!canvas.getContext) {
-            console.log("Your browser doesn't support canvas.");
+            console.error("Your browser doesn't support canvas.");
+            return;
         }
 
 		ctx = canvas.getContext("2d");
@@ -12,6 +13,12 @@ Renderer = function() {
 	function clearRect(x, y, width, height) {		
 		ctx.clearRect(x, y, width, height);
 	}
+
+	function scissorRect(x, y, width, height) {
+		ctx.beginPath();
+  		ctx.rect(x, y, width, height);
+  		ctx.clip();
+  	}
 
 	function drawLine(p1, p2, strokeStyle) {
 		ctx.beginPath();
@@ -141,6 +148,7 @@ Renderer = function() {
 	return {
 		init: init,
 		clearRect: clearRect,
+		scissorRect: scissorRect,
 		drawLine: drawLine,
 		drawArrow: drawArrow,
 		drawBox: drawBox,

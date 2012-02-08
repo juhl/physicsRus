@@ -3,6 +3,7 @@ var stats = {};
 App = function() {
 	var canvas;
 	var cc; // canvas context
+	var renderer;
 	
 	var lastTime;
 	var timeOffset;
@@ -41,11 +42,14 @@ App = function() {
 	var showJoints = true;
 	var showStats = false;
 
-	function main() {
+	function main() {	
 		canvas = document.getElementById("canvas");
 		if (!canvas.getContext) {
 			alert("Couldn't get canvas object !");
-		}
+		}		
+
+		// HACK
+		onResize(); 
 
 		// Horizontal & vertical scrollbar will be hidden
 		document.documentElement.style.overflowX = "hidden";
@@ -91,7 +95,7 @@ App = function() {
 			document.onkeydown = onKeyDown;
 			document.onkeyup = onKeyUp
 			document.onkeypress = onKeyPress;
-		}		
+		}
 
 		// Add scenes from demos
 		var combobox = document.getElementById("scene");
@@ -102,10 +106,10 @@ App = function() {
 			option.value = name;
 			combobox.add(option);
 			sceneNameArr.push(name);
-		}		
-
+		}
+/*
 		// Add scenes from list of JSON files in server
-		httpGetText("http://peppercode.net/rigid-dyn2d/scene.rb?action=list", false, function(text) { 
+		httpGetText("scene.rb?action=list", false, function(text) { 
 			text.replace(/\s*(.+?\.json)/g, function($0, filename) {
 				var option = document.createElement("option");
 				option.text = filename;
@@ -113,7 +117,7 @@ App = function() {
 				combobox.add(option);
 				sceneNameArr.push(filename);
 			});
-		});
+		});*/
 
 		// Select scene
 		sceneIndex = 0;
@@ -131,8 +135,9 @@ App = function() {
 		var editbox = document.getElementById("p_iters");
 		editbox.value = positionIterations;		
 
-		Renderer.init(canvas);
-		
+		renderer = RendererCanvas;
+		renderer.init(canvas);
+
 		cc = canvas.getContext("2d");
 
 		// Random color for bodies
@@ -146,8 +151,6 @@ App = function() {
 		mouseBody.resetMassData();
 		space.addBody(mouseBody);
 
-		onResize();
-
 		initScene();
 
 		window.requestAnimFrame = window.requestAnimationFrame || 
@@ -160,7 +163,7 @@ App = function() {
 			window.requestAnimFrame(function() { window.requestAnimFrame(arguments.callee); runFrame(); });
 		}
 		else {
-			window.setInterval(runFrame, 1000 / 60);
+			window.setInterval(runFrame, parseInt(1000 / 60));
 		}
 	}
 	
@@ -174,7 +177,7 @@ App = function() {
 		}
 
 		request.open("GET", uri, async);
-		request.overrideMimeType("text/plain");
+		//request.overrideMimeType("text/plain");
 		request.setRequestHeader("Content-Type", "text/plain");
 		request.send();
 	}
@@ -189,13 +192,15 @@ App = function() {
 		}
 
 		request.open("POST", uri, async);
-		request.overrideMimeType("text/plain");
-		request.setRequestHeader("Content-Type", "text/plain");
+		//request.overrideMimeType("text/plain");
+		request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		request.setRequestHeader("Content-length", text.length);
+		request.setRequestHeader("Connection", "close");
 		request.send(text);
 	}	
 
 	function loadSceneFromServer(name) {		
-		var uri = "http://peppercode.net/rigid-dyn2d/scenes/" + encodeURIComponent(name);
+		var uri = "scenes/" + encodeURIComponent(name);
 		httpGetText(uri, false, function(text) {
 			space.create(text);
 		});
@@ -203,8 +208,8 @@ App = function() {
 
 	function saveSceneToServer(name) {
 		var text = JSON.stringify(space, null, "\t");
-		var uri = "http://peppercode.net/rigid-dyn2d/scene.rb?action=save&filename=" + encodeURIComponent(name);
-		httpPostText(uri, true, "file=" + text, function(text) {});		
+		var postData = "action=save&filename=" + encodeURIComponent(name) + "&text=" + encodeURIComponent(text);
+		httpPostText("scene.rb", false, postData, function(text) {});
 	}
 
 	function initScene() {
@@ -218,7 +223,7 @@ App = function() {
 		else {
 			demo = null;
 			loadSceneFromServer(sceneNameArr[sceneIndex]);
-		}		
+		}
 
 		lastTime = Date.now();
 		timeOffset = 0;
@@ -272,7 +277,7 @@ App = function() {
 
 		if (stats.stepCount > 0) {
 			updateScreen(frameTime);
-		}			
+		}
 	}
 
 	function updateScreen(frameTime) {	
@@ -281,23 +286,22 @@ App = function() {
 		stats.timeDrawFrame = Date.now() - t0;
 
 		if (showStats) {
-			cc.setTransform(1, 0, 0, 1, 0, 0);
 			cc.font = "9pt menlo";
 			cc.textBaseline = "top";
 			cc.fillStyle = "#333";
-			cc.fillText(["step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "tm_draw:", stats.timeDrawFrame].join(" "), 10, 2);
+			cc.fillText(["fps:", parseInt(1 / frameTime), "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "tm_draw:", stats.timeDrawFrame].join(" "), 10, 2);
 			cc.fillText(["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver].join(" "), 10, 18);
 			cc.fillText(["bodies:", space.numBodies, "joints:", space.numJoints, "contacts:", space.numContacts, "pos_iters:", stats.positionIterations].join(" "), 10, 34);
 		}
 	}
 
-	function drawFrame(frameTime) {
-		cc.setTransform(1, 0, 0, 1, 0, 0);
-		Renderer.clearRect(0, 0, canvas.width, canvas.height);
+	function drawFrame(frameTime) {		
+		renderer.clearRect(0, 0, canvas.width, canvas.height);
 
+		cc.save();
 		// Transform coordinate system to y-axis is up and origin is bottom center
 		//cc.setTransform(view.scale, 0, 0, -view.cale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
-		cc.translate(canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
+		cc.setTransform(1, 0, 0, 1, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
 		cc.scale(view.scale, -view.scale);
 
 		// Draw bodies
@@ -319,11 +323,13 @@ App = function() {
 				var contactSolver = space.contactSolverArr[i];
 				for (var j = 0; j < contactSolver.contactArr.length; j++) {
 					var con = contactSolver.contactArr[j];
-					Renderer.drawCircle(con.p, 2.0, 0, "#F00");
-					//Renderer.drawArrow(con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), "#F00");
+					renderer.drawCircle(con.p, 2.0, 0, "#F00");
+					//renderer.drawArrow(con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), "#F00");
 				}
 			}
 		}
+
+		cc.restore();
 	}	
 
 	function drawBody(body, fillColor, outlineColor) {
@@ -341,13 +347,13 @@ App = function() {
 	function drawBodyShape(body, shape, fillColor, outlineColor) {
 		switch (shape.type) {
 		case Shape.TYPE_CIRCLE:
-			Renderer.drawCircle(shape.tc, shape.r, body.a, fillColor, outlineColor);
+			renderer.drawCircle(shape.tc, shape.r, body.a, fillColor, outlineColor);
 			break;
 		case Shape.TYPE_SEGMENT:
-			Renderer.drawSegment(shape.ta, shape.tb, shape.r, fillColor, outlineColor);
+			renderer.drawSegment(shape.ta, shape.tb, shape.r, fillColor, outlineColor);
 			break;
 		case Shape.TYPE_POLY:
-			Renderer.drawPolygon(shape.tverts, fillColor, outlineColor);
+			renderer.drawPolygon(shape.tverts, fillColor, outlineColor);
 			break;
 		}
 
@@ -356,7 +362,7 @@ App = function() {
 			var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
 			bounds.expand(1, 1);
 
-			Renderer.drawBox(bounds.mins, bounds.maxs, null, "#0A0");
+			renderer.drawBox(bounds.mins, bounds.maxs, null, "#0A0");
 		}
 	}
 
@@ -371,9 +377,9 @@ App = function() {
 		var p1 = vec2.add(vec2.rotate(joint.anchor1, body1.a), body1.p);
 		var p2 = vec2.add(vec2.rotate(joint.anchor2, body2.a), body2.p);
 
-		Renderer.drawLine(p1, p2, strokeStyle);
-		Renderer.drawCircle(p1, 2.5, 0, "#808");
-		Renderer.drawCircle(p2, 2.5, 0, "#808");
+		renderer.drawLine(p1, p2, strokeStyle);
+		renderer.drawCircle(p1, 2.5, 0, "#808");
+		renderer.drawCircle(p2, 2.5, 0, "#808");
 		
 		var bounds = new Bounds;
 		bounds.addPoint(p1);
@@ -548,19 +554,21 @@ App = function() {
 			var d1 = v1.length();
 			var d2 = v2.length();
 
-			touchScaleCenter = canvasToWorld(vec2.lerp(touchPos[0], touchPos[1], d1 / (d1 + d2)));
+			if (d1 > 0 || d2 > 0) {
+				touchScaleCenter = canvasToWorld(vec2.lerp(touchPos[0], touchPos[1], d1 / (d1 + d2)));
 
-			var oldScale = view.scale;
-			view.scale = Math.clamp(gestureScale, view.minScale, view.maxScale);
-			var ds = view.scale - oldScale;
-	
-			view.origin.x += touchScaleCenter.x * ds;
-			view.origin.y += touchScaleCenter.y * ds;
+				var oldScale = view.scale;
+				view.scale = Math.clamp(gestureScale, view.minScale, view.maxScale);
+				var ds = view.scale - oldScale;
+		
+				view.origin.x += touchScaleCenter.x * ds;
+				view.origin.y += touchScaleCenter.y * ds;
 
-			view.origin.x -= (v1.x + v2.x) * 0.5;
-			view.origin.x += (v1.y + v2.y) * 0.5;
+				view.origin.x -= (v1.x + v2.x) * 0.5;
+				view.origin.x += (v1.y + v2.y) * 0.5;
 
-			view.origin.y = Math.clamp(view.origin.y, 0, 0);
+				view.origin.y = Math.clamp(view.origin.y, 0, 0);
+			}
 
 			touchPosOld[0] = touchPos[0];
 			touchPosOld[1] = touchPos[1];
