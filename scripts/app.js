@@ -616,7 +616,7 @@ App = function() {
 			break;        
 		case 85: // 'u'
 			break;
-		case 49: // '1'            
+		case 49: // '1'
 		case 50: // '2'
 		case 51: // '3'
 			//number = e.keyCode - 48;
