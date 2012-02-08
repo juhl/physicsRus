@@ -26,4 +26,3 @@ begin
 rescue
   print $!
 end
-
