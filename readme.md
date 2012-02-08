@@ -11,6 +11,7 @@ Features
 - SAT collision detection
 - Supported shapes are circle, segment(thick rounded line segment), convex polygon
 - HTML5 canvas rendering
+- Web app look on mobile Safari
 
 Todo
 --------------
