@@ -107,7 +107,7 @@ App = function() {
 			combobox.add(option);
 			sceneNameArr.push(name);
 		}
-/*
+
 		// Add scenes from list of JSON files in server
 		httpGetText("scene.rb?action=list", false, function(text) { 
 			text.replace(/\s*(.+?\.json)/g, function($0, filename) {
@@ -117,7 +117,7 @@ App = function() {
 				combobox.add(option);
 				sceneNameArr.push(filename);
 			});
-		});*/
+		});
 
 		// Select scene
 		sceneIndex = 0;
@@ -304,6 +304,8 @@ App = function() {
 		cc.setTransform(1, 0, 0, 1, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
 		cc.scale(view.scale, -view.scale);
 
+		drawGrid(64);
+
 		// Draw bodies
 		for (var i in space.bodyHash) {
 			var body = space.bodyHash[i];
@@ -330,7 +332,29 @@ App = function() {
 		}
 
 		cc.restore();
-	}	
+	}
+
+	function drawGrid(gridSize) {
+		/*var start_x = parseInt((view.origin.x - canvas.width * 0.5) / gridSize) * gridSize;
+		var start_y = parseInt(view.origin.y / gridSize) * gridSize;
+		var v1 = new vec2(start_x, view.origin.y * view.scale);
+		var v2 = new vec2(start_x, (view.origin.y + canvas.height) * view.scale);
+
+		for (var x = -canvas.width * 0.5; x < canvas.width * 0.5;) {
+			v1.x ;
+			v2.x = x;
+			renderer.drawLine(v1, v2, "#AAA");
+		}
+
+		v1.set(-canvas.width * 0.5, 0);
+		v2.set(canvas.width * 0.5, 0);
+
+		for (var y = 0; y < canvas.height; y += gridSize) {
+			v1.y = y;
+			v2.y = y;
+			renderer.drawLine(v1, v2, "#AAA");
+		}*/
+	}
 
 	function drawBody(body, fillColor, outlineColor) {
 		for (var i = 0; i < body.shapeArr.length; i++) {
@@ -622,6 +646,7 @@ App = function() {
 			//number = e.keyCode - 48;
 			break;
 		case 32: // 'space'
+			onClickedStep();
 			break;
 		}					
 	}
