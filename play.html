@@ -1,16 +1,16 @@
 <!doctype html>
 <html>
 <head>
-  <meta name="Author" content="Ju-Hyung Lee, jufoot@gmail.com"/>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>  
-  <!--<link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon"/>-->
-  <link rel="apple-touch-icon-precomposed" href="img/apple-touch-icon-precomposed.png"/>   
-  <link rel="apple-touch-startup-image" href="img/startup-ipad-portrait.png" media="screen and (min-device-width: 481px) and (max-device-width: 1024px)"/>
-  <link rel="apple-touch-startup-image" href="img/startup.png" media="screen and (max-device-width: 320px)"/>
-  <link rel="stylesheet" href="style.css"/>
+  <meta name="Author" content="Ju-Hyung Lee, jufoot@gmail.com" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <!--<link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon" />-->
+  <link rel="apple-touch-icon-precomposed" href="img/apple-touch-icon-precomposed.png" />
+  <link rel="apple-touch-startup-image" href="img/startup-ipad-portrait.png" media="screen and (min-device-width: 481px) and (max-device-width: 1024px)" />
+  <link rel="apple-touch-startup-image" href="img/startup.png" media="screen and (max-device-width: 320px)" />
+  <link rel="stylesheet" href="style.css" />
   <title>RigidDyn2D</title>
 </head>
 
@@ -22,21 +22,21 @@
       <label for="scene">Scene: </label><select id="scene" style="width:110 px" onchange="App.onChangedScene(this.selectedIndex);"></select>
     </div>
     <div style="text-align:right">      
-      <label for="gravity">Gravity: </label><input type="number" id="gravity" size="8" min="-999" max="999" onchange="App.onChangedGravity(this.value);"/><br/>
-      <label for="frameRateHz">Frame rate: </label><input type="number" id="frameRateHz" size="5" min="10" max="120" onchange="App.onChangedFrameRateHz(this.value);"/><br/>
-      <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="5" min="1" max="100" onchange="App.onChangedVelocityIterations(this.value);"/><br/>
-      <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" onchange="App.onChangedPositionIterations(this.value);"/><br/>        
+      <label for="gravity">Gravity: </label><input type="number" id="gravity" size="8" min="-999" max="999" onchange="App.onChangedGravity(this.value);" /><br />
+      <label for="frameRateHz">Frame rate: </label><input type="number" id="frameRateHz" size="5" min="10" max="120" onchange="App.onChangedFrameRateHz(this.value);" /><br />
+      <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="5" min="1" max="100" onchange="App.onChangedVelocityIterations(this.value);" /><br />
+      <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" onchange="App.onChangedPositionIterations(this.value);" /><br />        
     </div>
     <div>
-      <input type="checkbox" id="warmStarting" checked="true" onclick="App.onClickedWarmStarting();"/>Warm starting<br/>
-      <input type="checkbox" id="allowSleep" checked="true" onclick="App.onClickedAllowSleep();"/>Allow sleep<br/>
-      <input type="checkbox" id="showBounds" onclick="App.onClickedShowBounds();"/>Show bounding boxes<br/>
-      <input type="checkbox" id="showContacts" onclick="App.onClickedShowContacts();"/>Show contacts<br/>
-      <input type="checkbox" id="showJoints" checked="true" onclick="App.onClickedShowJoints();"/>Show joints<br/>
-      <input type="checkbox" id="showStats" onclick="App.onClickedShowStats();"/>Show statistics<br/>
-      <input type="button" id="restart" value="Restart" style="width:77px" onclick="App.onClickedRestart();"/>
-      <input type="button" id="pause" value="Pause" style="width:77px" onclick="App.onClickedPause();"/><br/>
-      <input type="button" id="step" value="Step" style="width:77px" onclick="App.onClickedStep();"/><br/>
+      <input type="checkbox" id="warmStarting" checked="true" onclick="App.onClickedWarmStarting();" />Warm starting<br />
+      <input type="checkbox" id="allowSleep" checked="true" onclick="App.onClickedAllowSleep();" />Allow sleep<br />
+      <input type="checkbox" id="showBounds" onclick="App.onClickedShowBounds();" />Show bounding boxes<br />
+      <input type="checkbox" id="showContacts" onclick="App.onClickedShowContacts();" />Show contacts<br />
+      <input type="checkbox" id="showJoints" checked="true" onclick="App.onClickedShowJoints();" />Show joints<br />
+      <input type="checkbox" id="showStats" onclick="App.onClickedShowStats();" />Show statistics<br />
+      <input type="button" id="restart" value="Restart" style="width:77px" onclick="App.onClickedRestart();" />
+      <input type="button" id="pause" value="Pause" style="width:77px" onclick="App.onClickedPause();" /><br />
+      <input type="button" id="step" value="Step" style="width:77px" onclick="App.onClickedStep();" /><br />
     </div>
   </div>
   </div>
