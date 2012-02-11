@@ -107,7 +107,7 @@ App = function() {
 			combobox.add(option);
 			sceneNameArr.push(name);
 		}
-
+/*
 		// Add scenes from list of JSON files in server
 		httpGetText("scene.rb?action=list", false, function(text) { 
 			text.replace(/\s*(.+?\.json)/g, function($0, filename) {
@@ -117,7 +117,7 @@ App = function() {
 				combobox.add(option);
 				sceneNameArr.push(filename);
 			});
-		});
+		});*/
 
 		// Select scene
 		sceneIndex = 0;
@@ -295,16 +295,22 @@ App = function() {
 		}
 	}
 
-	function drawFrame(frameTime) {		
+	function drawFrame(frameTime) {
 		renderer.clearRect(0, 0, canvas.width, canvas.height);
 
 		cc.save();
-		// Transform coordinate system to y-axis is up and origin is bottom center
-		//cc.setTransform(view.scale, 0, 0, -view.cale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
-		cc.setTransform(1, 0, 0, 1, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
-		cc.scale(view.scale, -view.scale);
+		
+		// Transform view coordinates to screen
+		//cc.translate(canvas.width * 0.5, canvas.height);
+		//cc.scale(1, -1);
 
-		drawGrid(64);
+		// Transform world coordinates to view
+		//cc.translate(-view.origin.x, -view.origin.y);
+		//cc.scale(view.scale, view.scale);
+
+		cc.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
+
+		//drawGrids();
 
 		// Draw bodies
 		for (var i in space.bodyHash) {
@@ -334,26 +340,34 @@ App = function() {
 		cc.restore();
 	}
 
-	function drawGrid(gridSize) {
-		/*var start_x = parseInt((view.origin.x - canvas.width * 0.5) / gridSize) * gridSize;
-		var start_y = parseInt(view.origin.y / gridSize) * gridSize;
-		var v1 = new vec2(start_x, view.origin.y * view.scale);
-		var v2 = new vec2(start_x, (view.origin.y + canvas.height) * view.scale);
+	function drawGrids() {
+		var gridSize = 64;
+		var gridColor = "#CCC";
+		var w_half = canvas.width / 2;
+		var viewBounds = new Bounds(new vec2((view.origin.x - w_half) / view.scale, view.origin.y / view.scale), new vec2((view.origin.x + w_half) / view.scale, (view.origin.y + canvas.height) / view.scale));
 
-		for (var x = -canvas.width * 0.5; x < canvas.width * 0.5;) {
-			v1.x ;
+		var start_x = Math.floor(viewBounds.mins.x / gridSize) * gridSize;
+		var start_y = Math.floor(viewBounds.mins.y / gridSize) * gridSize;
+		var end_x = Math.ceil(viewBounds.maxs.x / gridSize) * gridSize;
+		var end_y = Math.ceil(viewBounds.maxs.y / gridSize) * gridSize;
+
+		var v1 = new vec2(start_x, start_y);
+		var v2 = new vec2(start_x, end_y);
+
+		for (var x = start_x; x <= end_x; x += gridSize) {
+			v1.x = x;
 			v2.x = x;
-			renderer.drawLine(v1, v2, "#AAA");
+			renderer.drawLine(v1, v2, gridColor);
 		}
 
-		v1.set(-canvas.width * 0.5, 0);
-		v2.set(canvas.width * 0.5, 0);
+		v1.set(start_x, start_y);
+		v2.set(end_x, start_y);
 
-		for (var y = 0; y < canvas.height; y += gridSize) {
+		for (var y = start_y; y <= end_y; y += gridSize) {
 			v1.y = y;
 			v2.y = y;
-			renderer.drawLine(v1, v2, "#AAA");
-		}*/
+			renderer.drawLine(v1, v2, gridColor);
+		}
 	}
 
 	function drawBody(body, fillColor, outlineColor) {
