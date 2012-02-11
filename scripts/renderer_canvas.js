@@ -26,8 +26,6 @@ RendererCanvas = function() {
 		ctx.moveTo(p1.x, p1.y);
 		ctx.lineTo(p2.x, p2.y);
 
-		ctx.closePath();
-		
 		ctx.strokeStyle = strokeStyle;
 		ctx.stroke();
 	}
@@ -52,7 +50,6 @@ RendererCanvas = function() {
 
 		ctx.restore();
 
-		ctx.closePath();
 		ctx.lineJoint = "miter";
 		ctx.strokeStyle = strokeStyle;
 		ctx.stroke();		
@@ -63,12 +60,12 @@ RendererCanvas = function() {
 		ctx.rect(mins.x, mins.y, maxs.x - mins.x, maxs.y - mins.y);
 
 		if (fillStyle) {
+			ctx.closePath();
 			ctx.fillStyle = fillStyle;
 			ctx.fill();
 		}
 
-		if (strokeStyle) {
-			ctx.closePath();
+		if (strokeStyle) {			
 			ctx.strokeStyle = strokeStyle;
 			ctx.stroke();			
 		}
@@ -76,21 +73,21 @@ RendererCanvas = function() {
 
 	function drawCircle(center, radius, angle, fillStyle, strokeStyle) {
 		ctx.beginPath();
-
 		ctx.arc(center.x, center.y, radius, 0, Math.PI*2, true);
+
 		if (fillStyle) {
+			ctx.closePath();
 			ctx.fillStyle = fillStyle;
 			ctx.fill();
-		}
+		}		
 
 		if (strokeStyle) {
 			ctx.moveTo(center.x, center.y);
 			var rt = vec2.add(center, vec2.scale(vec2.rotation(angle), radius));
-			ctx.lineTo(rt.x, rt.y);
-			ctx.closePath();
+			ctx.lineTo(rt.x, rt.y);			
 			ctx.strokeStyle = strokeStyle;
-			ctx.stroke();			
-		}
+			ctx.stroke();
+		}	
 	}
 
 	function drawSegment(a, b, radius, fillStyle, strokeStyle) {
@@ -112,12 +109,12 @@ RendererCanvas = function() {
 		ctx.lineTo(ap.x, ap.y);		
 
 		if (fillStyle) {
+			ctx.closePath();
 			ctx.fillStyle = fillStyle;
 			ctx.fill();
 		}
 
-		if (strokeStyle) {
-			ctx.closePath();
+		if (strokeStyle) {			
 			ctx.strokeStyle = strokeStyle;
 			ctx.stroke();			
 		}
@@ -131,18 +128,18 @@ RendererCanvas = function() {
 			ctx.lineTo(verts[i].x, verts[i].y);
 		}
 
-		ctx.lineTo(verts[verts.length - 1].x, verts[verts.length - 1].y);
-		ctx.closePath();		
+		ctx.lineTo(verts[verts.length - 1].x, verts[verts.length - 1].y);		
 
 		if (fillStyle) {
+			ctx.closePath();
 			ctx.fillStyle = fillStyle;
 			ctx.fill();
 		}
 
 		if (strokeStyle) {
 			ctx.strokeStyle = strokeStyle;
-			ctx.stroke();			
-		}
+			ctx.stroke();
+		}		
 	}
 
 	return {
