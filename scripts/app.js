@@ -740,10 +740,13 @@ App = function() {
 				view.origin.x += (v1.y + v2.y) * 0.5;
 
 				view.origin.y = Math.clamp(view.origin.y, 0, 0);
+
+				// Set dirtyBounds to full screen
+				dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
 			}
 
 			touchPosOld[0] = touchPos[0];
-			touchPosOld[1] = touchPos[1];
+			touchPosOld[1] = touchPos[1];			
 
 			e.preventDefault();
 		}
