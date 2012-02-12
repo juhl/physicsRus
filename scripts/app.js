@@ -349,7 +349,7 @@ App = function() {
 		// viewBounds for culling
 		viewBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
 
-		if (!enableDirtyBounds) {
+		if (enableDirtyBounds) {
 			dynamicBounds.copy(viewBounds);
 		}
 		else {
@@ -378,7 +378,7 @@ App = function() {
 				renderer.clearRect(dirtyBounds.mins.x, dirtyBounds.mins.y, dirtyBounds.maxs.x - dirtyBounds.mins.x, dirtyBounds.maxs.y - dirtyBounds.mins.y);
 
 				pixelAlign(refreshBounds);
-				//renderer.scissorRect(refreshBounds.mins.x, refreshBounds.mins.y, refreshBounds.maxs.x - refreshBounds.mins.x, refreshBounds.maxs.y - refreshBounds.mins.y);
+				renderer.scissorRect(refreshBounds.mins.x, refreshBounds.mins.y, refreshBounds.maxs.x - refreshBounds.mins.x, refreshBounds.maxs.y - refreshBounds.mins.y);
 			}
 
 			//drawGrids(64);
