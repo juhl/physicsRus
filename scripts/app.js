@@ -349,7 +349,7 @@ App = function() {
 		// viewBounds for culling
 		viewBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
 
-		if (enableDirtyBounds) {
+		if (!enableDirtyBounds) {
 			dynamicBounds.copy(viewBounds);
 		}
 		else {
@@ -365,6 +365,8 @@ App = function() {
 					preJoint(space.jointHash[i]);
 				}
 			}
+
+			dynamicBounds.copy(viewBounds);
 		}
 
 		if (!dynamicBounds.isEmpty()) {
