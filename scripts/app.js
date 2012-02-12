@@ -381,7 +381,7 @@ App = function() {
 				renderer.scissorRect(refreshBounds.mins.x, refreshBounds.mins.y, refreshBounds.maxs.x - refreshBounds.mins.x, refreshBounds.maxs.y - refreshBounds.mins.y);
 			}
 
-			drawGrids(64);
+			//drawGrids(64);
 
 			// Draw bodies
 			for (var i in space.bodyHash) {
