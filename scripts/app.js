@@ -379,7 +379,7 @@ App = function() {
 			pixelAlign(refreshBounds);
 			renderer.scissorRect(refreshBounds.mins.x, refreshBounds.mins.y, refreshBounds.maxs.x - refreshBounds.mins.x, refreshBounds.maxs.y - refreshBounds.mins.y);
 
-			drawGrids();
+			//drawGrids();
 
 			// Draw bodies
 			for (var i in space.bodyHash) {
