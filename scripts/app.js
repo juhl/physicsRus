@@ -7,14 +7,13 @@ App = function() {
 	
 	var lastTime;
 	var timeOffset;
-	var view = { origin: new vec2(0, 0), scale: 1, minScale: 0.5, maxScale: 3.0 };
+	var view = { origin: new vec2(0, 0), scale: 1, minScale: 0.5, maxScale: 3.0, bounds: new Bounds };
 	var mouseDown = false;
 	var startMoving = false;
 	var mousePositionOld;
 	var touchPosOld = new Array(2);
 	var gestureStartScale;
 	var gestureScale;
-	var viewBounds = new Bounds;
 	var dirtyBounds = new Bounds;
 	var dynamicBounds = new Bounds;
 	var refreshBounds = new Bounds;	
@@ -334,6 +333,9 @@ App = function() {
 			renderer.clearRect(0, 0, canvas.width, canvas.height);
 		}
 
+		// view.bounds for culling
+		view.bounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+
 		renderer.pushMatrix();
 		
 		// Transform view coordinates to screen canvas
@@ -346,11 +348,8 @@ App = function() {
 
 		renderer.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
 
-		// viewBounds for culling
-		viewBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
-
 		if (!enableDirtyBounds) {
-			dynamicBounds.copy(viewBounds);
+			refreshBounds.copy(view.bounds);
 		}
 		else {
 			// Update dynamic bounds
@@ -364,40 +363,43 @@ App = function() {
 				for (var i in space.jointHash) {
 					preJoint(space.jointHash[i]);
 				}
-			}			
-		}
+			}
 
-		if (!dynamicBounds.isEmpty()) {
-			// refreshBounds = dirtyBounds + dynamicBounds
 			refreshBounds.clear();
-			refreshBounds.addBounds(dirtyBounds);
-			refreshBounds.addBounds(dynamicBounds);
 
-			if (enableDirtyBounds) {
+			if (!dirtyBounds.isEmpty()) {
 				pixelAlign(dirtyBounds);
 				renderer.clearRect(dirtyBounds.mins.x, dirtyBounds.mins.y, dirtyBounds.maxs.x - dirtyBounds.mins.x, dirtyBounds.maxs.y - dirtyBounds.mins.y);
 
+				refreshBounds.addBounds(dirtyBounds);				
+			}
+
+			if (!dynamicBounds.isEmpty()) {
+				refreshBounds.addBounds(dynamicBounds);
+
+				dirtyBounds.copy(dynamicBounds);
+			}		
+			
+			if (!refreshBounds.isEmpty()) {
 				pixelAlign(refreshBounds);
 				renderer.scissorRect(refreshBounds.mins.x, refreshBounds.mins.y, refreshBounds.maxs.x - refreshBounds.mins.x, refreshBounds.maxs.y - refreshBounds.mins.y);
-			}
-
-			//drawGrids(64);
-
-			// Draw bodies
-			for (var i in space.bodyHash) {
-				var body = space.bodyHash[i];
-				drawBody(body, bodyColor(body), "#000");
-			}
-
-			// Draw joints
-			if (showJoints) {
-				for (var i in space.jointHash) {
-					drawJoint(space.jointHash[i], "#F0F");
-				}
-			}
-
-			dirtyBounds.copy(dynamicBounds);
+			}			
 		}
+
+		//drawGrids(64);
+
+		// Draw bodies
+		for (var i in space.bodyHash) {
+			var body = space.bodyHash[i];
+			drawBody(body, bodyColor(body), "#000");
+		}
+
+		// Draw joints
+		if (showJoints) {
+			for (var i in space.jointHash) {
+				drawJoint(space.jointHash[i], "#F0F");
+			}
+		}		
 
 		// Draw contacts
 		if (showContacts) {
@@ -423,7 +425,7 @@ App = function() {
 				var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
 				bounds.expand(2, 2);
 
-				if (viewBounds.intersectsBounds(bounds)) {
+				if (view.bounds.intersectsBounds(bounds)) {
 					dynamicBounds.addBounds(bounds);
 				}
 			}
@@ -453,7 +455,7 @@ App = function() {
 		bounds.addPoint(p2);
 		bounds.expand(3, 3);
 		
-		if (viewBounds.intersectsBounds(bounds)) {
+		if (view.bounds.intersectsBounds(bounds)) {
 			dynamicBounds.addBounds(bounds);
 		}
 	}
@@ -464,10 +466,10 @@ App = function() {
 		var gridSize = refGridSize * refGridSize / p;
 		var gridColor = "#CCC";
 
-		var start_x = Math.floor(viewBounds.mins.x / gridSize) * gridSize;
-		var start_y = Math.floor(viewBounds.mins.y / gridSize) * gridSize;
-		var end_x = Math.ceil(viewBounds.maxs.x / gridSize) * gridSize;
-		var end_y = Math.ceil(viewBounds.maxs.y / gridSize) * gridSize;
+		var start_x = Math.floor(view.bounds.mins.x / gridSize) * gridSize;
+		var start_y = Math.floor(view.bounds.mins.y / gridSize) * gridSize;
+		var end_x = Math.ceil(view.bounds.maxs.x / gridSize) * gridSize;
+		var end_y = Math.ceil(view.bounds.maxs.y / gridSize) * gridSize;
 
 		var v1 = new vec2(start_x, start_y);
 		var v2 = new vec2(start_x, end_y);
