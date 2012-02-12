@@ -14,7 +14,7 @@ DemoPyramid = function() {
 			for (var j = 0; j <= i; j++) {
 				var body = new Body(Body.DYNAMIC, (j - i * 0.5) * 42, 500 - i * 42);
 				var shape = new ShapeBox(0, 0, 36, 36);
-				shape.e = 0.0;
+				shape.e = 0.1;
 				shape.u = 1.0;
 				shape.density = 0.8;
 				body.addShape(shape);

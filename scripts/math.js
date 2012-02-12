@@ -619,6 +619,11 @@ Bounds = function(mins, maxs) {
 	this.maxs = maxs ? new vec2(maxs.x, maxs.y) : new vec2(-999999, -999999);
 }
 
+Bounds.prototype.set = function(mins, maxs) {
+	this.mins.set(mins.x, mins.y);
+	this.maxs.set(maxs.x, maxs.y);
+}
+
 Bounds.prototype.copy = function(b) {
 	this.mins.copy(b.mins);
 	this.maxs.copy(b.maxs);

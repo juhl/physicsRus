@@ -14,6 +14,10 @@ App = function() {
 	var touchPosOld = new Array(2);
 	var gestureStartScale;
 	var gestureScale;
+	var viewBounds = new Bounds;
+	var dirtyBounds = new Bounds;
+	var dynamicBounds = new Bounds;
+	var refreshBounds = new Bounds;	
 
 	var editMode = false;
 	var selectMode = 0; // 0: Body, 1: Shape, 2: Vertex, 3: Joint
@@ -37,6 +41,7 @@ App = function() {
 	var positionIterations = 4;
 	var warmStarting = true;
 	var allowSleep = true;
+	var enableDirtyBounds = true;
 	var showBounds = false;
 	var showContacts = false;
 	var showJoints = true;
@@ -227,6 +232,33 @@ App = function() {
 
 		lastTime = Date.now();
 		timeOffset = 0;
+
+		// Set dirtyBounds to full screen
+		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+	}
+
+	function worldToCanvas(v) {
+		return new vec2(
+			canvas.width * 0.5 + (v.x * view.scale - view.origin.x),
+			canvas.height - (v.y * view.scale - view.origin.y));
+	}
+
+	function canvasToWorld(v) {
+		return new vec2(
+			(view.origin.x + (v.x - canvas.width * 0.5)) / view.scale,
+			(view.origin.y - (v.y - canvas.height)) / view.scale);
+	}
+
+	function pixelAlign(bounds) {
+		var mins = worldToCanvas(bounds.mins);
+		mins.x = Math.floor(mins.x);
+		mins.y = Math.ceil(mins.y);
+		bounds.mins = canvasToWorld(mins);
+
+		var maxs = worldToCanvas(bounds.maxs);
+		maxs.x = Math.ceil(maxs.x);
+		maxs.y = Math.floor(maxs.y);
+		bounds.maxs = canvasToWorld(maxs);
 	}	
 
 	function bodyColor(body) {
@@ -286,6 +318,8 @@ App = function() {
 		stats.timeDrawFrame = Date.now() - t0;
 
 		if (showStats) {
+			renderer.drawBox(new vec2(0, 0), new vec2(canvas.width, 50), "#FFF");
+
 			cc.font = "9pt menlo";
 			cc.textBaseline = "top";
 			cc.fillStyle = "#333";
@@ -296,11 +330,13 @@ App = function() {
 	}
 
 	function drawFrame(frameTime) {
-		renderer.clearRect(0, 0, canvas.width, canvas.height);
+		if (!enableDirtyBounds) {
+			renderer.clearRect(0, 0, canvas.width, canvas.height);
+		}
 
-		cc.save();
+		renderer.pushMatrix();
 		
-		// Transform view coordinates to screen
+		// Transform view coordinates to screen canvas
 		//cc.translate(canvas.width * 0.5, canvas.height);
 		//cc.scale(1, -1);
 
@@ -308,21 +344,57 @@ App = function() {
 		//cc.translate(-view.origin.x, -view.origin.y);
 		//cc.scale(view.scale, view.scale);
 
-		cc.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
+		renderer.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
 
-		//drawGrids();
+		// viewBounds for culling
+		viewBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
 
-		// Draw bodies
-		for (var i in space.bodyHash) {
-			var body = space.bodyHash[i];
-			drawBody(body, bodyColor(body), "#000");
+		if (!enableDirtyBounds) {
+			dynamicBounds.copy(viewBounds);
+		}
+		else {
+			// Update dynamic bounds
+			dynamicBounds.clear();
+
+			for (var i in space.bodyHash) {
+				preBody(space.bodyHash[i]);
+			}
+
+			if (showJoints) {
+				for (var i in space.jointHash) {
+					preJoint(space.jointHash[i]);
+				}
+			}
 		}
 
-		// Draw joints
-		if (showJoints) {
-			for (var i in space.jointHash) {
-				drawJoint(space.jointHash[i], "#F0F");
+		if (!dynamicBounds.isEmpty()) {
+			// refreshBounds = dirtyBounds + dynamicBounds
+			refreshBounds.clear();
+			refreshBounds.addBounds(dirtyBounds);
+			refreshBounds.addBounds(dynamicBounds);
+
+			pixelAlign(dirtyBounds);
+			renderer.clearRect(dirtyBounds.mins.x, dirtyBounds.mins.y, dirtyBounds.maxs.x - dirtyBounds.mins.x, dirtyBounds.maxs.y - dirtyBounds.mins.y);
+
+			pixelAlign(refreshBounds);
+			renderer.scissorRect(refreshBounds.mins.x, refreshBounds.mins.y, refreshBounds.maxs.x - refreshBounds.mins.x, refreshBounds.maxs.y - refreshBounds.mins.y);
+
+			drawGrids();
+
+			// Draw bodies
+			for (var i in space.bodyHash) {
+				var body = space.bodyHash[i];
+				drawBody(body, bodyColor(body), "#000");
 			}
+
+			// Draw joints
+			if (showJoints) {
+				for (var i in space.jointHash) {
+					drawJoint(space.jointHash[i], "#F0F");
+				}
+			}
+
+			dirtyBounds.copy(dynamicBounds);
 		}
 
 		// Draw contacts
@@ -335,16 +407,63 @@ App = function() {
 					//renderer.drawArrow(con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), "#F00");
 				}
 			}
+		}		
+
+		renderer.popMatrix();
+	}	
+
+	function preBody(body) {
+		for (var i = 0; i < body.shapeArr.length; i++) {
+			var shape = body.shapeArr[i];
+
+			if (!body.isStatic()) {
+				// Expand for outline width
+				var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
+				bounds.expand(2, 2);
+
+				if (viewBounds.intersectsBounds(bounds)) {
+					dynamicBounds.addBounds(bounds);
+				}
+			}
+		}
+	}
+
+	function preJoint(joint) {
+		if (!joint.anchor1 || !joint.anchor2) {
+			return;
 		}
 
-		cc.restore();
+		var body1 = joint.body1;
+		var body2 = joint.body2;
+
+		var active1 = !body1.isStatic();
+		var active2 = !body2.isStatic();
+
+		if (!active1 && !active2) {
+			return;
+		}
+		
+		var p1 = vec2.add(vec2.rotate(joint.anchor1, body1.a), body1.p);
+		var p2 = vec2.add(vec2.rotate(joint.anchor2, body2.a), body2.p);
+		
+		var bounds = new Bounds;
+		bounds.addPoint(p1);
+		bounds.addPoint(p2);
+		bounds.expand(3, 3);
+		
+		if (viewBounds.intersectsBounds(bounds)) {
+			dynamicBounds.addBounds(bounds);
+		}
 	}
 
 	function drawGrids() {
 		var gridSize = 64;
 		var gridColor = "#CCC";
 		var w_half = canvas.width / 2;
-		var viewBounds = new Bounds(new vec2((view.origin.x - w_half) / view.scale, view.origin.y / view.scale), new vec2((view.origin.x + w_half) / view.scale, (view.origin.y + canvas.height) / view.scale));
+		var view_scale_inv = 1 / view.scale;
+		var viewBounds = new Bounds(
+			new vec2((view.origin.x - w_half) * view_scale_inv, view.origin.y * view_scale_inv), 
+			new vec2((view.origin.x + w_half) * view_scale_inv, (view.origin.y + canvas.height) * view_scale_inv));
 
 		var start_x = Math.floor(viewBounds.mins.x / gridSize) * gridSize;
 		var start_y = Math.floor(viewBounds.mins.y / gridSize) * gridSize;
@@ -355,8 +474,11 @@ App = function() {
 		var v2 = new vec2(start_x, end_y);
 
 		for (var x = start_x; x <= end_x; x += gridSize) {
+			if (x < refreshBounds.mins.x || x > refreshBounds.maxs.x) {
+				continue;
+			}
 			v1.x = x;
-			v2.x = x;
+			v2.x = x;			
 			renderer.drawLine(v1, v2, gridColor);
 		}
 
@@ -364,21 +486,26 @@ App = function() {
 		v2.set(end_x, start_y);
 
 		for (var y = start_y; y <= end_y; y += gridSize) {
+			if (y < refreshBounds.mins.y || y > refreshBounds.maxs.y) {
+				continue;
+			}
+
 			v1.y = y;
 			v2.y = y;
 			renderer.drawLine(v1, v2, gridColor);
 		}
-	}
+	}	
 
 	function drawBody(body, fillColor, outlineColor) {
 		for (var i = 0; i < body.shapeArr.length; i++) {
 			var shape = body.shapeArr[i];
 
-			// Expand for outline width
 			var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
-			bounds.expand(2, 2);
+			if (!refreshBounds.intersectsBounds(bounds)) {
+				continue;
+			}
 
-			drawBodyShape(body, shape, fillColor, outlineColor);
+			drawBodyShape(body, shape, fillColor, outlineColor);			
 		}
 	}
 
@@ -415,14 +542,18 @@ App = function() {
 		var p1 = vec2.add(vec2.rotate(joint.anchor1, body1.a), body1.p);
 		var p2 = vec2.add(vec2.rotate(joint.anchor2, body2.a), body2.p);
 
-		renderer.drawLine(p1, p2, strokeStyle);
-		renderer.drawCircle(p1, 2.5, 0, "#808");
-		renderer.drawCircle(p2, 2.5, 0, "#808");
-		
 		var bounds = new Bounds;
 		bounds.addPoint(p1);
 		bounds.addPoint(p2);
 		bounds.expand(3, 3);
+		
+		if (!refreshBounds.intersectsBounds(bounds)) {
+			return;
+		}
+
+		renderer.drawLine(p1, p2, strokeStyle);
+		renderer.drawCircle(p1, 2.5, 0, "#808");
+		renderer.drawCircle(p2, 2.5, 0, "#808");
 	}
 
 	function onResize(e) {
@@ -440,6 +571,9 @@ App = function() {
 		toolbar.style.left = (canvas.width - toolbar.clientWidth) + "px";
 		toolbar.style.top = "0px";
 		//toolbar.style.display = "none";
+
+		// Set dirtyBounds to full screen
+		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));		
 	}
 
 	function getMousePosition(e) {
@@ -447,13 +581,7 @@ App = function() {
 			document.body.scrollLeft + e.clientX - canvas.offsetLeft, 
 			document.body.scrollTop + e.clientY - canvas.offsetTop);
 	}
-
-	function canvasToWorld(p) {
-		return new vec2(
-			(p.x - (canvas.width * 0.5 - view.origin.x)) / view.scale, 
-			-(p.y - (canvas.height + view.origin.y)) / view.scale);	
-	}
-
+	
 	function onMouseDown(e) {
 		mouseDown = true;		
 
@@ -510,6 +638,9 @@ App = function() {
 			mousePositionOld.x = pos.x;
 			mousePositionOld.y = pos.y;
 
+			// Set dirtyBounds to full screen
+			dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+		
 			e.preventDefault();
 		}
 	}
@@ -542,6 +673,9 @@ App = function() {
 
 		// Clamp view origin limit
 		view.origin.y = Math.clamp(view.origin.y, 0, 0);
+
+		// Set dirtyBounds to full screen
+		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
 
 		e.preventDefault();		
 	}
@@ -707,6 +841,10 @@ App = function() {
 		allowSleep = !allowSleep;
 	}
 
+	function onClickedEnableDirtyRect() {
+		enableDirtyBounds = !enableDirtyBounds;
+	}
+
 	function onClickedShowBounds() {
 		showBounds = !showBounds;
 	}
@@ -754,6 +892,7 @@ App = function() {
 		onChangedPositionIterations: onChangedPositionIterations,        
 		onClickedWarmStarting: onClickedWarmStarting,
 		onClickedAllowSleep: onClickedAllowSleep,
+		onClickedEnableDirtyRect: onClickedEnableDirtyRect,
 		onClickedShowBounds: onClickedShowBounds,
 		onClickedShowContacts: onClickedShowContacts,
 		onClickedShowJoints: onClickedShowJoints,

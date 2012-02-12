@@ -178,6 +178,18 @@ RendererWebGL = function() {
 		gl.deleteBuffer(buffer);
 	}
 
+	function pushMatrix() {
+		
+	}
+
+	function popMatrix() {
+		
+	}
+
+	function setTransform(_11, _12, _21, _22, _31, _32) {
+		
+	}
+
 	return {
 		init: init,
 		clearRect: clearRect,
@@ -187,6 +199,9 @@ RendererWebGL = function() {
 		drawBox: drawBox,
 		drawCircle: drawCircle,
 		drawSegment: drawSegment,
-		drawPolygon: drawPolygon
+		drawPolygon: drawPolygon,
+		pushMatrix: pushMatrix,
+		popMatrix: popMatrix,
+		setTransform: setTransform
 	}
 }();

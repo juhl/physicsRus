@@ -11,11 +11,11 @@ RendererCanvas = function() {
 	}
 
 	function clearRect(x, y, width, height) {		
-		ctx.clearRect(x, y, width, height);
+		ctx.clearRect(x, y, width, height);		
 	}
 
 	function scissorRect(x, y, width, height) {
-		ctx.beginPath();
+		ctx.beginPath();		
   		ctx.rect(x, y, width, height);
   		ctx.clip();
   	}
@@ -142,8 +142,20 @@ RendererCanvas = function() {
 		}		
 	}
 
+	function pushMatrix() {
+		ctx.save();
+	}
+
+	function popMatrix() {
+		ctx.restore();
+	}
+
+	function setTransform(_11, _12, _21, _22, _31, _32) {
+		ctx.setTransform(_11, _12, _21, _22, _31, _32);
+	}
+
 	return {
-		init: init,
+		init: init,		
 		clearRect: clearRect,
 		scissorRect: scissorRect,
 		drawLine: drawLine,
@@ -151,6 +163,9 @@ RendererCanvas = function() {
 		drawBox: drawBox,
 		drawCircle: drawCircle,
 		drawSegment: drawSegment,
-		drawPolygon: drawPolygon
+		drawPolygon: drawPolygon,
+		pushMatrix: pushMatrix,
+		popMatrix: popMatrix,
+		setTransform: setTransform
 	}
 }();
