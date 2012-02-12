@@ -15,8 +15,9 @@ RendererCanvas = function() {
 	}
 
 	function scissorRect(x, y, width, height) {
-		ctx.beginPath();		
+		ctx.beginPath();
   		ctx.rect(x, y, width, height);
+ 		ctx.closePath();
   		ctx.clip();
   	}
 
