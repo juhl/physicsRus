@@ -364,9 +364,7 @@ App = function() {
 				for (var i in space.jointHash) {
 					preJoint(space.jointHash[i]);
 				}
-			}
-
-			dynamicBounds.copy(viewBounds);
+			}			
 		}
 
 		if (!dynamicBounds.isEmpty()) {

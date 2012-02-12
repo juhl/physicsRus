@@ -107,6 +107,7 @@ Body.prototype.resetMassData = function() {
 		this.setMass(Infinity);
 		this.setInertia(Infinity);
 		this.centroid = new vec2(0, 0);
+		this.p = this.xf.transform(this.centroid);
 		return;
 	}
 	
