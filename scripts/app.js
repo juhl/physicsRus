@@ -373,13 +373,15 @@ App = function() {
 			refreshBounds.addBounds(dirtyBounds);
 			refreshBounds.addBounds(dynamicBounds);
 
-			pixelAlign(dirtyBounds);
-			renderer.clearRect(dirtyBounds.mins.x, dirtyBounds.mins.y, dirtyBounds.maxs.x - dirtyBounds.mins.x, dirtyBounds.maxs.y - dirtyBounds.mins.y);
+			if (enableDirtyBounds) {
+				pixelAlign(dirtyBounds);
+				renderer.clearRect(dirtyBounds.mins.x, dirtyBounds.mins.y, dirtyBounds.maxs.x - dirtyBounds.mins.x, dirtyBounds.maxs.y - dirtyBounds.mins.y);
 
-			pixelAlign(refreshBounds);
-			renderer.scissorRect(refreshBounds.mins.x, refreshBounds.mins.y, refreshBounds.maxs.x - refreshBounds.mins.x, refreshBounds.maxs.y - refreshBounds.mins.y);
+				pixelAlign(refreshBounds);
+				renderer.scissorRect(refreshBounds.mins.x, refreshBounds.mins.y, refreshBounds.maxs.x - refreshBounds.mins.x, refreshBounds.maxs.y - refreshBounds.mins.y);
+			}
 
-			//drawGrids();
+			drawGrids(64);
 
 			// Draw bodies
 			for (var i in space.bodyHash) {
@@ -456,14 +458,11 @@ App = function() {
 		}
 	}
 
-	function drawGrids() {
-		var gridSize = 64;
+	function drawGrids(refGridSize) {
+		var n = refGridSize * view.scale;
+		var p = 1; while (p <= n) p <<= 1; p >>= 1; // previous power of two
+		var gridSize = refGridSize * refGridSize / p;
 		var gridColor = "#CCC";
-		var w_half = canvas.width / 2;
-		var view_scale_inv = 1 / view.scale;
-		var viewBounds = new Bounds(
-			new vec2((view.origin.x - w_half) * view_scale_inv, view.origin.y * view_scale_inv), 
-			new vec2((view.origin.x + w_half) * view_scale_inv, (view.origin.y + canvas.height) * view_scale_inv));
 
 		var start_x = Math.floor(viewBounds.mins.x / gridSize) * gridSize;
 		var start_y = Math.floor(viewBounds.mins.y / gridSize) * gridSize;
