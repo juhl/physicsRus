@@ -320,7 +320,7 @@ App = function() {
 
 		if (showStats) {
 			// Safari slowing down bug ?: I think graphics hardware seems to wait to finish all drawing commands when it draws with changed transformation matrix.
-			renderer.clearRect(0, 0, canvas.width / 2, 50);
+			//renderer.clearRect(0, 0, canvas.width / 2, 50);
 
 			cc.font = "9pt menlo";
 			cc.textBaseline = "top";
@@ -332,7 +332,9 @@ App = function() {
 	}
 
 	function drawFrame(frameTime) {
-		if (!enableDirtyBounds) {
+		var useDirtyBounds = !showStats && enableDirtyBounds;
+
+		if (!useDirtyBounds) {
 			renderer.clearRect(0, 0, canvas.width, canvas.height);
 		}
 
@@ -351,7 +353,7 @@ App = function() {
 
 		renderer.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
 
-		if (!enableDirtyBounds) {
+		if (!useDirtyBounds) {
 			refreshBounds.copy(view.bounds);
 		}
 		else {
