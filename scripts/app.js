@@ -248,15 +248,15 @@ App = function() {
 			(view.origin.y - (v.y - canvas.height)) / view.scale);
 	}
 
-	function pixelAlign(bounds) {
+	function screenAlign(bounds) {
 		var mins = worldToCanvas(bounds.mins);
-		mins.x = Math.floor(mins.x);
-		mins.y = Math.ceil(mins.y);
+		mins.x = Math.max(Math.floor(mins.x), 0);
+		mins.y = Math.min(Math.ceil(mins.y), canvas.height);
 		bounds.mins = canvasToWorld(mins);
 
 		var maxs = worldToCanvas(bounds.maxs);
-		maxs.x = Math.ceil(maxs.x);
-		maxs.y = Math.floor(maxs.y);
+		maxs.x = Math.min(Math.ceil(maxs.x), canvas.width);
+		maxs.y = Math.max(Math.floor(maxs.y), 0);
 		bounds.maxs = canvasToWorld(maxs);
 	}	
 
@@ -368,7 +368,7 @@ App = function() {
 			refreshBounds.clear();
 
 			if (!dirtyBounds.isEmpty()) {
-				pixelAlign(dirtyBounds);
+				screenAlign(dirtyBounds);
 				renderer.clearRect(dirtyBounds.mins.x, dirtyBounds.mins.y, dirtyBounds.maxs.x - dirtyBounds.mins.x, dirtyBounds.maxs.y - dirtyBounds.mins.y);
 
 				refreshBounds.addBounds(dirtyBounds);				
@@ -381,7 +381,7 @@ App = function() {
 			}		
 			
 			if (!refreshBounds.isEmpty()) {
-				pixelAlign(refreshBounds);
+				screenAlign(refreshBounds);
 				renderer.scissorRect(refreshBounds.mins.x, refreshBounds.mins.y, refreshBounds.maxs.x - refreshBounds.mins.x, refreshBounds.maxs.y - refreshBounds.mins.y);
 			}			
 		}
