@@ -319,8 +319,7 @@ App = function() {
 		stats.timeDrawFrame = Date.now() - t0;
 
 		if (showStats) {
-			// Safari slowing down bug ?: I think graphics hardware seems to wait to finish all drawing commands when it draws with changed transformation matrix.
-			//renderer.clearRect(0, 0, canvas.width / 2, 50);
+			dirtyBounds.addBounds(new Bounds(canvasToWorld(new vec2(0, 50)), canvasToWorld(new vec2(400, 0))));			
 
 			cc.font = "9pt menlo";
 			cc.textBaseline = "top";
@@ -332,11 +331,9 @@ App = function() {
 	}
 
 	function drawFrame(frameTime) {
-		var useDirtyBounds = !showStats && enableDirtyBounds;
-
-		if (!useDirtyBounds) {
+		if (!enableDirtyBounds) {
 			renderer.clearRect(0, 0, canvas.width, canvas.height);
-		}
+		}		
 
 		// view.bounds for culling
 		view.bounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
@@ -351,12 +348,12 @@ App = function() {
 		//cc.translate(-view.origin.x, -view.origin.y);
 		//cc.scale(view.scale, view.scale);
 
-		renderer.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
+		renderer.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);		
 
-		if (!useDirtyBounds) {
+		if (!enableDirtyBounds) {
 			refreshBounds.copy(view.bounds);
 		}
-		else {
+		else {			
 			// Update dynamic bounds
 			dynamicBounds.clear();
 
@@ -374,13 +371,13 @@ App = function() {
 
 			if (!dirtyBounds.isEmpty()) {
 				screenAlign(dirtyBounds);
-				renderer.clearRect(dirtyBounds.mins.x, dirtyBounds.mins.y, dirtyBounds.maxs.x - dirtyBounds.mins.x, dirtyBounds.maxs.y - dirtyBounds.mins.y);
+				renderer.clearRect(dirtyBounds.mins.x, dirtyBounds.mins.y, dirtyBounds.maxs.x - dirtyBounds.mins.x, dirtyBounds.maxs.y - dirtyBounds.mins.y);				
 
 				refreshBounds.addBounds(dirtyBounds);				
 			}
 
 			if (!dynamicBounds.isEmpty()) {
-				refreshBounds.addBounds(dynamicBounds);
+				refreshBounds.addBounds(dynamicBounds);				
 
 				dirtyBounds.copy(dynamicBounds);
 			}		
