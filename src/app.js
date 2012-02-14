@@ -511,7 +511,7 @@ App = function() {
 		var bounds = new Bounds;
 		bounds.addPoint(p1);
 		bounds.addPoint(p2);
-		bounds.expand(3, 3);
+		bounds.expand(2, 2);
 		
 		if (!view.bounds.intersectsBounds(bounds)) {
 			return;
@@ -519,7 +519,7 @@ App = function() {
 
 		renderer.drawLine(ctx, p1, p2, strokeStyle);
 
-		var offset = new vec2(2.5, 2.5);
+		var offset = new vec2(2, 2);
 		renderer.drawBox(ctx, vec2.sub(p1, offset), vec2.add(p1, offset), "#808");
 		renderer.drawBox(ctx, vec2.sub(p2, offset), vec2.add(p2, offset), "#808");
 		//renderer.drawCircle(ctx, p1, 2.5, 0, "#808");
