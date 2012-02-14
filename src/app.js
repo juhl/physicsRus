@@ -542,9 +542,9 @@ App = function() {
 		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));		
 		bg.outdated = true;
 
-		/*fg.canvas.style.position = "absolute";
+		fg.canvas.style.position = "absolute";
 		fg.canvas.style.left = "0px";
-		fg.canvas.style.top = "0px";*/
+		fg.canvas.style.top = "0px";
 
 		var toolbar = document.getElementById("toolbar");
 		toolbar.style.position = "absolute";
