@@ -322,6 +322,7 @@ App = function() {
 		drawFrame(frameTime);
 		stats.timeDrawFrame = Date.now() - t0;
 
+		// Draw statistaics
 		if (showStats) {
 			var mins = canvasToWorld(new vec2(0, 50));
 			var maxs = canvasToWorld(new vec2(360, 0));
@@ -340,6 +341,7 @@ App = function() {
 		// view.bounds for culling
 		view.bounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
 
+		// Update whole background canvas if we needed
 		if (bg.outdated) {
 			bg.outdated = false;
 			bg.ctx.fillStyle = "rgba(244, 244, 244, 1.0)";
@@ -348,7 +350,7 @@ App = function() {
 			bg.ctx.save();
 			bg.ctx.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
 			
-			drawGrids(bg.ctx, 64);
+			drawGrids(bg.ctx, 64, "#CCC");
 
 			// Draw static bodies
 			for (var i in space.bodyHash) {
@@ -393,7 +395,7 @@ App = function() {
 
 		dirtyBounds.clear();
 
-		// Draw bodies
+		// Draw bodies except for static bodies
 		for (var i in space.bodyHash) {
 			var body = space.bodyHash[i];			
 			if (!body.isStatic()) {
@@ -429,11 +431,10 @@ App = function() {
 		fg.ctx.restore();
 	}	
 
-	function drawGrids(ctx, refGridSize) {
+	function drawGrids(ctx, refGridSize, gridColor) {
 		var n = refGridSize * view.scale;
 		var p = 1; while (p <= n) p <<= 1; p >>= 1; // previous power of two
 		var gridSize = refGridSize * refGridSize / p;
-		var gridColor = "#CCC";
 
 		var start_x = Math.floor(view.bounds.mins.x / gridSize) * gridSize;
 		var start_y = Math.floor(view.bounds.mins.y / gridSize) * gridSize;
@@ -470,7 +471,7 @@ App = function() {
 
 			drawBodyShape(ctx, body, shape, fillColor, outlineColor);
 
-			if (showBounds) {				
+			if (showBounds) {
 				bounds.expand(1, 1);
 				renderer.drawBox(ctx, bounds.mins, bounds.maxs, null, "#0A0");
 			}
