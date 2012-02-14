@@ -362,14 +362,13 @@ App = function() {
 		}
 
 		// Transform dirtyBounds world to screen
-		if (enableDirtyBounds) {
-			screenAlign(dirtyBounds);
+		if (enableDirtyBounds && !dirtyBounds.isEmpty()) {			
 			var mins = worldToCanvas(dirtyBounds.mins);
 			var maxs = worldToCanvas(dirtyBounds.maxs);
-			var x = mins.x;
-			var y = maxs.y;
-			var w = maxs.x - mins.x;
-			var h = mins.y - maxs.y;
+			var x = Math.max(Math.floor(mins.x), 0);
+			var y = Math.max(Math.floor(maxs.y), 0);
+			var w = Math.min(Math.ceil(maxs.x + 1), canvas.width) - x;
+			var h = Math.min(Math.ceil(mins.y + 1), canvas.height) - y;
 
 			// void drawImage(HTMLVideoElement image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh);
 			fg.ctx.drawImage(bg.canvas, x, y, w, h, x, y, w, h);
@@ -397,7 +396,7 @@ App = function() {
 		// Draw bodies
 		for (var i in space.bodyHash) {
 			var body = space.bodyHash[i];			
-			if (!body.isStatic()) {			
+			if (!body.isStatic()) {
 				drawBody(fg.ctx, body, bodyColor(body), "#000");
 			}			
 		}
