@@ -1,15 +1,8 @@
 RendererWebGL = function() {
-	var gl;
 	var config = {};
-
 	var pendingTextureLoads = 0;
 
 	function init(canvas) {
-		if (!canvas.getContext) {
-			console.error("Your browser doesn't support canvas.");
-			return;
-		}
-
 		if (!window.WebGLRenderingContext) {
 			console.error("Your browser doesn't support WebGL.");
 			return;
@@ -31,42 +24,40 @@ RendererWebGL = function() {
 			alert("Couldn't fetch WebGL rednering context for canvas.");
 		}
 
-		gl = ctx;
-
-		if (gl.getSupportedExtensions) {
-			config.extensions = gl.getSupportedExtensions();
+		if (ctx.getSupportedExtensions) {
+			config.extensions = ctx.getSupportedExtensions();
 		}
 		else {
 			config.extensions = [];
 		}
 		
-		config.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-		config.maxTextureImageUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+		config.maxTextureSize = ctx.getParameter(ctx.MAX_TEXTURE_SIZE);
+		config.maxTextureImageUnits = ctx.getParameter(ctx.MAX_TEXTURE_IMAGE_UNITS);
 
-		gl.clearColor(1.0, 1.0, 1.0, 1.0);
-		gl.frontFace(gl.CCW)
-		gl.cullFace(gl.BACK);
-		gl.enable(gl.CULL_FACE);		
+		ctx.clearColor(1.0, 1.0, 1.0, 1.0);
+		ctx.frontFace(ctx.CCW)
+		ctx.cullFace(ctx.BACK);
+		ctx.enable(ctx.CULL_FACE);		
 	}
 
-	function checkGLError(msg) {
-		var err = gl.getError();
+	function checkGLError(ctx, msg) {
+		var err = ctx.getError();
 		var str;
 
-		if (err === gl.NO_ERROR)
+		if (err === ctx.NO_ERROR)
 			return;
 
 		switch (err) {
-		case gl.INVALID_ENUM:
+		case ctx.INVALID_ENUM:
 			str = "INVALID_ENUM";
 			break;
-		case gl.INVALID_VALUE:
+		case ctx.INVALID_VALUE:
 			str = "INVALID_VALUE";
 			break;
-		case gl.INVALID_OPERATION:
+		case ctx.INVALID_OPERATION:
 			str = "INVALID_OPERATION";
 			break;
-		case gl.OUT_OF_MEMORY:
+		case ctx.OUT_OF_MEMORY:
 			str = "OUT_OF_MEMORY";
 			break;
 		default:
@@ -77,11 +68,11 @@ RendererWebGL = function() {
 		console.warn("checkGLError: " + str + " on " + msg);
 	}
 
-	 function isPowerOfTwo(x) {
+	function isPowerOfTwo(x) {
 		return (x & (x - 1)) == 0;
 	}
 	
-	function nextHighestPowerOfTwo(x) {
+	function nextPowerOfTwo(x) {
 		--x;
 		for (var i = 1; i < 32; i <<= 1) {
 			x = x | x >> i;
@@ -89,7 +80,7 @@ RendererWebGL = function() {
 		return x + 1;
 	}
 
-	function loadTexture(src) {
+	function loadTexture(ctx, src) {
 		var texture = {};
 		texture.image = new Image;
 
@@ -98,22 +89,22 @@ RendererWebGL = function() {
 		texture.image.onload = function () {    
 			if (!isPowerOfTwo(texture.image.width) || !isPowerOfTwo(texture.image.height)) {
 				var canvas = document.createElement("canvas");
-				canvas.width = nextHighestPowerOfTwo(texture.image.width);
-				canvas.height = nextHighestPowerOfTwo(texture.image.height);
+				canvas.width = nextPowerOfTwo(texture.image.width);
+				canvas.height = nextPowerOfTwo(texture.image.height);
 				var ctx = canvas.getContext("2d");
 				ctx.drawImage(texture.image, 0, 0, texture.image.width, texture.image.height, 0, 0, canvas.width, canvas.height);
 				texture.image = canvas;
 			}
 			
-			texture.texture = gl.createTexture();
-			gl.bindTexture(gl.TEXTURE_2D, texture.texture);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-			//gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, texture.image);
-			gl.generateMipmap(gl.TEXTURE_2D);
+			texture.texture = ctx.createTexture();
+			ctx.bindTexture(ctx.TEXTURE_2D, texture.texture);
+			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.LINEAR_MIPMAP_LINEAR);
+			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.LINEAR);
+			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.REPEAT);
+			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.REPEAT);
+			//ctx.pixelStorei(ctx.UNPACK_FLIP_Y_WEBGL, true);
+			ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGB, ctx.RGB, ctx.UNSIGNED_BYTE, texture.image);
+			ctx.generateMipmap(ctx.TEXTURE_2D);
 
 			//checkGLError("error loading texture: " + src);
 
@@ -132,39 +123,39 @@ RendererWebGL = function() {
 		return texture;
 	}
 
-	function clearRect(x, y, width, height) {		
-		gl.viewport(x, y, width, height);
-        gl.colorMask(true, true, true, true);
-        gl.clear(gl.COLOR_BUFFER_BIT);
+	function clearRect(ctx, x, y, width, height) {		
+		ctx.viewport(x, y, width, height);
+        ctx.colorMask(true, true, true, true);
+        ctx.clear(ctx.COLOR_BUFFER_BIT);
 	}
 
-	function scissorRect(x, y, width, height) {
+	function scissorRect(ctx, x, y, width, height) {
 		
 	}
 
-	function drawLine(p1, p2, strokeStyle) {
-		gl.drawArrays(gl.LINES, 0, triangleVertexPositionBuffer.numItems);
+	function drawLine(ctx, p1, p2, strokeStyle) {
+		ctx.drawArrays(ctx.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}
 
-	function drawArrow(p1, p2, strokeStyle) {
-		gl.drawArrays(gl.LINES, 0, triangleVertexPositionBuffer.numItems);
+	function drawArrow(ctx, p1, p2, strokeStyle) {
+		ctx.drawArrays(ctx.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}    
 
-	function drawBox(mins, maxs, fillStyle, strokeStyle) {
-		gl.drawArrays(gl.LINES, 0, triangleVertexPositionBuffer.numItems);
+	function drawBox(ctx, mins, maxs, fillStyle, strokeStyle) {
+		ctx.drawArrays(ctx.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}
 
-	function drawCircle(center, radius, angle, fillStyle, strokeStyle) {
-		gl.drawArrays(gl.LINES, 0, triangleVertexPositionBuffer.numItems);
+	function drawCircle(ctx, center, radius, angle, fillStyle, strokeStyle) {
+		ctx.drawArrays(ctx.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}
 
-	function drawSegment(a, b, radius, fillStyle, strokeStyle) {
-		gl.drawArrays(gl.LINES, 0, triangleVertexPositionBuffer.numItems);
+	function drawSegment(ctx, a, b, radius, fillStyle, strokeStyle) {
+		ctx.drawArrays(ctx.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}
 
-	function drawPolygon(verts, fillStyle, strokeStyle) {
-		var buffer = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	function drawPolygon(ctx, verts, fillStyle, strokeStyle) {
+		var buffer = ctx.createBuffer();
+		ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
 
 		var data = new Float32Array(verts.length * 2);
 		for (var i = 0; i < verts.length;) {
@@ -172,22 +163,10 @@ RendererWebGL = function() {
 			data[i++] = verts.y;
 		}
 
-		gl.bufferData(gl.ARRAY_BUFFER, data, gl.STREAM_DRAW);
-		gl.drawArrays(gl.LINES, 0, verts.length);
+		ctx.bufferData(ctx.ARRAY_BUFFER, data, ctx.STREAM_DRAW);
+		ctx.drawArrays(ctx.LINES, 0, verts.length);
 
-		gl.deleteBuffer(buffer);
-	}
-
-	function pushMatrix() {
-		
-	}
-
-	function popMatrix() {
-		
-	}
-
-	function setTransform(_11, _12, _21, _22, _31, _32) {
-		
+		ctx.deleteBuffer(buffer);
 	}
 
 	return {
@@ -200,8 +179,5 @@ RendererWebGL = function() {
 		drawCircle: drawCircle,
 		drawSegment: drawSegment,
 		drawPolygon: drawPolygon,
-		pushMatrix: pushMatrix,
-		popMatrix: popMatrix,
-		setTransform: setTransform
 	}
 }();

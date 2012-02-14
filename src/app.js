@@ -2,7 +2,8 @@ var stats = {};
 
 App = function() {
 	var canvas;
-	var cc; // canvas context
+	var fg = {};
+	var bg = {};
 	var renderer;
 	
 	var lastTime;
@@ -15,8 +16,6 @@ App = function() {
 	var gestureStartScale;
 	var gestureScale;
 	var dirtyBounds = new Bounds;
-	var dynamicBounds = new Bounds;
-	var refreshBounds = new Bounds;	
 
 	var editMode = false;
 	var selectMode = 0; // 0: Body, 1: Shape, 2: Vertex, 3: Joint
@@ -47,10 +46,17 @@ App = function() {
 	var showStats = false;
 
 	function main() {	
+		// Initialize canvas context
 		canvas = document.getElementById("canvas");
 		if (!canvas.getContext) {
-			alert("Couldn't get canvas object !");
-		}		
+			alert("Your browser doesn't support canvas.");
+			return;
+		}
+
+		fg.canvas = canvas;
+		fg.ctx = fg.canvas.getContext("2d");
+		bg.canvas = document.createElement("canvas");
+		bg.ctx = bg.canvas.getContext("2d");
 
 		// HACK
 		onResize(); 
@@ -140,9 +146,6 @@ App = function() {
 		editbox.value = positionIterations;		
 
 		renderer = RendererCanvas;
-		renderer.init(canvas);
-
-		cc = canvas.getContext("2d");
 
 		// Random color for bodies
 		randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"];
@@ -234,6 +237,7 @@ App = function() {
 
 		// Set dirtyBounds to full screen
 		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+		bg.outdated = true;
 	}
 
 	function worldToCanvas(v) {
@@ -319,87 +323,89 @@ App = function() {
 		stats.timeDrawFrame = Date.now() - t0;
 
 		if (showStats) {
-			dirtyBounds.addBounds(new Bounds(canvasToWorld(new vec2(0, 50)), canvasToWorld(new vec2(400, 0))));			
+			var mins = canvasToWorld(new vec2(0, 50));
+			var maxs = canvasToWorld(new vec2(360, 0));
+			dirtyBounds.addBounds2(mins, maxs);
 
-			cc.font = "9pt menlo";
-			cc.textBaseline = "top";
-			cc.fillStyle = "#333";
-			cc.fillText(["fps:", parseInt(1 / frameTime), "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "tm_draw:", stats.timeDrawFrame].join(" "), 10, 2);
-			cc.fillText(["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver].join(" "), 10, 18);
-			cc.fillText(["bodies:", space.numBodies, "joints:", space.numJoints, "contacts:", space.numContacts, "pos_iters:", stats.positionIterations].join(" "), 10, 34);
+			fg.ctx.textBaseline = "top";
+			fg.ctx.font = "9pt menlo";
+			fg.ctx.fillStyle = "#333";
+			fg.ctx.fillText(["fps:", parseInt(1 / frameTime), "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "tm_draw:", stats.timeDrawFrame].join(" "), 4, 2);
+			fg.ctx.fillText(["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver].join(" "), 4, 18);
+			fg.ctx.fillText(["bodies:", space.numBodies, "joints:", space.numJoints, "contacts:", space.numContacts, "pos_iters:", stats.positionIterations].join(" "), 4, 34);
 		}
 	}
 
 	function drawFrame(frameTime) {
-		if (!enableDirtyBounds) {
-			renderer.clearRect(0, 0, canvas.width, canvas.height);
-		}		
-
 		// view.bounds for culling
 		view.bounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
 
-		renderer.pushMatrix();
-		
-		// Transform view coordinates to screen canvas
-		//cc.translate(canvas.width * 0.5, canvas.height);
-		//cc.scale(1, -1);
+		if (bg.outdated) {
+			bg.outdated = false;
+			bg.ctx.fillStyle = "rgba(244, 244, 244, 1.0)";
+			bg.ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-		// Transform world coordinates to view
-		//cc.translate(-view.origin.x, -view.origin.y);
-		//cc.scale(view.scale, view.scale);
+			bg.ctx.save();
+			bg.ctx.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
+			
+			drawGrids(bg.ctx, 64);
 
-		renderer.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);		
-
-		if (!enableDirtyBounds) {
-			refreshBounds.copy(view.bounds);
-		}
-		else {			
-			// Update dynamic bounds
-			dynamicBounds.clear();
-
+			// Draw static bodies
 			for (var i in space.bodyHash) {
-				preBody(space.bodyHash[i]);
-			}
-
-			if (showJoints) {
-				for (var i in space.jointHash) {
-					preJoint(space.jointHash[i]);
+				var body = space.bodyHash[i];
+				if (body.isStatic()) {
+					drawBody(bg.ctx, body, bodyColor(body), "#000");
 				}
 			}
 
-			refreshBounds.clear();
-
-			if (!dirtyBounds.isEmpty()) {
-				screenAlign(dirtyBounds);
-				renderer.clearRect(dirtyBounds.mins.x, dirtyBounds.mins.y, dirtyBounds.maxs.x - dirtyBounds.mins.x, dirtyBounds.maxs.y - dirtyBounds.mins.y);				
-
-				refreshBounds.addBounds(dirtyBounds);				
-			}
-
-			if (!dynamicBounds.isEmpty()) {
-				refreshBounds.addBounds(dynamicBounds);				
-
-				dirtyBounds.copy(dynamicBounds);
-			}		
-			
-			if (!refreshBounds.isEmpty()) {
-				screenAlign(refreshBounds);
-				renderer.scissorRect(refreshBounds.mins.x, refreshBounds.mins.y, refreshBounds.maxs.x - refreshBounds.mins.x, refreshBounds.maxs.y - refreshBounds.mins.y);
-			}			
+			bg.ctx.restore();
 		}
 
-		//drawGrids(64);
+		// Transform dirtyBounds world to screen
+		if (enableDirtyBounds) {
+			screenAlign(dirtyBounds);
+			var mins = worldToCanvas(dirtyBounds.mins);
+			var maxs = worldToCanvas(dirtyBounds.maxs);
+			var x = mins.x;
+			var y = maxs.y;
+			var w = maxs.x - mins.x;
+			var h = mins.y - maxs.y;
+
+			// void drawImage(HTMLVideoElement image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh);
+			fg.ctx.drawImage(bg.canvas, x, y, w, h, x, y, w, h);
+		}
+		else {
+			fg.ctx.drawImage(bg.canvas, 0, 0);
+		}
+
+		fg.ctx.save();
+		
+		// Transform view coordinates to screen canvas
+		/*fg.ctx.translate(canvas.width * 0.5, canvas.height);
+		fg.ctx.scale(1, -1);
+
+		// Transform world coordinates to view
+		fg.ctx.translate(-view.origin.x, -view.origin.y);
+		fg.ctx.scale(view.scale, view.scale);*/
+
+		fg.ctx.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
+
+		//renderer.drawBox(fg.ctx, dirtyBounds.mins, dirtyBounds.maxs, "", "#00F");
+
+		dirtyBounds.clear();
 
 		// Draw bodies
 		for (var i in space.bodyHash) {
-			var body = space.bodyHash[i];
-			drawBody(body, bodyColor(body), "#000");
+			var body = space.bodyHash[i];			
+			if (!body.isStatic()) {			
+				drawBody(fg.ctx, body, bodyColor(body), "#000");
+			}			
 		}
 
 		// Draw joints
 		if (showJoints) {
 			for (var i in space.jointHash) {
-				drawJoint(space.jointHash[i], "#F0F");
+				drawJoint(fg.ctx, space.jointHash[i], "#F0F");
 			}
 		}		
 
@@ -409,61 +415,22 @@ App = function() {
 				var contactSolver = space.contactSolverArr[i];
 				for (var j = 0; j < contactSolver.contactArr.length; j++) {
 					var con = contactSolver.contactArr[j];
-					var offset = new vec2(2, 2);
-					renderer.drawBox(vec2.sub(con.p, offset), vec2.add(con.p, offset), "#F00");
-					//renderer.drawArrow(con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), "#F00");
+					var offset = new vec2(2, 2);					
+					var mins = vec2.sub(con.p, offset);
+					var maxs = vec2.add(con.p, offset);
+
+					dirtyBounds.addBounds2(mins, maxs);
+					renderer.drawBox(fg.ctx, mins, maxs, "#F00");
+					//dirtyBounds.addBounds2();
+					//renderer.drawArrow(fg.ctx, con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), "#F00");
 				}
 			}
 		}		
 
-		renderer.popMatrix();
+		fg.ctx.restore();
 	}	
 
-	function preBody(body) {
-		for (var i = 0; i < body.shapeArr.length; i++) {
-			var shape = body.shapeArr[i];
-
-			if (!body.isStatic()) {
-				// Expand for outline width
-				var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
-				bounds.expand(2, 2);
-
-				if (view.bounds.intersectsBounds(bounds)) {
-					dynamicBounds.addBounds(bounds);
-				}
-			}
-		}
-	}
-
-	function preJoint(joint) {
-		if (!joint.anchor1 || !joint.anchor2) {
-			return;
-		}
-
-		var body1 = joint.body1;
-		var body2 = joint.body2;
-
-		var active1 = !body1.isStatic();
-		var active2 = !body2.isStatic();
-
-		if (!active1 && !active2) {
-			return;
-		}
-		
-		var p1 = vec2.add(vec2.rotate(joint.anchor1, body1.a), body1.p);
-		var p2 = vec2.add(vec2.rotate(joint.anchor2, body2.a), body2.p);
-		
-		var bounds = new Bounds;
-		bounds.addPoint(p1);
-		bounds.addPoint(p2);
-		bounds.expand(3, 3);
-		
-		if (view.bounds.intersectsBounds(bounds)) {
-			dynamicBounds.addBounds(bounds);
-		}
-	}
-
-	function drawGrids(refGridSize) {
+	function drawGrids(ctx, refGridSize) {
 		var n = refGridSize * view.scale;
 		var p = 1; while (p <= n) p <<= 1; p >>= 1; // previous power of two
 		var gridSize = refGridSize * refGridSize / p;
@@ -478,70 +445,65 @@ App = function() {
 		var v2 = new vec2(start_x, end_y);
 
 		for (var x = start_x; x <= end_x; x += gridSize) {
-			if (x < refreshBounds.mins.x || x > refreshBounds.maxs.x) {
-				continue;
-			}
 			v1.x = x;
 			v2.x = x;			
-			renderer.drawLine(v1, v2, gridColor);
+			renderer.drawLine(ctx, v1, v2, gridColor);
 		}
 
 		v1.set(start_x, start_y);
 		v2.set(end_x, start_y);
 
 		for (var y = start_y; y <= end_y; y += gridSize) {
-			if (y < refreshBounds.mins.y || y > refreshBounds.maxs.y) {
-				continue;
-			}
-
 			v1.y = y;
 			v2.y = y;
-			renderer.drawLine(v1, v2, gridColor);
+			renderer.drawLine(ctx, v1, v2, gridColor);
 		}
-	}	
+	}
 
-	function drawBody(body, fillColor, outlineColor) {
+	function drawBody(ctx, body, fillColor, outlineColor) {
 		for (var i = 0; i < body.shapeArr.length; i++) {
 			var shape = body.shapeArr[i];
 
-			var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
-			if (!refreshBounds.intersectsBounds(bounds)) {
+			var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);			
+			if (!view.bounds.intersectsBounds(bounds)) {
 				continue;
 			}
 
-			drawBodyShape(body, shape, fillColor, outlineColor);			
+			drawBodyShape(ctx, body, shape, fillColor, outlineColor);
+
+			if (showBounds) {				
+				bounds.expand(1, 1);
+				renderer.drawBox(ctx, bounds.mins, bounds.maxs, null, "#0A0");
+			}
+
+			if (!body.isStatic()) {
+				bounds.expand(1, 1);
+				dirtyBounds.addBounds(bounds);
+			}			
 		}
 	}
 
-	function drawBodyShape(body, shape, fillColor, outlineColor) {
+	function drawBodyShape(ctx, body, shape, fillColor, outlineColor) {
 		switch (shape.type) {
 		case Shape.TYPE_CIRCLE:
-			renderer.drawCircle(shape.tc, shape.r, body.a, fillColor, outlineColor);
+			renderer.drawCircle(ctx, shape.tc, shape.r, body.a, fillColor, outlineColor);
 			break;
 		case Shape.TYPE_SEGMENT:
-			renderer.drawSegment(shape.ta, shape.tb, shape.r, fillColor, outlineColor);
+			renderer.drawSegment(ctx, shape.ta, shape.tb, shape.r, fillColor, outlineColor);
 			break;
 		case Shape.TYPE_POLY:
-			renderer.drawPolygon(shape.tverts, fillColor, outlineColor);
+			renderer.drawPolygon(ctx, shape.tverts, fillColor, outlineColor);
 			break;
-		}
-
-		if (showBounds) {
-			// Expand for outline width
-			var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
-			bounds.expand(1, 1);
-
-			renderer.drawBox(bounds.mins, bounds.maxs, null, "#0A0");
-		}
+		}		
 	}
 
-	function drawJoint(joint, strokeStyle) {
+	function drawJoint(ctx, joint, strokeStyle) {
 		if (!joint.anchor1 || !joint.anchor2) {
 			return;
 		}
 
 		var body1 = joint.body1;
-		var body2 = joint.body2;
+		var body2 = joint.body2;		
 
 		var p1 = vec2.add(vec2.rotate(joint.anchor1, body1.a), body1.p);
 		var p2 = vec2.add(vec2.rotate(joint.anchor2, body2.a), body2.p);
@@ -551,37 +513,45 @@ App = function() {
 		bounds.addPoint(p2);
 		bounds.expand(3, 3);
 		
-		if (!refreshBounds.intersectsBounds(bounds)) {
+		if (!view.bounds.intersectsBounds(bounds)) {
 			return;
 		}
 
-		renderer.drawLine(p1, p2, strokeStyle);
+		renderer.drawLine(ctx, p1, p2, strokeStyle);
 
 		var offset = new vec2(2.5, 2.5);
-		renderer.drawBox(vec2.sub(p1, offset), vec2.add(p1, offset), "#808");
-		renderer.drawBox(vec2.sub(p2, offset), vec2.add(p2, offset), "#808");
-		//renderer.drawCircle(p1, 2.5, 0, "#808");
-		//renderer.drawCircle(p2, 2.5, 0, "#808");
+		renderer.drawBox(ctx, vec2.sub(p1, offset), vec2.add(p1, offset), "#808");
+		renderer.drawBox(ctx, vec2.sub(p2, offset), vec2.add(p2, offset), "#808");
+		//renderer.drawCircle(ctx, p1, 2.5, 0, "#808");
+		//renderer.drawCircle(ctx, p2, 2.5, 0, "#808");
+
+		if (!body1.isStatic() || !body2.isStatic()) {
+			dirtyBounds.addBounds(bounds);
+		}
 	}
 
 	function onResize(e) {
 		window.scrollTo(0, 0);
 
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
+		fg.canvas.width = window.innerWidth;
+		fg.canvas.height = window.innerHeight;
 
-		canvas.style.position = "absolute";
-  		canvas.style.left = "0px";
-  		canvas.style.top = "0px";
+		bg.canvas.width = window.innerWidth;
+		bg.canvas.height = window.innerHeight;
+
+		// Set dirtyBounds to full screen
+		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));		
+		bg.outdated = true;
+
+		/*fg.canvas.style.position = "absolute";
+		fg.canvas.style.left = "0px";
+		fg.canvas.style.top = "0px";*/
 
 		var toolbar = document.getElementById("toolbar");
 		toolbar.style.position = "absolute";
 		toolbar.style.left = (canvas.width - toolbar.clientWidth) + "px";
 		toolbar.style.top = "0px";
-		//toolbar.style.display = "none";
-
-		// Set dirtyBounds to full screen
-		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));		
+		//toolbar.style.display = "none";		
 	}
 
 	function getMousePosition(e) {
@@ -641,13 +611,14 @@ App = function() {
 			view.origin.x -= pos.x - mousePositionOld.x;
 			view.origin.y += pos.y - mousePositionOld.y;
 
-			view.origin.y = Math.clamp(view.origin.y, 0, 0);
+			//view.origin.y = Math.clamp(view.origin.y, 0, 0);
 
 			mousePositionOld.x = pos.x;
 			mousePositionOld.y = pos.y;
 
 			// Set dirtyBounds to full screen
 			dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+			bg.outdated = true;
 		
 			e.preventDefault();
 		}
@@ -680,10 +651,11 @@ App = function() {
 		view.origin.x -= dx;
 
 		// Clamp view origin limit
-		view.origin.y = Math.clamp(view.origin.y, 0, 0);
+		//view.origin.y = Math.clamp(view.origin.y, 0, 0);
 
 		// Set dirtyBounds to full screen
 		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+		bg.outdated = true;
 
 		e.preventDefault();		
 	}
@@ -747,10 +719,11 @@ App = function() {
 				view.origin.x -= (v1.x + v2.x) * 0.5;
 				view.origin.x += (v1.y + v2.y) * 0.5;
 
-				view.origin.y = Math.clamp(view.origin.y, 0, 0);
+				//view.origin.y = Math.clamp(view.origin.y, 0, 0);
 
 				// Set dirtyBounds to full screen
 				dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+				bg.outdated = true;
 			}
 
 			touchPosOld[0] = touchPos[0];

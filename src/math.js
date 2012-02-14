@@ -627,14 +627,12 @@ Bounds.prototype.set = function(mins, maxs) {
 Bounds.prototype.copy = function(b) {
 	this.mins.copy(b.mins);
 	this.maxs.copy(b.maxs);
-
 	return this;
 }
 
 Bounds.prototype.clear = function() {
 	this.mins.set(999999, 999999);
 	this.maxs.set(-999999, -999999);
-
 	return this;
 }
 
@@ -644,28 +642,26 @@ Bounds.prototype.isEmpty = function() {
 }
 
 Bounds.prototype.addPoint = function(p) {
-	if (this.mins.x > p.x)
-		this.mins.x = p.x;
-	if (this.maxs.x < p.x)
-		this.maxs.x = p.x;
-	if (this.mins.y > p.y)
-		this.mins.y = p.y;
-	if (this.maxs.y < p.y)
-		this.maxs.y = p.y;
-
+	if (this.mins.x > p.x) this.mins.x = p.x;
+	if (this.maxs.x < p.x) this.maxs.x = p.x;
+	if (this.mins.y > p.y) this.mins.y = p.y;
+	if (this.maxs.y < p.y) this.maxs.y = p.y;
 	return this;
 }
 
 Bounds.prototype.addBounds = function(b) {
-	if (this.mins.x > b.mins.x)
-		this.mins.x = b.mins.x;
-	if (this.maxs.x < b.maxs.x)
-		this.maxs.x = b.maxs.x;
-	if (this.mins.y > b.mins.y)
-		this.mins.y = b.mins.y;
-	if (this.maxs.y < b.maxs.y)
-		this.maxs.y = b.maxs.y;
+	if (this.mins.x > b.mins.x)	this.mins.x = b.mins.x;
+	if (this.maxs.x < b.maxs.x)	this.maxs.x = b.maxs.x;
+	if (this.mins.y > b.mins.y)	this.mins.y = b.mins.y;
+	if (this.maxs.y < b.maxs.y)	this.maxs.y = b.maxs.y;
+	return this;
+}
 
+Bounds.prototype.addBounds2 = function(mins, maxs) {
+	if (this.mins.x > mins.x) this.mins.x = mins.x;
+	if (this.maxs.x < maxs.x) this.maxs.x = maxs.x;
+	if (this.mins.y > mins.y) this.mins.y = mins.y;
+	if (this.maxs.y < maxs.y) this.maxs.y = maxs.y;
 	return this;
 }
 
@@ -674,20 +670,17 @@ Bounds.prototype.expand = function(ax, ay) {
 	this.mins.y -= ay;
 	this.maxs.x += ax;
 	this.maxs.y += ay;
-
 	return this;
 }
 
 Bounds.prototype.containPoint = function(p) {
 	if (p.x < this.mins.x || p.x > this.maxs.x || p.y < this.mins.y || p.y > this.maxs.y)
 		return false;
-
 	return true;
 }
 
 Bounds.prototype.intersectsBounds = function(b) {
 	if (this.mins.x > b.maxs.x || this.maxs.x < b.mins.x || this.mins.y > b.maxs.y || this.maxs.y < b.mins.y)
 		return false;
-
 	return true;
 }

@@ -48,6 +48,9 @@ Body = function(type, x, y, angle) {
 
 	// Joint hash for this body
 	this.jointHash = {};
+
+	// Bounds of all shapes
+	this.bounds = new Bounds;
 }
 
 Body.STATIC = 1;
@@ -84,9 +87,13 @@ Body.prototype.addShape = function(shape) {
 }
 
 // Internal function
-Body.prototype.cacheData = function() {
+Body.prototype.cacheData = function() {	
+	this.bounds.clear();
+	
 	for (var i = 0; i < this.shapeArr.length; i++) {
-		this.shapeArr[i].cacheData(this.p, this.centroid, this.a);
+		var shape = this.shapeArr[i];
+		shape.cacheData(this.p, this.centroid, this.a);
+		this.bounds.addBounds(shape.bounds);
 	}
 }
 

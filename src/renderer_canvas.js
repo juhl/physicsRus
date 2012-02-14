@@ -1,27 +1,12 @@
-RendererCanvas = function() {
-	var ctx;
-
-	function init(canvas) {
-		if (!canvas.getContext) {
-            console.error("Your browser doesn't support canvas.");
-            return;
-        }
-
-		ctx = canvas.getContext("2d");
-	}
-
-	function clearRect(x, y, width, height) {		
-		ctx.clearRect(x, y, width, height);		
-	}
-
-	function scissorRect(x, y, width, height) {
+RendererCanvas = function() {	
+	function scissorRect(ctx, x, y, width, height) {
 		ctx.beginPath();
   		ctx.rect(x, y, width, height);
  		ctx.closePath();
   		ctx.clip();
   	}
 
-	function drawLine(p1, p2, strokeStyle) {
+	function drawLine(ctx, p1, p2, strokeStyle) {
 		ctx.beginPath();
 		
 		ctx.moveTo(p1.x, p1.y);
@@ -31,7 +16,7 @@ RendererCanvas = function() {
 		ctx.stroke();
 	}
 
-	function drawArrow(p1, p2, strokeStyle) {
+	function drawArrow(ctx, p1, p2, strokeStyle) {
 		var angle = vec2.toAngle(vec2.sub(p2, p1)) - Math.PI;
 
 		ctx.beginPath();		
@@ -56,7 +41,7 @@ RendererCanvas = function() {
 		ctx.stroke();		
 	}    
 
-	function drawBox(mins, maxs, fillStyle, strokeStyle) {
+	function drawBox(ctx, mins, maxs, fillStyle, strokeStyle) {
 		ctx.beginPath();
 		ctx.rect(mins.x, mins.y, maxs.x - mins.x, maxs.y - mins.y);
 
@@ -72,7 +57,7 @@ RendererCanvas = function() {
 		}
 	}
 
-	function drawCircle(center, radius, angle, fillStyle, strokeStyle) {
+	function drawCircle(ctx, center, radius, angle, fillStyle, strokeStyle) {
 		ctx.beginPath();
 		ctx.arc(center.x, center.y, radius, 0, Math.PI*2, true);
 
@@ -91,7 +76,7 @@ RendererCanvas = function() {
 		}	
 	}
 
-	function drawSegment(a, b, radius, fillStyle, strokeStyle) {
+	function drawSegment(ctx, a, b, radius, fillStyle, strokeStyle) {
 		ctx.beginPath();
 
 		var dn = vec2.normalize(vec2.perp(vec2.sub(b, a)));
@@ -121,7 +106,7 @@ RendererCanvas = function() {
 		}
 	}
 
-	function drawPolygon(verts, fillStyle, strokeStyle) {
+	function drawPolygon(ctx, verts, fillStyle, strokeStyle) {
 		ctx.beginPath();
 		ctx.moveTo(verts[0].x, verts[0].y);
 
@@ -143,21 +128,7 @@ RendererCanvas = function() {
 		}		
 	}
 
-	function pushMatrix() {
-		ctx.save();
-	}
-
-	function popMatrix() {
-		ctx.restore();
-	}
-
-	function setTransform(_11, _12, _21, _22, _31, _32) {
-		ctx.setTransform(_11, _12, _21, _22, _31, _32);
-	}
-
 	return {
-		init: init,		
-		clearRect: clearRect,
 		scissorRect: scissorRect,
 		drawLine: drawLine,
 		drawArrow: drawArrow,
@@ -165,8 +136,5 @@ RendererCanvas = function() {
 		drawCircle: drawCircle,
 		drawSegment: drawSegment,
 		drawPolygon: drawPolygon,
-		pushMatrix: pushMatrix,
-		popMatrix: popMatrix,
-		setTransform: setTransform
 	}
 }();
