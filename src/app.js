@@ -1,12 +1,12 @@
 var stats = {};
 
 App = function() {
-	var activeWindow = true;
-	var screen;
+	var mainView;	
 	var canvas;
 	var fg = {};
 	var bg = {};
 	var renderer;
+	var activeWindow = true;
 	
 	var lastTime;
 	var timeDelta;
@@ -55,7 +55,7 @@ App = function() {
 	var showStats = false;
 
 	function main() {
-		screen = document.getElementById("screen");
+		mainView = document.getElementById("main_view");
 
 		// Initialize canvas context
 		canvas = document.getElementById("canvas");
@@ -642,13 +642,15 @@ App = function() {
 	}
 
 	function onResize(e) {
-		window.scrollTo(0, 0);		
+		window.scrollTo(0, 0);
 
-		fg.canvas.width = screen.clientWidth - screen.offsetLeft;
-		fg.canvas.height = screen.clientHeight - screen.offsetTop;
+		fg.canvas.width = mainView.clientWidth - mainView.offsetLeft;
+		fg.canvas.height = mainView.clientHeight - mainView.offsetTop;
 
 		bg.canvas.width = fg.canvas.width;
 		bg.canvas.height = fg.canvas.height;
+
+		console.log([mainView.offsetLeft, mainView.offsetTop, mainView.clientWidth, mainView.clientHeight].join(" "));
 
 		// Set dirtyBounds to full screen
 		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));		
@@ -660,8 +662,8 @@ App = function() {
 
 	function getMousePosition(e) {
 		return new vec2(
-			e.clientX + document.body.scrollLeft - screen.offsetLeft, 
-			e.clientY + document.body.scrollTop - screen.offsetTop);
+			e.clientX + document.body.scrollLeft - mainView.offsetLeft, 
+			e.clientY + document.body.scrollTop - mainView.offsetTop);
 	}
 		
 	function onMouseDown(e) {
