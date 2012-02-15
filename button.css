@@ -21,17 +21,16 @@ a.button.awesome {
   background-repeat: repeat-x; 
   color: #fff;
   text-decoration: none; 
-  position: relative; 
+  position: relative;
   cursor: pointer; 
   border: 0;  
   font-style: normal; 
   
-  padding: 5px;
+  padding: 6px 0px 6px 0px;
   font-size: 10px;  
   
   /* IE only stuff */
   border-bottom: 1px solid transparent\9;
-  
   
   /* not all browser support these, but who cares? */
   text-shadow: 0 -1px 1px rgba(0,0,0,0.25), -2px 0 1px rgba(0,0,0,0.25); 
@@ -69,12 +68,16 @@ a.button.awesome {
 button.awesome:hover,
 input.awesome:hover,
 a.button.awesome:hover {
-  background-position: 0 -50px; 
+  /*background-position: 0 -50px;*/
+  /*border: 1px solid #FFF;*/
   color: #fff;
 }
 button.awesome:active,
 input.awesome:active,
 a.button.awesome:active { 
+  position:relative;
+  top:1px;
+  
   background-position: 0 100%; 
   -moz-box-shadow: inset 0 1px 2px rgba(0,0,0,0.7); 
   /* unfortunately, Safari seems not to support inset yet */
@@ -99,11 +102,17 @@ button.awesome.large:active,  input.awesome.large:active,   a.button.awesome.lar
   background-color: #F32100 !important;
 }
 .awesome.green {
-  background-color: #3ACC00 !important;
+  background-color: #20A000 !important;
+}
+.awesome.yellow {
+  background-color: #F0A000 !important;
+}
+.awesome.purple {
+  background-color: #6E00EE !important;
 }
 
 *.awesome.pushed {
-  background-position: 0 100%; 
+  background-position: 0 -50px; 
   -moz-box-shadow: inset 0 1px 2px rgba(0,0,0,0.7); 
   /* unfortunately, Safari seems not to support inset yet */
   -webkit-box-shadow: none;

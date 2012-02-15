@@ -26,11 +26,16 @@ App = function() {
 	var SELECT_MODE_VERTEX = 0;
 	var SELECT_MODE_SHAPE = 1;
 	var SELECT_MODE_BODY = 2;
-	var SELECT_MODE_JOINT = 3;
+	var SELECT_MODE_JOINT = 3;	
 	var selectMode = SELECT_MODE_SHAPE;
 	var selectedShape;
 	var selectedVertex = -1;
-	var selectedJoint;	
+	var selectedJoint;
+	var TM_SELECT = 0;
+	var TM_TRANSLATE = 1;
+	var TM_ROTATE = 2;
+	var TM_SCALE = 3;
+	var transformMode = TM_SELECT;
 
 	var space;
 	var demoArr = [DemoCar, DemoRagDoll, DemoSeeSaw, DemoPyramid, DemoCrank, DemoRope, DemoWeb, DemoBounce];
@@ -968,28 +973,43 @@ App = function() {
 
 	function onClickedShowStats() {
 		showStats = !showStats;
-	}
-
-	function updatePauseButton() {
-		var button = document.getElementById("pause");
-		button.innerHTML = pause ? "Play" : "Pause";
-	}
+	}	
 
 	function updateMainToolbar() {
-		var button = document.getElementById("edit");
-		var elements = document.getElementsByName("selectmode");
+		var editButton = document.getElementById("edit");
+		var playerButtons = document.getElementsByName("player");
+		var selectModeButtons = document.getElementsByName("selectmode");
+		var transformModeButtons = document.getElementsByName("transformmode");
 
 		if (editMode) {
-			button.innerHTML = "Run";
+			// edit button
+			editButton.innerHTML = "Run";
 
-			document.getElementById("restart").style.display = "none";
-			document.getElementById("pause").style.display = "none";
-			document.getElementById("step").style.display = "none";
-
+			// player buttons
+			for (var i = 0; i < playerButtons.length; i++) {
+				playerButtons[i].style.display = "none";
+			}
+		
+			// select mode buttons
 			var value = ["vertex", "shape", "body", "joint"][selectMode];
+			for (var i = 0; i < selectModeButtons.length; i++) {
+				var e = selectModeButtons[i];
+				
+				e.style.display = "inline";
+				if (e.value == value) {
+					if (e.className.indexOf(" pushed") == -1) {
+						e.className += " pushed";
+					}
+				}
+				else {
+					e.className = e.className.replace(" pushed", "");
+				}
+			}
 
-			for (var i = 0 ; i < elements.length; i++) {
-				var e = elements[i];
+			// transform mode buttons
+			var value = ["select", "translate", "rotate", "scale"][transformMode];
+			for (var i = 0; i < transformModeButtons.length; i++) {
+				var e = transformModeButtons[i];
 				
 				e.style.display = "inline";
 				if (e.value == value) {
@@ -1003,18 +1023,31 @@ App = function() {
 			}
 		}
 		else {
-			button.innerHTML = "Edit";
+			// edit button
+			editButton.innerHTML = "Edit";
 
-			document.getElementById("restart").style.display = "inline";
-			document.getElementById("pause").style.display = "inline";
-			document.getElementById("step").style.display = "inline";			
+			// player buttons
+			for (var i = 0; i < playerButtons.length; i++) {
+				playerButtons[i].style.display = "inline";
+			}
 			
-			for (var i = 0 ; i < elements.length; i++) {
-				elements[i].style.display = "none";
+			// select mode buttons
+			for (var i = 0 ; i < selectModeButtons.length; i++) {
+				selectModeButtons[i].style.display = "none";
+			}
+
+			// transform mode buttons
+			for (var i = 0 ; i < transformModeButtons.length; i++) {
+				transformModeButtons[i].style.display = "none";
 			}			
 		}		
 		
 		updatePauseButton();	
+	}
+
+	function updatePauseButton() {
+		var button = document.getElementById("pause");
+		button.innerHTML = pause ? "Play" : "Pause";
 	}
 
 	function onClickedRestart() {
@@ -1048,6 +1081,12 @@ App = function() {
 		selectedShape = null;
 		selectedVertex = -1;
 		selectedJoint = null;
+
+		updateMainToolbar();
+	}
+
+	function onClickedTransformMode(value) {
+		transformMode = { select: TM_SELECT, translate: TM_TRANSLATE, rotate: TM_ROTATE, scale: TM_SCALE }[value];
 
 		updateMainToolbar();
 	}
@@ -1092,6 +1131,7 @@ App = function() {
 		onClickedStep: onClickedStep,
 		onClickedEdit: onClickedEdit,
 		onClickedSelectMode: onClickedSelectMode,
+		onClickedTransformMode: onClickedTransformMode,
 		onClickedSettings: onClickedSettings
 	};
 }();
