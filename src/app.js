@@ -368,12 +368,14 @@ App = function() {
 		var info = document.getElementById("info");
 		
 		// Show statistaics
-		if (showStats && (frameCount % 10) == 0) {
-			info.innerHTML = "";
-			info.innerHTML +=
+		if (showStats && (frameCount % 10) == 0) {			
+			info.innerHTML =
 				["fps:", parseInt(1 / frameTime), "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "tm_draw:", stats.timeDrawFrame, "<br />"].join(" ") +
 				["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver, "<br />"].join(" ") +
 				["bodies:", space.numBodies, "joints:", space.numJoints, "contacts:", space.numContacts, "pos_iters:", stats.positionIterations].join(" ");
+		}
+		else {
+			info.innerHTML = "";
 		}
 	}
 
