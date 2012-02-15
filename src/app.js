@@ -11,6 +11,10 @@ App = function() {
 	var frameCount;
 	var lastTime;
 	var timeDelta;
+	var fps_frameCount = 0;
+	var fps_time = 0;
+	var fps = 0;
+
 	var view = { origin: new vec2(0, 0), scale: 1, minScale: 0.5, maxScale: 4.0, bounds: new Bounds, scroll: new vec2(0, 0) };
 	var mouseDown = false;
 	var startMoving = false;
@@ -357,7 +361,17 @@ App = function() {
 			updateScreen(frameTime);
 		}
 
-		frameCount++;
+		frameCount++;		
+			
+		// Calc frame per second
+		fps_frameCount++;
+		fps_time += frameTime;
+
+		if (fps_time >= 1.0) {
+			fps = fps_frameCount / fps_time;
+			fps_time -= 1.0;
+			fps_frameCount = 0;
+		}
 	}
 	
 	function updateScreen(frameTime) {	
@@ -369,9 +383,9 @@ App = function() {
 		
 		// Show statistaics
 		if (showStats) {
-			if ((frameCount % 10) == 0) {
+			if ((frameCount % 15) == 0) {
 				info.innerHTML =
-					["fps:", parseInt(1 / frameTime), "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "tm_draw:", stats.timeDrawFrame, "<br />"].join(" ") +
+					["fps:", Math.round(fps), "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "tm_draw:", stats.timeDrawFrame, "<br />"].join(" ") +
 					["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver, "<br />"].join(" ") +
 					["bodies:", space.numBodies, "joints:", space.numJoints, "contacts:", space.numContacts, "pos_iters:", stats.positionIterations].join(" ");
 			}
