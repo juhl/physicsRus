@@ -2,7 +2,6 @@ var stats = {};
 
 App = function() {
 	var mainView;	
-	var mainToolbar;
 	var canvas;
 	var fg = {};
 	var bg = {};
@@ -62,7 +61,6 @@ App = function() {
 
 	function main() {
 		mainView = document.getElementById("main_view");
-		mainToolbar = document.getElementById("main_toolbar");
 
 		// Initialize canvas context
 		canvas = document.getElementById("canvas");
@@ -86,8 +84,7 @@ App = function() {
 			elements[i].onblur = function() { window.scrollTo(0, 0); };			
 		}
 
-		// Prevent iOS touch event for mainToolbar
-		mainToolbar.addEventListener("touchstart", function(e) { e.preventDefault(); }, false);		
+		//document.onselectstart = null;
 		
 		window.addEventListener("focus", function(e) { activeWindow = true; }, false);
 		window.addEventListener("blur", function(e) { activeWindow = false; }, false);
@@ -96,7 +93,8 @@ App = function() {
 		window.addEventListener("mousemove", onMouseMove, false);
 		window.addEventListener("mouseup", onMouseUp, false);
 		window.addEventListener("mouseleave", onMouseLeave, false);
-		canvas.addEventListener("mousewheel", onMouseWheel, false);		
+		canvas.addEventListener("mousewheel", onMouseWheel, false);
+
 		canvas.addEventListener("touchstart", touchHandler, false);
 		canvas.addEventListener("touchmove", touchHandler, false);
 		canvas.addEventListener("touchend", touchHandler, false);		
