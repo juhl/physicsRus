@@ -42,12 +42,14 @@ div#main_toolbar {
   padding: 10px 8px 10px 8px;
   text-align: left;
   vertical-align: middle;
-  width: 100%;  
+  width: 2048px;
+  height: 24px;
   font-size: 9pt;
   color: white;
   background-color: #222;
   border-bottom: 0px solid #AAA;  
   overflow: hidden;
+  text-overflow: hidden;
 }
 div#main_view {
   margin: 0px auto; 
