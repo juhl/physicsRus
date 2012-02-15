@@ -8,6 +8,7 @@ App = function() {
 	var renderer;
 	var activeWindow = true;
 	
+	var frameCount;
 	var lastTime;
 	var timeDelta;
 	var view = { origin: new vec2(0, 0), scale: 1, minScale: 0.5, maxScale: 4.0, bounds: new Bounds, scroll: new vec2(0, 0) };
@@ -254,8 +255,9 @@ App = function() {
 			loadSceneFromServer(sceneNameArr[sceneIndex]);
 		}
 
+		frameCount = 0;
 		lastTime = Date.now();
-		timeDelta = 0;
+		timeDelta = 0;		
 
 		// Set dirtyBounds to full screen
 		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
@@ -354,6 +356,8 @@ App = function() {
 		if (stats.stepCount > 0) {
 			updateScreen(frameTime);
 		}
+
+		frameCount++;
 	}
 	
 	function updateScreen(frameTime) {	
@@ -362,13 +366,10 @@ App = function() {
 		stats.timeDrawFrame = Date.now() - t0;
 
 		var info = document.getElementById("info");
-		info.innerHTML = "";
-
-		if (editMode) {
-		}
-
+		
 		// Show statistaics
-		if (showStats) {			
+		if (showStats && (frameCount % 10) == 0) {
+			info.innerHTML = "";
 			info.innerHTML +=
 				["fps:", parseInt(1 / frameTime), "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "tm_draw:", stats.timeDrawFrame, "<br />"].join(" ") +
 				["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver, "<br />"].join(" ") +
