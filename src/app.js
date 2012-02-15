@@ -438,16 +438,18 @@ App = function() {
 		}
 
 		// Transform dirtyBounds world to screen
-		if (enableDirtyBounds && !dirtyBounds.isEmpty()) {
-			var mins = worldToCanvas(dirtyBounds.mins);
-			var maxs = worldToCanvas(dirtyBounds.maxs);
-			var x = Math.max(Math.floor(mins.x), 0);
-			var y = Math.max(Math.floor(maxs.y), 0);
-			var w = Math.min(Math.ceil(maxs.x + 1), canvas.width) - x;
-			var h = Math.min(Math.ceil(mins.y + 1), canvas.height) - y;
+		if (enableDirtyBounds) {
+			if (!dirtyBounds.isEmpty()) {
+				var mins = worldToCanvas(dirtyBounds.mins);
+				var maxs = worldToCanvas(dirtyBounds.maxs);
+				var x = Math.max(Math.floor(mins.x), 0);
+				var y = Math.max(Math.floor(maxs.y), 0);
+				var w = Math.min(Math.ceil(maxs.x + 1), canvas.width) - x;
+				var h = Math.min(Math.ceil(mins.y + 1), canvas.height) - y;
 
-			// void drawImage(HTMLVideoElement image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh);
-			fg.ctx.drawImage(bg.canvas, x, y, w, h, x, y, w, h);
+				// void drawImage(HTMLVideoElement image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh);
+				fg.ctx.drawImage(bg.canvas, x, y, w, h, x, y, w, h);
+			}
 		}
 		else {
 			fg.ctx.drawImage(bg.canvas, 0, 0);
