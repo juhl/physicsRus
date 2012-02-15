@@ -10,7 +10,7 @@ App = function() {
 	
 	var lastTime;
 	var timeDelta;
-	var view = { origin: new vec2(0, 0), scale: 1, minScale: 0.5, maxScale: 4.0, bounds: new Bounds };
+	var view = { origin: new vec2(0, 0), scale: 1, minScale: 0.5, maxScale: 4.0, bounds: new Bounds, scroll: new vec2(0, 0) };
 	var mouseDown = false;
 	var startMoving = false;
 	var mousePosition = new vec2;
@@ -67,10 +67,7 @@ App = function() {
 		fg.canvas = canvas;
 		fg.ctx = fg.canvas.getContext("2d");
 		bg.canvas = document.createElement("canvas");
-		bg.ctx = bg.canvas.getContext("2d");
-
-		// HACK
-		onResize(); 
+		bg.ctx = bg.canvas.getContext("2d");	
 
 		// Horizontal & vertical scrollbar will be hidden
 		document.documentElement.style.overflowX = "hidden";
@@ -145,6 +142,9 @@ App = function() {
 		});*/
 
 		updateMainToolbar();
+
+		// HACK
+		onResize();		
 
 		// Select scene
 		sceneIndex = 0;
@@ -414,7 +414,7 @@ App = function() {
 		}
 
 		// Transform dirtyBounds world to screen
-		if (enableDirtyBounds && !dirtyBounds.isEmpty()) {			
+		if (enableDirtyBounds && !dirtyBounds.isEmpty()) {
 			var mins = worldToCanvas(dirtyBounds.mins);
 			var maxs = worldToCanvas(dirtyBounds.maxs);
 			var x = Math.max(Math.floor(mins.x), 0);
@@ -644,13 +644,13 @@ App = function() {
 	function onResize(e) {
 		window.scrollTo(0, 0);
 
-		fg.canvas.width = mainView.clientWidth - mainView.offsetLeft;
-		fg.canvas.height = mainView.clientHeight - mainView.offsetTop;
+		fg.canvas.width = window.innerWidth - mainView.offsetLeft;
+		fg.canvas.height = window.innerHeight - mainView.offsetTop;
 
 		bg.canvas.width = fg.canvas.width;
 		bg.canvas.height = fg.canvas.height;
 
-		console.log([mainView.offsetLeft, mainView.offsetTop, mainView.clientWidth, mainView.clientHeight].join(" "));
+		//console.log([mainView.offsetLeft, mainView.offsetTop, mainView.clientWidth, mainView.clientHeight].join(" "));
 
 		// Set dirtyBounds to full screen
 		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));		
@@ -731,14 +731,17 @@ App = function() {
 			e.preventDefault();
 		}
 		else if (startMoving) {
-			view.origin.x -= mousePosition.x - mousePositionOld.x;
-			view.origin.y += mousePosition.y - mousePositionOld.y;
+			view.scroll.x = -(mousePosition.x - mousePositionOld.x);
+			view.scroll.y = mousePosition.y - mousePositionOld.y;
+
+			view.origin.x += view.scroll.x;
+			view.origin.y += view.scroll.y;			
 
 			//view.origin.y = Math.clamp(view.origin.y, 0, 0);			
 
 			// Set dirtyBounds to full screen
 			dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
-			bg.outdated = true;	
+			bg.outdated = true;
 		
 			e.preventDefault();
 		}		

@@ -3,7 +3,7 @@
 <head>
   <meta name="Author" content="Ju-Hyung Lee, jufoot@gmail.com" />
   <meta charset="UTF-8" />
-  <meta name="viewport" content="minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <!--<link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon" />-->
@@ -21,12 +21,12 @@
   <div id="main_toolbar">
     <div style="vertical-align:middle;">
       <span class="combo">
-        <label for="scene">Scene: </label><select id="scene" style="width:100px;" onchange="App.onChangedScene(this.selectedIndex);"></select>
+        <label for="scene" style="font-size: 10px">Scene: </label><select id="scene" style="width:80px;" onchange="App.onChangedScene(this.selectedIndex);"></select>
       </span>
 
       <span style="margin-left:4px"></span>
 
-      <button type="button" class="awesome medium" id="edit" style="width:52px; font-weight:bold" onclick="App.onClickedEdit();">Edit</button>
+      <button type="button" class="awesome medium blue" id="edit" style="width:52px; font-weight:bold" onclick="App.onClickedEdit();">Edit</button>
 
       <span style="margin-left:4px"></span>
 
@@ -41,7 +41,7 @@
       <span style="margin-left:4px"></span>
 
       <span style="text-align:right">
-        <button type="button" class="awesome medium" id="settings" style="width:52px" onclick="App.onClickedSettings();">Settings</button>
+        <button type="button" class="awesome medium red" id="settings" style="width:52px;" onclick="App.onClickedSettings();">Settings</button>
       </span>
     </div>
   </div>
