@@ -17,27 +17,35 @@
 </head>
 
 <body>
+
   <div id="main_toolbar">
-    <div style="display:table-cell; vertical-align:middle;">
+    <div style="vertical-align:middle;">
       <span class="combo">
         <label for="scene">Scene: </label><select id="scene" style="width:100px;" onchange="App.onChangedScene(this.selectedIndex);"></select>
       </span>
-      <span style="margin-left:8px"></span>
-      <button type="button" class="awesome medium" id="edit" style="width:60px; font-weight:bold" onclick="App.onClickedEdit();">Edit</button>
-      <span style="margin-left:8px"></span>
+
+      <span style="margin-left:4px"></span>
+
+      <button type="button" class="awesome medium" id="edit" style="width:52px; font-weight:bold" onclick="App.onClickedEdit();">Edit</button>
+
+      <span style="margin-left:4px"></span>
+
       <button type="button" class="awesome medium" id="restart" style="width:52px" onclick="App.onClickedRestart();">Restart</button>
       <button type="button" class="awesome medium" id="pause" style="width:52px" onclick="App.onClickedPause();">Pause</button>
-      <button type="button" class="awesome medium" id="step" style="width:52px" onclick="App.onClickedStep();">Step</button>      
+      <button type="button" class="awesome medium" id="step" style="width:52px" onclick="App.onClickedStep();">Step</button>
       <button type="button" class="awesome medium" name="selectmode" value="vertex" style="width:52px" onclick="App.onClickedSelectMode(this.value);">Vertex</button>
       <button type="button" class="awesome medium" name="selectmode" value="shape" style="width:52px" onclick="App.onClickedSelectMode(this.value);">Shape</button>
       <button type="button" class="awesome medium" name="selectmode" value="body" style="width:52px" onclick="App.onClickedSelectMode(this.value);">Body</button>
       <button type="button" class="awesome medium" name="selectmode" value="joint" style="width:52px" onclick="App.onClickedSelectMode(this.value);">Joint</button>
-      <span style="margin-left:8px"></span>
-      <span style="float:right">
-        <button type="button" class="awesome medium" id="settings" style="width:52px" onclick="App.onClickedSettings();">Settings</button>      
+
+      <span style="margin-left:4px"></span>
+
+      <span style="text-align:right">
+        <button type="button" class="awesome medium" id="settings" style="width:52px" onclick="App.onClickedSettings();">Settings</button>
       </span>
     </div>
   </div>
+
   <div id="screen">
     <canvas id="canvas"></canvas>
     <div id="info"></div>
