@@ -8,39 +8,55 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <!--<link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon" />-->
   <link rel="apple-touch-icon-precomposed" href="img/apple-touch-icon-precomposed.png" />
-  <link rel="apple-touch-startup-image" href="img/startup-ipad-portrait.png" media="screen and (min-device-width: 481px) and (max-device-width: 1024px)" />
-  <link rel="apple-touch-startup-image" href="img/startup.png" media="screen and (max-device-width: 320px)" />
+  <!--<link rel="apple-touch-startup-image" href="img/startup-ipad-portrait.png" media="screen and (min-device-width: 481px) and (max-device-width: 1024px)" />
+  <link rel="apple-touch-startup-image" href="img/startup.png" media="screen and (max-device-width: 320px)" />-->
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="add2home.css">
+  <link rel="stylesheet" href="button.css" />
+  <link rel="stylesheet" href="add2home.css" />
   <title>RigidDyn2D</title>
 </head>
 
 <body>
-  <div id="screen">
-    <canvas id="canvas"></canvas>
-    <div id="toolbar">
-    <div class="combo" style="text-align:right">
-      <label for="scene">Scene: </label><select id="scene" style="width:110 px" onchange="App.onChangedScene(this.selectedIndex);"></select>
-    </div>
-    <div style="text-align:right">      
-      <label for="gravity">Gravity: </label><input type="number" id="gravity" size="8" min="-999" max="999" onchange="App.onChangedGravity(this.value);" /><br />
-      <label for="frameRateHz">Frame rate: </label><input type="number" id="frameRateHz" size="5" min="10" max="120" onchange="App.onChangedFrameRateHz(this.value);" /><br />
-      <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="5" min="1" max="100" onchange="App.onChangedVelocityIterations(this.value);" /><br />
-      <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" onchange="App.onChangedPositionIterations(this.value);" /><br />        
-    </div>
-    <div>
-      <input type="checkbox" id="warmStarting" checked="true" onclick="App.onClickedWarmStarting();" />Warm starting<br />
-      <input type="checkbox" id="allowSleep" checked="true" onclick="App.onClickedAllowSleep();" />Allow sleep<br />
-      <input type="checkbox" id="enableDirtyRect" checked="true" onclick="App.onClickedEnableDirtyRect();" />Enable dirty rect<br />
-      <input type="checkbox" id="showBounds" onclick="App.onClickedShowBounds();" />Show bounding boxes<br />
-      <input type="checkbox" id="showContacts" onclick="App.onClickedShowContacts();" />Show contacts<br />
-      <input type="checkbox" id="showJoints" checked="true" onclick="App.onClickedShowJoints();" />Show joints<br />
-      <input type="checkbox" id="showStats" onclick="App.onClickedShowStats();" />Show statistics<br />
-      <input type="button" id="restart" value="Restart" style="width:77px" onclick="App.onClickedRestart();" />
-      <input type="button" id="pause" value="Pause" style="width:77px" onclick="App.onClickedPause();" /><br />
-      <input type="button" id="step" value="Step" style="width:77px" onclick="App.onClickedStep();" /><br />
+  <div id="main_toolbar">
+    <div style="display:table-cell; vertical-align:middle;">
+      <span class="combo">
+        <label for="scene">Scene: </label><select id="scene" style="width:120px;" onchange="App.onChangedScene(this.selectedIndex);"></select>
+      </span>
+      <!--<span style="margin-left: 100px;"></span>-->
+      <button type="button" class="awesome medium" id="edit" style="width:60px; font-weight:bold" onclick="App.onClickedEdit();">Edit</button>
+      <span style="margin-left:2ex"></span>
+      <button type="button" class="awesome medium" id="restart" style="width:52px" onclick="App.onClickedRestart();">Restart</button>
+      <button type="button" class="awesome medium" id="pause" style="width:52px" onclick="App.onClickedPause();">Pause</button>
+      <button type="button" class="awesome medium" id="step" style="width:52px" onclick="App.onClickedStep();">Step</button>      
+      <button type="button" class="awesome medium" name="selectmode" value="vertex" style="width:52px" onclick="App.onClickedSelectMode(this.value);">Vertex</button>
+      <button type="button" class="awesome medium" name="selectmode" value="shape" style="width:52px" onclick="App.onClickedSelectMode(this.value);">Shape</button>
+      <button type="button" class="awesome medium" name="selectmode" value="body" style="width:52px" onclick="App.onClickedSelectMode(this.value);">Body</button>
+      <button type="button" class="awesome medium" name="selectmode" value="joint" style="width:52px" onclick="App.onClickedSelectMode(this.value);">Joint</button>
+      <span style="margin-left:2ex"></span>
+      <span style="float:right">
+        <button type="button" class="awesome medium" id="settings" style="width:52px" onclick="App.onClickedSettings();">Settings</button>      
+      </span>
     </div>
   </div>
+  <div id="screen">
+    <canvas id="canvas"></canvas>
+    <div id="info"></div>
+    <div id="settings_layout">
+      <div style="text-align:right">
+        <label for="gravity">Gravity: </label><input type="number" id="gravity" size="8" min="-999" max="999" onchange="App.onChangedGravity(this.value);" /><br />
+        <label for="frameRateHz">Frame rate: </label><input type="number" id="frameRateHz" size="5" min="10" max="120" onchange="App.onChangedFrameRateHz(this.value);" /><br />
+        <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="5" min="1" max="100" onchange="App.onChangedVelocityIterations(this.value);" /><br />
+        <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" onchange="App.onChangedPositionIterations(this.value);" /><br />        
+      </div>
+      <div>
+        <input type="checkbox" id="warmStarting" checked="true" onclick="App.onClickedWarmStarting();" />Warm starting<br />
+        <input type="checkbox" id="allowSleep" checked="true" onclick="App.onClickedAllowSleep();" />Allow sleep<br />
+        <input type="checkbox" id="enableDirtyRect" checked="true" onclick="App.onClickedEnableDirtyRect();" />Enable dirty rect<br />
+        <input type="checkbox" id="showBounds" onclick="App.onClickedShowBounds();" />Show bounding boxes<br />
+        <input type="checkbox" id="showContacts" onclick="App.onClickedShowContacts();" />Show contacts<br />
+        <input type="checkbox" id="showStats" onclick="App.onClickedShowStats();" />Show statistics<br />      
+      </div>
+    </div>
   </div>
 
   <script src="lib/json2.js"></script>

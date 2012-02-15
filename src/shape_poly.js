@@ -88,6 +88,18 @@ ShapePoly.prototype.pointQuery = function(p) {
 	return this.containPoint(p);
 }
 
+ShapePoly.prototype.findVertexByPoint = function(p, minDist) {
+	var dsq = minDist * minDist;
+
+	for (var i = 0; i < this.tverts.length; i++) {
+		if (vec2.distsq(this.tverts[i], p) < dsq) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
 ShapePoly.prototype.distanceOnPlane = function(n, d) {
 	var min = 999999;
 	for (var i = 0; i < this.verts.length; i++) {

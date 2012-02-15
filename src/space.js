@@ -201,12 +201,28 @@ Space.prototype.removeJoint = function(joint) {
 	this.numJoints--;
 }
 
-Space.prototype.findShapeByPoint = function(p) {
+Space.prototype.findShapeByPoint = function(p, refShape) {
+	var firstShape;
+
 	for (var i = 0; i < this.shapeArr.length; i++) {
 		if (this.shapeArr[i].pointQuery(p)) {
-			return this.shapeArr[i];
+			var shape = this.shapeArr[i];
+
+			if (!refShape) {
+				return shape;
+			}
+
+			if (!firstShape) {
+				firstShape = shape;
+			}
+
+			if (shape == refShape) {
+				refShape = null;
+			}		
 		}
 	}
+
+	return firstShape;
 }
 
 Space.prototype.findContactSolver = function(shape1, shape2) {

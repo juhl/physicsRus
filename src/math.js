@@ -33,7 +33,7 @@ vec2.prototype.duplicate = function() {
 }
 
 vec2.prototype.equal = function(v) {
-	return this.x != v.x || this.y != v.y ? false : true;
+	return (this.x != v.x || this.y != v.y) ? false : true;
 }
 
 vec2.prototype.add = function(v1, v2) {
@@ -683,4 +683,10 @@ Bounds.prototype.intersectsBounds = function(b) {
 	if (this.mins.x > b.maxs.x || this.maxs.x < b.mins.x || this.mins.y > b.maxs.y || this.maxs.y < b.mins.y)
 		return false;
 	return true;
+}
+
+Bounds.expand = function(b, ax, ay) {
+	var b = new Bounds(b.mins, b.maxs);
+	b.expand(ax, ay);
+	return b;
 }

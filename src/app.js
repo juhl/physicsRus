@@ -1,6 +1,8 @@
 var stats = {};
 
 App = function() {
+	var activeWindow = true;
+	var screen;
 	var canvas;
 	var fg = {};
 	var bg = {};
@@ -8,21 +10,27 @@ App = function() {
 	
 	var lastTime;
 	var timeDelta;
-	var view = { origin: new vec2(0, 0), scale: 1, minScale: 0.5, maxScale: 3.0, bounds: new Bounds };
+	var view = { origin: new vec2(0, 0), scale: 1, minScale: 0.5, maxScale: 4.0, bounds: new Bounds };
 	var mouseDown = false;
 	var startMoving = false;
-	var mousePositionOld;
+	var mousePosition = new vec2;
+	var mousePositionOld = new vec2;
+	var mouseCursor = "default";
 	var touchPosOld = new Array(2);
 	var gestureStartScale;
 	var gestureScale;
 	var dirtyBounds = new Bounds;
+	var pressedShape;
 
 	var editMode = false;
-	var selectMode = 0; // 0: Body, 1: Shape, 2: Vertex, 3: Joint
-	var selectedBody;
+	var SELECT_MODE_VERTEX = 0;
+	var SELECT_MODE_SHAPE = 1;
+	var SELECT_MODE_BODY = 2;
+	var SELECT_MODE_JOINT = 3;
+	var selectMode = SELECT_MODE_SHAPE;
 	var selectedShape;
-	var selectedVertex;
-	var selectedJoint;
+	var selectedVertex = -1;
+	var selectedJoint;	
 
 	var space;
 	var demoArr = [DemoCar, DemoRagDoll, DemoSeeSaw, DemoPyramid, DemoCrank, DemoRope, DemoWeb, DemoBounce];
@@ -30,7 +38,9 @@ App = function() {
 	var sceneIndex;
 	var randomColor;
 	var mouseBody;
-	var mouseJoint;	
+	var mouseJoint;
+
+	var showSettings = false;
 	var gravity = new vec2(0, -627.2);
 	var pause = false;
 	var step = false;
@@ -42,10 +52,11 @@ App = function() {
 	var enableDirtyBounds = true;
 	var showBounds = false;
 	var showContacts = false;
-	var showJoints = true;
 	var showStats = false;
 
-	function main() {	
+	function main() {
+		screen = document.getElementById("screen");
+
 		// Initialize canvas context
 		canvas = document.getElementById("canvas");
 		if (!canvas.getContext) {
@@ -66,15 +77,19 @@ App = function() {
 		document.documentElement.style.overflowY = "hidden";
 		document.body.scroll = "no"; // ie only	
 
-		var elements = document.getElementById("toolbar").querySelectorAll("select, input");
+		var elements = document.getElementById("settings_layout").querySelectorAll("select, input");
 		for (var i in elements) {
 			elements[i].onblur = function() { window.scrollTo(0, 0); };			
 		}
+
+		//document.onselectstart = null;
 		
+		window.addEventListener("focus", function(e) { activeWindow = true; }, false);
+		window.addEventListener("blur", function(e) { activeWindow = false; }, false);
 		window.addEventListener("resize", onResize, false);
 		canvas.addEventListener("mousedown", onMouseDown, false);
 		window.addEventListener("mousemove", onMouseMove, false);
-		window.addEventListener("mouseup", onMouseUp, false);		
+		window.addEventListener("mouseup", onMouseUp, false);
 		window.addEventListener("mouseleave", onMouseLeave, false);
 		canvas.addEventListener("mousewheel", onMouseWheel, false);
 
@@ -105,7 +120,7 @@ App = function() {
 			document.onkeydown = onKeyDown;
 			document.onkeyup = onKeyUp
 			document.onkeypress = onKeyPress;
-		}
+		}		
 
 		// Add scenes from demos
 		var combobox = document.getElementById("scene");
@@ -128,6 +143,8 @@ App = function() {
 				sceneNameArr.push(filename);
 			});
 		});*/
+
+		updateMainToolbar();
 
 		// Select scene
 		sceneIndex = 0;
@@ -262,7 +279,7 @@ App = function() {
 		maxs.x = Math.min(Math.ceil(maxs.x), canvas.width);
 		maxs.y = Math.max(Math.floor(maxs.y), 0);
 		bounds.maxs = canvasToWorld(maxs);
-	}	
+	}
 
 	function bodyColor(body) {
 		if (body.isStatic()) {
@@ -281,11 +298,28 @@ App = function() {
 		var frameTime = (time - lastTime) / 1000;
 		lastTime = time;
 
+		if (!activeWindow) {
+			return;
+		}
+
+		if (!mouseDown) {
+			if (!editMode) {
+				var p = canvasToWorld(mousePosition);
+				var shape = space.findShapeByPoint(p);
+				mouseCursor = shape ? "pointer" : "default";
+			}
+			else {
+				
+			}
+		}
+
+		canvas.style.cursor = mouseCursor;
+		
 		if (window.requestAnimFrame) {
 			frameTime = Math.floor(frameTime * 60 + 0.5) / 60;
 		}
 
-		if (!pause || step && !editMode) {
+		if ((!pause || step) && !editMode) {
 			var h = 1 / frameRateHz;
 
 			timeDelta += frameTime;
@@ -316,30 +350,46 @@ App = function() {
 			updateScreen(frameTime);
 		}
 	}
-
+	
 	function updateScreen(frameTime) {	
 		var t0 = Date.now();
 		drawFrame(frameTime);
 		stats.timeDrawFrame = Date.now() - t0;
 
-		// Draw statistaics
-		if (showStats) {
-			var mins = canvasToWorld(new vec2(0, 50));
-			var maxs = canvasToWorld(new vec2(360, 0));
-			dirtyBounds.addBounds2(mins, maxs);
+		var info = document.getElementById("info");
+		info.innerHTML = "";
 
-			fg.ctx.textBaseline = "top";
-			fg.ctx.font = "9pt menlo";
-			fg.ctx.fillStyle = "#333";
-			fg.ctx.fillText(["fps:", parseInt(1 / frameTime), "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "tm_draw:", stats.timeDrawFrame].join(" "), 4, 2);
-			fg.ctx.fillText(["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver].join(" "), 4, 18);
-			fg.ctx.fillText(["bodies:", space.numBodies, "joints:", space.numJoints, "contacts:", space.numContacts, "pos_iters:", stats.positionIterations].join(" "), 4, 34);
+		if (editMode) {
+		}
+
+		// Show statistaics
+		if (showStats) {			
+			info.innerHTML +=
+				["fps:", parseInt(1 / frameTime), "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "tm_draw:", stats.timeDrawFrame, "<br />"].join(" ") +
+				["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver, "<br />"].join(" ") +
+				["bodies:", space.numBodies, "joints:", space.numJoints, "contacts:", space.numContacts, "pos_iters:", stats.positionIterations].join(" ");
 		}
 	}
 
 	function drawFrame(frameTime) {
 		// view.bounds for culling
 		view.bounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+
+		// Check the visibility of shapes for all bodies
+		for (var i in space.bodyHash) {
+			var body = space.bodyHash[i];
+
+			for (var j = 0; j < body.shapeArr.length; j++) {
+				var shape = body.shapeArr[j];
+				var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
+				if (view.bounds.intersectsBounds(bounds)) {
+					shape.visible = true;
+				}
+				else {
+					shape.visible = false;
+				}
+			}
+		}
 
 		// Update whole background canvas if we needed
 		if (bg.outdated) {
@@ -403,12 +453,16 @@ App = function() {
 			}			
 		}
 
-		// Draw joints
-		if (showJoints) {
+		// Edit mode drawing
+		if (editMode) {
+			for (var i in space.bodyHash) {
+				drawBodyEdit(fg.ctx, space.bodyHash[i]);
+			}
+
 			for (var i in space.jointHash) {
 				drawJoint(fg.ctx, space.jointHash[i], "#F0F");
 			}
-		}		
+		}
 
 		// Draw contacts
 		if (showContacts) {
@@ -463,38 +517,95 @@ App = function() {
 	function drawBody(ctx, body, fillColor, outlineColor) {
 		for (var i = 0; i < body.shapeArr.length; i++) {
 			var shape = body.shapeArr[i];
-
-			var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);			
-			if (!view.bounds.intersectsBounds(bounds)) {
+			if (!shape.visible) {
 				continue;
-			}
-
-			drawBodyShape(ctx, body, shape, fillColor, outlineColor);
-
-			if (showBounds) {
-				bounds.expand(1, 1);
-				renderer.drawBox(ctx, bounds.mins, bounds.maxs, null, "#0A0");
-			}
-
-			if (!body.isStatic()) {
-				bounds.expand(1, 1);
-				dirtyBounds.addBounds(bounds);
 			}			
+
+			drawBodyShape(ctx, shape, fillColor, outlineColor);
+
+			if (showBounds || !body.isStatic()) {
+				var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
+
+				if (showBounds) {
+					bounds.expand(1, 1);
+					renderer.drawBox(ctx, bounds.mins, bounds.maxs, null, "#0A0");
+				}
+
+				if (!body.isStatic()) {
+					bounds.expand(1, 1);
+					dirtyBounds.addBounds(bounds);
+				}
+			}
 		}
 	}
 
-	function drawBodyShape(ctx, body, shape, fillColor, outlineColor) {
+	function drawBodyShape(ctx, shape, fillColor, outlineColor) {
 		switch (shape.type) {
 		case Shape.TYPE_CIRCLE:
-			renderer.drawCircle(ctx, shape.tc, shape.r, body.a, fillColor, outlineColor);
+			renderer.drawCircle(ctx, shape.tc, shape.r, shape.body.a, fillColor, outlineColor);
 			break;
 		case Shape.TYPE_SEGMENT:
 			renderer.drawSegment(ctx, shape.ta, shape.tb, shape.r, fillColor, outlineColor);
 			break;
 		case Shape.TYPE_POLY:
-			renderer.drawPolygon(ctx, shape.tverts, fillColor, outlineColor);
+			renderer.drawPolygon(ctx, shape.tverts, fillColor, outlineColor);			
 			break;
 		}		
+	}
+
+	function drawBodyEdit(ctx, body) {		
+		for (var i = 0; i < body.shapeArr.length; i++) {
+			var shape = body.shapeArr[i];
+			if (!shape.visible) {
+				continue;
+			}
+
+			if (selectMode == SELECT_MODE_SHAPE && selectedShape == shape) {
+				drawBodyShape(ctx, shape, "rgba(255, 0, 0, 0.6)", "#F00");
+				dirtyBounds.addBounds(Bounds.expand(shape.bounds, 1, 1));
+			}
+			else if (selectMode == SELECT_MODE_BODY && selectedShape && selectedShape.body == body) {
+				drawBodyShape(ctx, shape, "rgba(255, 0, 0, 0.6)", "#F00");
+				dirtyBounds.addBounds(Bounds.expand(shape.bounds, 1, 1));
+			}
+
+			if (selectMode == SELECT_MODE_VERTEX) {
+				selectedVertex = shape.findVertexByPoint(canvasToWorld(mousePosition), 3);
+				drawBodyShapeVerts(ctx, shape);
+			}
+		}
+	}
+
+	function drawBodyShapeVerts(ctx, shape, color) {
+		switch (shape.type) {
+		case Shape.TYPE_CIRCLE:
+			drawVertex(ctx, shape.tc, "#008", true);
+			break;
+		case Shape.TYPE_SEGMENT:
+			drawVertex(ctx, shape.ta, "#008", true);
+			drawVertex(ctx, shape.tb, "#008", true);
+			break;
+		case Shape.TYPE_POLY:
+			for (var i = 0; i < shape.tverts.length; i++) {
+				drawVertex(ctx, shape.tverts[i], "#008", true);
+			}
+			break;
+		}		
+	}
+
+	function drawVertex(ctx, v, color, addDirtyBounds) {
+		if (this.vertex_offset == undefined) {
+			this.vertex_offset = new vec2(2, 2);
+		}
+
+		var mins = vec2.sub(v, vertex_offset);
+		var maxs = vec2.add(v, vertex_offset);
+
+		renderer.drawBox(ctx, mins, maxs, color);
+
+		if (addDirtyBounds) {
+			dirtyBounds.addBounds2(mins, maxs);
+		}
 	}
 
 	function drawJoint(ctx, joint, strokeStyle) {
@@ -503,7 +614,7 @@ App = function() {
 		}
 
 		var body1 = joint.body1;
-		var body2 = joint.body2;		
+		var body2 = joint.body2;
 
 		var p1 = vec2.add(vec2.rotate(joint.anchor1, body1.a), body1.p);
 		var p2 = vec2.add(vec2.rotate(joint.anchor2, body2.a), body2.p);
@@ -531,37 +642,30 @@ App = function() {
 	}
 
 	function onResize(e) {
-		window.scrollTo(0, 0);
+		window.scrollTo(0, 0);		
 
-		fg.canvas.width = window.innerWidth;
-		fg.canvas.height = window.innerHeight;
+		fg.canvas.width = screen.clientWidth - screen.offsetLeft;
+		fg.canvas.height = screen.clientHeight - screen.offsetTop;
 
-		bg.canvas.width = window.innerWidth;
-		bg.canvas.height = window.innerHeight;
+		bg.canvas.width = fg.canvas.width;
+		bg.canvas.height = fg.canvas.height;
 
 		// Set dirtyBounds to full screen
 		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));		
 		bg.outdated = true;
 
-		fg.canvas.style.position = "absolute";
 		fg.canvas.style.left = "0px";
-		fg.canvas.style.top = "0px";
-
-		var toolbar = document.getElementById("toolbar");
-		toolbar.style.position = "absolute";
-		toolbar.style.left = (canvas.width - toolbar.clientWidth) + "px";
-		toolbar.style.top = "0px";
-		//toolbar.style.display = "none";		
+		fg.canvas.style.top = "0px";		
 	}
 
 	function getMousePosition(e) {
 		return new vec2(
-			document.body.scrollLeft + e.clientX - canvas.offsetLeft, 
-			document.body.scrollTop + e.clientY - canvas.offsetTop);
+			e.clientX + document.body.scrollLeft - screen.offsetLeft, 
+			e.clientY + document.body.scrollTop - screen.offsetTop);
 	}
-	
+		
 	function onMouseDown(e) {
-		mouseDown = true;		
+		mouseDown = true;
 
 		if (mouseJoint) {
 			space.removeJoint(mouseJoint);
@@ -570,58 +674,77 @@ App = function() {
 
 		var pos = getMousePosition(e);
 		var p = canvasToWorld(pos);
-		var shape = space.findShapeByPoint(p);
-		if (shape && !shape.body.isStatic()) {
-			var body = shape.body;
-			
-			mouseBody.p.copy(p);
-			mouseJoint = new MouseJoint(mouseBody, body, p);
-			mouseJoint.maxForce = body.m * 10000;
-			space.addJoint(mouseJoint);
+		var shape = space.findShapeByPoint(p, selectedShape);
 
-			e.preventDefault();			
+		if (shape) {
+			pressedShape = shape;
+
+			if (!editMode) {
+				var body = shape.body;
+				
+				mouseBody.p.copy(p);
+				mouseJoint = new MouseJoint(mouseBody, body, p);
+				mouseJoint.maxForce = 8000000;
+				space.addJoint(mouseJoint);
+			}
 		}
 		else if (/*e.metaKey*/1) {
 			startMoving = true;
 			mousePositionOld = pos;
+			mouseCursor = "move";
 		}
+
+		e.preventDefault();
 	}
 
-	function onMouseUp(e) {
-		mouseDown = false;
-		startMoving = false;
-
+	function onMouseUp(e) {		
 		if (mouseJoint) {
 			space.removeJoint(mouseJoint);
 			mouseJoint = null;
-					
-			e.preventDefault();
+		}		
+
+		var pos = getMousePosition(e);
+		var p = canvasToWorld(pos);
+		var shape = space.findShapeByPoint(p, selectedShape);
+
+		if (shape && pressedShape == shape) {
+			selectedShape = shape;
 		}
+		else if (startMoving) {		
+			selectedShape = null;
+		}
+
+		pressedShape = null;
+		mouseCursor = "default";
+		mouseDown = false;		
+		startMoving = false;		
+
+		e.preventDefault();
 	}
 
-	function onMouseMove(e) {
-		var pos = getMousePosition(e);
+	function onMouseMove(e) {		
+		mousePosition = getMousePosition(e);
 
 		if (mouseJoint) {
-			mouseBody.p.copy(canvasToWorld(pos));
+			mouseBody.p.copy(canvasToWorld(mousePosition));
 
 			e.preventDefault();
 		}
 		else if (startMoving) {
-			view.origin.x -= pos.x - mousePositionOld.x;
-			view.origin.y += pos.y - mousePositionOld.y;
+			view.origin.x -= mousePosition.x - mousePositionOld.x;
+			view.origin.y += mousePosition.y - mousePositionOld.y;
 
-			//view.origin.y = Math.clamp(view.origin.y, 0, 0);
-
-			mousePositionOld.x = pos.x;
-			mousePositionOld.y = pos.y;
+			//view.origin.y = Math.clamp(view.origin.y, 0, 0);			
 
 			// Set dirtyBounds to full screen
 			dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
-			bg.outdated = true;
+			bg.outdated = true;			
 		
 			e.preventDefault();
-		}
+		}		
+
+		mousePositionOld.x = mousePosition.x;
+		mousePositionOld.y = mousePosition.y;
 	}
 
 	function onMouseLeave(e) {
@@ -717,7 +840,7 @@ App = function() {
 				view.origin.y += touchScaleCenter.y * ds;
 
 				view.origin.x -= (v1.x + v2.x) * 0.5;
-				view.origin.x += (v1.y + v2.y) * 0.5;
+				view.origin.y += (v1.y + v2.y) * 0.5;
 
 				//view.origin.y = Math.clamp(view.origin.y, 0, 0);
 
@@ -775,7 +898,10 @@ App = function() {
 		case 49: // '1'
 		case 50: // '2'
 		case 51: // '3'
-			//number = e.keyCode - 48;
+		case 52: // '4'
+			if (editMode) {
+				onClickedSelectMode(["vertex", "shape", "body", "joint"][(e.keyCode - 48) - 1]);				
+			}
 			break;
 		case 32: // 'space'
 			onClickedStep();
@@ -837,17 +963,55 @@ App = function() {
 		showContacts = !showContacts;
 	}
 
-	function onClickedShowJoints() {
-		showJoints = !showJoints;
-	}
-
 	function onClickedShowStats() {
 		showStats = !showStats;
 	}
 
 	function updatePauseButton() {
 		var button = document.getElementById("pause");
-		button.value = pause ? "Play" : "Pause";
+		button.innerHTML = pause ? "Play" : "Pause";
+	}
+
+	function updateMainToolbar() {
+		var button = document.getElementById("edit");
+		var elements = document.getElementsByName("selectmode");
+
+		if (editMode) {
+			button.innerHTML = "Run";
+
+			document.getElementById("restart").style.display = "none";
+			document.getElementById("pause").style.display = "none";
+			document.getElementById("step").style.display = "none";
+
+			var value = ["vertex", "shape", "body", "joint"][selectMode];
+
+			for (var i = 0 ; i < elements.length; i++) {
+				var e = elements[i];
+				
+				e.style.display = "inline";
+				if (e.value == value) {
+					if (e.className.indexOf(" pushed") == -1) {
+						e.className += " pushed";
+					}
+				}
+				else {
+					e.className = e.className.replace(" pushed", "");
+				}
+			}
+		}
+		else {
+			button.innerHTML = "Edit";
+
+			document.getElementById("restart").style.display = "inline";
+			document.getElementById("pause").style.display = "inline";
+			document.getElementById("step").style.display = "inline";			
+			
+			for (var i = 0 ; i < elements.length; i++) {
+				elements[i].style.display = "none";
+			}			
+		}		
+		
+		updatePauseButton();	
 	}
 
 	function onClickedRestart() {
@@ -867,22 +1031,64 @@ App = function() {
 		updatePauseButton();
 	}
 
+	function onClickedEdit() {
+		editMode = !editMode;
+		pause = false;
+		step = false;
+		updateMainToolbar();
+
+		initScene();
+	}
+
+	function onClickedSelectMode(value) {
+		selectMode = { vertex: SELECT_MODE_VERTEX, shape: SELECT_MODE_SHAPE, body: SELECT_MODE_BODY, joint: SELECT_MODE_JOINT }[value];
+		selectedShape = null;
+		selectedVertex = -1;
+		selectedJoint = null;
+
+		updateMainToolbar();
+	}
+
+	function onClickedSettings() {
+		showSettings = !showSettings;
+
+		var layout = document.getElementById("settings_layout");
+		var button = document.getElementById("settings");
+
+		if (showSettings) {
+			layout.style.display = "block";
+			layout.style.left = (canvas.width - layout.clientWidth) - 4 + "px";
+			layout.style.top = "4px";				
+
+			if (button.className.indexOf(" pushed") == -1) {
+				button.className += " pushed";
+			}
+		}
+		else {
+			layout.style.display = "none";
+
+			button.className = e.className.replace(" pushed", "");
+		}
+	}
+
 	return { 
 		main: main,
 		onChangedScene: onChangedScene,
 		onChangedGravity: onChangedGravity,
 		onChangedFrameRateHz: onChangedFrameRateHz,
 		onChangedVelocityIterations: onChangedVelocityIterations,
-		onChangedPositionIterations: onChangedPositionIterations,        
+		onChangedPositionIterations: onChangedPositionIterations,
 		onClickedWarmStarting: onClickedWarmStarting,
 		onClickedAllowSleep: onClickedAllowSleep,
 		onClickedEnableDirtyRect: onClickedEnableDirtyRect,
 		onClickedShowBounds: onClickedShowBounds,
 		onClickedShowContacts: onClickedShowContacts,
-		onClickedShowJoints: onClickedShowJoints,
 		onClickedShowStats: onClickedShowStats,
 		onClickedRestart: onClickedRestart,
 		onClickedPause: onClickedPause,
-		onClickedStep: onClickedStep
+		onClickedStep: onClickedStep,
+		onClickedEdit: onClickedEdit,
+		onClickedSelectMode: onClickedSelectMode,
+		onClickedSettings: onClickedSettings
 	};
 }();

@@ -50,6 +50,16 @@ ShapeCircle.prototype.pointQuery = function(p) {
 	return vec2.distsq(this.tc, p) < (this.r * this.r);
 }
 
+ShapeCircle.prototype.findVertexByPoint = function(p, minDist) {
+	var dsq = minDist * minDist;
+
+	if (vec2.distsq(this.tc, p) < dsq) {
+		return 0;
+	}
+
+	return -1;
+}
+
 ShapeCircle.prototype.distanceOnPlane = function(n, d) {
 	return vec2.dot(n, this.tc) - this.r - d;
 }

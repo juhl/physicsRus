@@ -106,6 +106,20 @@ ShapeSegment.prototype.pointQuery = function(p) {
 	return true;
 }
 
+ShapeSegment.prototype.findVertexByPoint = function(p, minDist) {
+	var dsq = minDist * minDist;
+
+	if (vec2.distsq(this.ta, p) < dsq) {
+		return 0;
+	}
+
+	if (vec2.distsq(this.tb, p) < dsq) {
+		return 1;
+	}
+
+	return -1;
+}
+
 ShapeSegment.prototype.distanceOnPlane = function(n, d) {
 	var a = vec2.dot(n, this.ta) - this.r;
 	var b = vec2.dot(n, this.tb) - this.r;
