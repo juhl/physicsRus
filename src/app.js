@@ -383,7 +383,7 @@ App = function() {
 		
 		// Show statistaics
 		if (showStats) {
-			if ((frameCount % 15) == 0) {
+			if ((frameCount % 10) == 0) {
 				info.innerHTML =
 					["fps:", Math.round(fps), "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "tm_draw:", stats.timeDrawFrame, "<br />"].join(" ") +
 					["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver, "<br />"].join(" ") +
