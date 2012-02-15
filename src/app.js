@@ -691,7 +691,6 @@ App = function() {
 		else if (/*e.metaKey*/1) {
 			startMoving = true;
 			mousePositionOld = pos;
-			mouseCursor = "move";
 		}
 
 		e.preventDefault();
@@ -715,7 +714,6 @@ App = function() {
 		}
 
 		pressedShape = null;
-		mouseCursor = "default";
 		mouseDown = false;		
 		startMoving = false;		
 
@@ -738,7 +736,7 @@ App = function() {
 
 			// Set dirtyBounds to full screen
 			dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
-			bg.outdated = true;			
+			bg.outdated = true;	
 		
 			e.preventDefault();
 		}		
@@ -1067,7 +1065,7 @@ App = function() {
 		else {
 			layout.style.display = "none";
 
-			button.className = e.className.replace(" pushed", "");
+			button.className = button.className.replace(" pushed", "");
 		}
 	}
 
