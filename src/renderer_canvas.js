@@ -135,6 +135,6 @@ RendererCanvas = function() {
 		drawBox: drawBox,
 		drawCircle: drawCircle,
 		drawSegment: drawSegment,
-		drawPolygon: drawPolygon,
+		drawPolygon: drawPolygon
 	}
 }();
