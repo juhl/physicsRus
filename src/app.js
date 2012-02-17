@@ -962,6 +962,10 @@ App = function() {
 			clickedFeature = getFeatureByPoint(p);
 		}
 
+		// for the touch device
+		mousePositionOld.x = pos.x;
+		mousePositionOld.y = pos.y;
+
 		e.preventDefault();
 	}
 
@@ -1305,38 +1309,26 @@ App = function() {
 
 	function onClickedWarmStarting() {
 		warmStarting = !warmStarting;
-
-		return false;
 	}
 
 	function onClickedAllowSleep() {
 		allowSleep = !allowSleep;
-
-		return false;
 	}
 
 	function onClickedEnableDirtyRect() {
 		enableDirtyBounds = !enableDirtyBounds;
-
-		return false;
 	}
 
 	function onClickedShowBounds() {
 		showBounds = !showBounds;
-
-		return false;
 	}
 
 	function onClickedShowContacts() {
 		showContacts = !showContacts;
-
-		return false;
 	}
 
 	function onClickedShowStats() {
 		showStats = !showStats;
-
-		return false;
 	}	
 
 	function updateMainToolbar() {
