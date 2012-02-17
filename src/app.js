@@ -997,40 +997,41 @@ App = function() {
 		e.preventDefault();
 	}
 
+	function scrollView(dx, dy) {
+		view.origin.x += dx;
+		view.origin.y += dy;
+
+		//view.origin.y = Math.clamp(view.origin.y, 0, 0);
+
+		// Set dirtyBounds to full screen
+		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+		bg.outdated = true;
+	}
+
 	function onMouseMove(e) {		
 		mousePosition = getMousePosition(e);
 
 		var dx = mousePosition.x - mousePositionOld.x;
 		var dy = mousePosition.y - mousePositionOld.y;		
-
-		highlightFeatureArr = [];
-
-		if (mouseDown) {
-			// Scroll view
-			if (!editMode || (!isValidFeature(clickedFeature) && !e.shiftKey && !e.metaKey)) {
-				view.scroll.x = -(mousePosition.x - mousePositionOld.x);
-				view.scroll.y = mousePosition.y - mousePositionOld.y;
-
-				view.origin.x += view.scroll.x;
-				view.origin.y += view.scroll.y;
-
-				//view.origin.y = Math.clamp(view.origin.y, 0, 0);			
-
-				// Set dirtyBounds to full screen
-				dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
-				bg.outdated = true;
-			}
-		}
 		
 		if (!editMode) {
 			if (mouseDown) {
 				if (mouseJoint) {
 					mouseBody.p.copy(canvasToWorld(mousePosition));
 				}
-			}
+				else {
+					scrollView(-(mousePosition.x - mousePositionOld.x), mousePosition.y - mousePositionOld.y);
+				}
+			}		
 		}
 		else {
+			highlightFeatureArr = [];
+
 			if (mouseDown) {
+				if (!isValidFeature(clickedFeature) && !e.shiftKey && !e.metaKey) {
+					scrollView(-(mousePosition.x - mousePositionOld.x), mousePosition.y - mousePositionOld.y);
+				}
+
 				if (transformMode == TM_SELECT) {
 					if (!mouseDownMoving && !e.shiftKey && !e.metaKey) {
 						selectedFeatureArr = [];
@@ -1183,19 +1184,16 @@ App = function() {
 			var d2 = v2.length();
 
 			if (d1 > 0 || d2 > 0) {
+				scrollView(-(v1.x + v2.x) * 0.5, (v1.y + v2.y) * 0.5);
+
 				touchScaleCenter = canvasToWorld(vec2.lerp(touchPos[0], touchPos[1], d1 / (d1 + d2)));
 
 				var oldScale = view.scale;
 				view.scale = Math.clamp(gestureScale, view.minScale, view.maxScale);
-				var ds = view.scale - oldScale;
+				var ds = view.scale - oldScale;				
 		
 				view.origin.x += touchScaleCenter.x * ds;
 				view.origin.y += touchScaleCenter.y * ds;
-
-				view.origin.x -= (v1.x + v2.x) * 0.5;
-				view.origin.y += (v1.y + v2.y) * 0.5;
-
-				//view.origin.y = Math.clamp(view.origin.y, 0, 0);
 
 				// Set dirtyBounds to full screen
 				dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
