@@ -19,7 +19,7 @@ input.awesome,
 a.button.awesome { 
   font: inherit;
   background-repeat: repeat-x; 
-  color: #fff;
+  color: #eee;
   text-decoration: none; 
   position: relative;
   cursor: pointer; 
@@ -115,15 +115,14 @@ button.awesome:hover,
 input.awesome:hover,
 a.button.awesome:hover {
   /*background-position: 0 -50px;*/
-  /*border: 1px solid #FFF;*/
-  color: #fff;
+  /*border: 1px solid #FFF;*/  
+  color: white;  
 }
 button.awesome:active,
 input.awesome:active,
 a.button.awesome:active { 
-  position:relative;
-  /*top:1px;*/
-  padding: 7px 0px 5px 0px;
+  position:relative;  
+  padding: 7px 0px 5px 0px;  
   
   background-position: 0 0;
   box-shadow:         inset 1px 2px 4px rgb(0,0,0), 0 1px 0 #6B6967;
@@ -135,26 +134,13 @@ a.button.awesome:active {
   border-top: 1px solid #666\9;
 }
 
-.awesome.blue {
-  background-color: #004AFF !important;
-}
-.awesome.red {
-  background-color: #E32100 !important;
-}
-.awesome.green {
-  background-color: #20A000 !important;
-}
-.awesome.yellow {
-  background-color: #F0A000 !important;
-}
-.awesome.purple {
-  background-color: #6E00EE !important;
-}
-
-*.awesome.pushed {
+.awesome.pushed {
   padding: 7px 0px 5px 0px;
+  color: black;
+  background-color: #fa0;
 
-  background-position: 0 -50px;
+  text-shadow: 0px 0px 0px;
+
   -moz-box-shadow:    inset 1px 2px 4px rgb(0,0,0), 0 1px 0 #6B6967; 
   -webkit-box-shadow: inset 1px 2px 4px rgb(0,0,0), 0 1px 0 #6B6967;
   box-shadow:         inset 1px 2px 4px rgb(0,0,0), 0 1px 0 #6B6967;
@@ -163,3 +149,13 @@ a.button.awesome:active {
   border-bottom: 0\9;
   border-top: 1px solid #666\9;
 }
+
+.awesome.pushed:hover {
+  color: black;
+}
+
+.awesome.blue   { background-color: #004AFF !important; } .awesome.blue.pushed    {} .awesome.blue.pushed:hover   { color: white;}
+.awesome.red    { background-color: #E32100 !important; } .awesome.red.pushed     {} .awesome.red.pushed:hover    { color: white;}
+.awesome.green  { background-color: #20A000 !important; } .awesome.green.pushed   {} .awesome.green.pushed:hover  { color: white;}
+.awesome.yellow { background-color: #F0A000 !important; } .awesome.yellow.pushed  {} .awesome.yellow.pushed:hover { color: white;}
+.awesome.purple { background-color: #6E00EE !important; } .awesome.purple.pushed  {} .awesome.purple.pushed:hover { color: white;}

@@ -5,7 +5,7 @@ function Space() {
 	this.numBodies = 0;
 
 	this.jointHash = {};
-	this.numJoints = 0;    
+	this.numJoints = 0;
 	
 	this.contactSolverArr = [];
 	this.numContacts = 0;
@@ -140,7 +140,7 @@ Space.prototype.addBody = function(body) {
 	this.numBodies++;
 	
 	for (var i = 0; i < body.shapeArr.length; i++) {
-		this.shapeArr.push(body.shapeArr[i]); 
+		this.shapeArr.push(body.shapeArr[i]);
 	}
 
 	body.awake(true);
@@ -205,9 +205,8 @@ Space.prototype.findShapeByPoint = function(p, refShape) {
 	var firstShape;
 
 	for (var i = 0; i < this.shapeArr.length; i++) {
-		if (this.shapeArr[i].pointQuery(p)) {
-			var shape = this.shapeArr[i];
-
+		var shape = this.shapeArr[i];
+		if (shape.pointQuery(p)) {
 			if (!refShape) {
 				return shape;
 			}
@@ -218,11 +217,50 @@ Space.prototype.findShapeByPoint = function(p, refShape) {
 
 			if (shape == refShape) {
 				refShape = null;
-			}		
+			}
 		}
 	}
 
 	return firstShape;
+}
+
+// TODO: Replace this function to hashing
+Space.prototype.shapeById = function(id) {
+	var shape;
+	for (var i = 0; i < this.shapeArr.length; i++) {		
+		if (this.shapeArr[i].id == id) {
+			return this.shapeArr[i];			
+		}
+	}
+
+	return null;
+}				
+
+Space.prototype.findVertexByPoint = function(p, minDist, refVertex) {
+	var firstVertex = -1;
+
+	refVertex = refVertex || -1;
+
+	for (var i = 0; i < this.shapeArr.length; i++) {
+		var shape = this.shapeArr[i];
+		var index = shape.findVertexByPoint(p, minDist);
+		if (index != -1) {
+			var vertex = shape.id << 16 | index;
+			if (refVertex == -1) {
+				return vertex;
+			}
+
+			if (firstVertex == -1) {
+				firstVertex = vertex;
+			}
+
+			if (vertex == refVertex) {
+				refVertex = -1;
+			}		
+		}
+	}
+
+	return firstVertex;
 }
 
 Space.prototype.findContactSolver = function(shape1, shape2) {

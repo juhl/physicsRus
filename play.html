@@ -21,34 +21,34 @@
   <div id="main_toolbar">
     <div style="margin: 9px 0px 0;">
       <span class="combo">
-        <label for="scene" style="font-size: 10px">Scene: </label><select id="scene" style="width:80px;" onchange="App.onChangedScene(this.selectedIndex);"></select>
+        <label for="scene" style="font-size: 10px">Scene: </label><select id="scene" style="width:100px;" onchange="App.onChangedScene(this.selectedIndex);"></select>
       </span>
 
       <span style="margin-left:8px"></span>
 
-      <button type="button" class="awesome blue" id="edit" style="width:52px; font-weight:bold" onclick="App.onClickedEdit();">Edit</button>      
+      <button type="button" class="awesome blue" id="edit" style="width:52px; font-weight:bold" onclick="return App.onClickedEdit();">Edit</button>      
 
       <span>
-        <button type="button" class="awesome" name="player" id="restart" style="width:52px" onclick="App.onClickedRestart();">Restart</button>
-        <button type="button" class="awesome" name="player" id="pause" style="width:52px" onclick="App.onClickedPause();">Pause</button>
-        <button type="button" class="awesome" name="player" id="step" style="width:52px" onclick="App.onClickedStep();">Step</button>      
+        <button type="button" class="awesome" name="player" id="restart" style="width:52px" onclick="return App.onClickedRestart();">Restart</button>
+        <button type="button" class="awesome" name="player" id="pause" style="width:52px" onclick="return App.onClickedPause();">Pause</button>
+        <button type="button" class="awesome" name="player" id="step" style="width:52px" onclick="return App.onClickedStep();">Step</button>      
       </span>
 
       <span>
-        <button type="button" class="awesome segment" name="selectmode" value="vertex" style="width:60px" onclick="App.onClickedSelectMode(this.value);">Vertex</button>
-        <button type="button" class="awesome segment" name="selectmode" value="shape" style="width:60px" onclick="App.onClickedSelectMode(this.value);">Shape</button>
-        <button type="button" class="awesome segment" name="selectmode" value="body" style="width:60px" onclick="App.onClickedSelectMode(this.value);">Body</button>
-        <button type="button" class="awesome segment" name="selectmode" value="joint" style="width:60px" onclick="App.onClickedSelectMode(this.value);">Joint</button>
+        <button type="button" class="awesome segment" name="selectmode" value="vertices" style="width:60px" onclick="return App.onClickedSelectMode(this.value);">Vertices</button>
+        <button type="button" class="awesome segment" name="selectmode" value="shapes" style="width:60px" onclick="return App.onClickedSelectMode(this.value);">Shapes</button>
+        <button type="button" class="awesome segment" name="selectmode" value="bodies" style="width:60px" onclick="return App.onClickedSelectMode(this.value);">Bodies</button>
+        <button type="button" class="awesome segment" name="selectmode" value="joints" style="width:60px" onclick="return App.onClickedSelectMode(this.value);">Joints</button>
       </span>      
 
       <span>
-        <button type="button" class="awesome segment" name="transformmode" value="select" style="width:60px" onclick="App.onClickedTransformMode(this.value);">Select</button>
-        <button type="button" class="awesome segment" name="transformmode" value="translate" style="width:60px" onclick="App.onClickedTransformMode(this.value);">Translate</button>
-        <button type="button" class="awesome segment" name="transformmode" value="rotate" style="width:60px" onclick="App.onClickedTransformMode(this.value);">Rotate</button>
+        <button type="button" class="awesome segment" name="transformmode" value="select" style="width:60px" onclick="return App.onClickedTransformMode(this.value);">Select</button>
+        <button type="button" class="awesome segment" name="transformmode" value="translate" style="width:60px" onclick="return App.onClickedTransformMode(this.value);">Translate</button>
+        <button type="button" class="awesome segment" name="transformmode" value="rotate" style="width:60px" onclick="return App.onClickedTransformMode(this.value);">Rotate</button>
       </span>      
 
       <span>
-        <button type="button" class="awesome red" id="settings" style="width:52px;" onclick="App.onClickedSettings();">Settings</button>
+        <button type="button" class="awesome red" id="settings" style="width:52px;" onclick="return App.onClickedSettings();">Settings</button>
       </span>
     </div>
   </div>
@@ -64,12 +64,12 @@
         <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" onchange="App.onChangedPositionIterations(this.value);" /><br />        
       </div>
       <div>
-        <input type="checkbox" id="warmStarting" checked="true" onclick="App.onClickedWarmStarting();" />Warm starting<br />
-        <input type="checkbox" id="allowSleep" checked="true" onclick="App.onClickedAllowSleep();" />Allow sleep<br />
-        <input type="checkbox" id="enableDirtyRect" checked="true" onclick="App.onClickedEnableDirtyRect();" />Enable dirty rect<br />
-        <input type="checkbox" id="showBounds" onclick="App.onClickedShowBounds();" />Show bounding boxes<br />
-        <input type="checkbox" id="showContacts" onclick="App.onClickedShowContacts();" />Show contacts<br />
-        <input type="checkbox" id="showStats" onclick="App.onClickedShowStats();" />Show statistics<br />      
+        <input type="checkbox" id="warmStarting" checked="true" onclick="return App.onClickedWarmStarting();" />Warm starting<br />
+        <input type="checkbox" id="allowSleep" checked="true" onclick="return App.onClickedAllowSleep();" />Allow sleep<br />
+        <input type="checkbox" id="enableDirtyRect" checked="true" onclick="return App.onClickedEnableDirtyRect();" />Enable dirty rect<br />
+        <input type="checkbox" id="showBounds" onclick="return App.onClickedShowBounds();" />Show bounding boxes<br />
+        <input type="checkbox" id="showContacts" onclick="return App.onClickedShowContacts();" />Show contacts<br />
+        <input type="checkbox" id="showStats" onclick="return App.onClickedShowStats();" />Show statistics<br />      
       </div>
     </div>
   </div>

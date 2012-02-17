@@ -641,6 +641,18 @@ Bounds.prototype.isEmpty = function() {
 		return true;
 }
 
+Bounds.prototype.getCenter = function() {
+	return vec2.scale(vec2.add(this.mins, this.maxs), 0.5);
+}
+
+Bounds.prototype.getExtent = function() {
+	return vec2.scale(vec2.sub(this.maxs, this.mins), 0.5);
+}
+
+Bounds.prototype.getPerimeter = function() {
+	return (maxs.x - mins.x + maxs.y - mins.y) * 2;
+}
+
 Bounds.prototype.addPoint = function(p) {
 	if (this.mins.x > p.x) this.mins.x = p.x;
 	if (this.maxs.x < p.x) this.maxs.x = p.x;

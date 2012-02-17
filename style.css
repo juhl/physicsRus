@@ -49,10 +49,8 @@ div#main_toolbar {
   background-color: #444;
   border-bottom: 0px solid #AAA;  
   overflow: hidden;
-  background: -moz-linear-gradient(#3B3937, #2B2927);
-  background: -webkit-gradient(linear, left top, left bottom, from(#3B3937), to(#2B2927));
-  -moz-box-shadow: 0 1px 0 black;
-  -webkit-box-shadow: 0 1px 0 black;
+  /*background: -moz-linear-gradient(#3B3937, #2B2927);
+  background: -webkit-gradient(linear, left top, left bottom, from(#3B3937), to(#2B2927));*/
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
