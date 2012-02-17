@@ -1007,7 +1007,7 @@ App = function() {
 
 		if (mouseDown) {
 			// Scroll view
-			if (!isValidFeature(clickedFeature) && !e.shiftKey && !e.metaKey) {
+			if (!editMode || (!isValidFeature(clickedFeature) && !e.shiftKey && !e.metaKey)) {
 				view.scroll.x = -(mousePosition.x - mousePositionOld.x);
 				view.scroll.y = mousePosition.y - mousePositionOld.y;
 

@@ -154,8 +154,8 @@ a.button.awesome:active {
   color: black;
 }
 
-.awesome.blue   { background-color: #004AFF !important; } .awesome.blue.pushed    {} .awesome.blue.pushed:hover   { color: white;}
-.awesome.red    { background-color: #E32100 !important; } .awesome.red.pushed     {} .awesome.red.pushed:hover    { color: white;}
-.awesome.green  { background-color: #20A000 !important; } .awesome.green.pushed   {} .awesome.green.pushed:hover  { color: white;}
-.awesome.yellow { background-color: #F0A000 !important; } .awesome.yellow.pushed  {} .awesome.yellow.pushed:hover { color: white;}
-.awesome.purple { background-color: #6E00EE !important; } .awesome.purple.pushed  {} .awesome.purple.pushed:hover { color: white;}
+.awesome.blue   { background-color: #004AFF !important; } .awesome.blue.pushed    { color: white; } .awesome.blue.pushed:hover   { color: white; }
+.awesome.red    { background-color: #E32100 !important; } .awesome.red.pushed     { color: white; } .awesome.red.pushed:hover    { color: white; }
+.awesome.green  { background-color: #20A000 !important; } .awesome.green.pushed   { color: white; } .awesome.green.pushed:hover  { color: white; }
+.awesome.yellow { background-color: #F0A000 !important; } .awesome.yellow.pushed  { color: white; } .awesome.yellow.pushed:hover { color: white; }
+.awesome.purple { background-color: #6E00EE !important; } .awesome.purple.pushed  { color: white; } .awesome.purple.pushed:hover { color: white; }
