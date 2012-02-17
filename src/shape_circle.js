@@ -13,6 +13,10 @@ ShapeCircle = function(offset_x, offset_y, radius) {
 ShapeCircle.prototype = new Shape;
 ShapeCircle.prototype.constructor = ShapeCircle;
 
+ShapeCircle.prototype.duplicate = function() {
+	return new ShapeCircle(this.c.x, this.c.y, this.r);
+}
+
 ShapeCircle.prototype.serialize = function() {
 	return {
 		"type": "circle",

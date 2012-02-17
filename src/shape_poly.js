@@ -31,6 +31,10 @@ ShapePoly = function(verts) {
 ShapePoly.prototype = new Shape;
 ShapePoly.prototype.constructor = ShapePoly;
 
+ShapePoly.prototype.duplicate = function() {
+	return new ShapePoly(this.verts);
+}
+
 ShapePoly.prototype.serialize = function() {
 	return {
 		"type": "poly",

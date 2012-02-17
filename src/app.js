@@ -1052,8 +1052,12 @@ App = function() {
 								selectedFeatureArr[0] = clickedFeature;
 							}
 							
-							for (var i = 0; i < selectedFeatureArr.length; i++) {
+							for (var i = 0; i < selectedFeatureArr.length; i++) {															
 								var body = selectedFeatureArr[i];
+
+								if (!mouseDownMoving && e.shiftKey) {
+									space.addBody(body.duplicate());
+								}
 
 								var tx = body.xf.t.x;
 								var ty = body.xf.t.y;

@@ -57,6 +57,16 @@ Body.STATIC = 1;
 Body.KINETIC = 2;
 Body.DYNAMIC = 3;
 
+Body.prototype.duplicate = function() {
+	var body = new Body(this.type, this.xf.t.x, this.xf.t.y, this.a);
+	for (var i = 0; i < this.shapeArr.length; i++) {
+		body.addShape(this.shapeArr[i].duplicate());
+	}
+	body.resetMassData();
+
+	return body;
+}
+
 Body.prototype.serialize = function() {
 	var shapes = [];
 	for (var i = 0; i < this.shapeArr.length; i++) {
