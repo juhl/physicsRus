@@ -9,7 +9,7 @@ Body = function(type, x, y, angle) {
 	this.name = "body" + this.id;
 
 	// STATIC or DYNAMIC
-	this.type = type;    
+	this.type = type;
 
 	// Default values
 	x = x || 0;

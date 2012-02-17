@@ -18,6 +18,11 @@ ShapeSegment = function(a, b, radius) {
 ShapeSegment.prototype = new Shape;
 ShapeSegment.prototype.constructor = ShapeSegment;
 
+ShapeSegment.prototype.finishVerts = function() {
+	this.n = vec2.perp(vec2.sub(this.b, this.a));
+	this.n.normalize();
+}
+
 ShapeSegment.prototype.duplicate = function() {
 	return new ShapeSegment(this.a, this.b, this.r);
 }

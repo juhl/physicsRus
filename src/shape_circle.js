@@ -13,6 +13,9 @@ ShapeCircle = function(offset_x, offset_y, radius) {
 ShapeCircle.prototype = new Shape;
 ShapeCircle.prototype.constructor = ShapeCircle;
 
+ShapeCircle.prototype.finishVerts = function() {
+}
+
 ShapeCircle.prototype.duplicate = function() {
 	return new ShapeCircle(this.c.x, this.c.y, this.r);
 }
