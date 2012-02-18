@@ -494,14 +494,14 @@ App = function() {
 		// Update whole background canvas if we needed
 		if (bg.outdated) {
 			bg.outdated = false;
-			bg.ctx.fillStyle = "#324860";
+			bg.ctx.fillStyle = "rgb(244, 244, 244)";
 			bg.ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 			bg.ctx.save();
 			bg.ctx.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
 			
 			if (editMode) {
-				drawGrids(bg.ctx, 64, "#CEE");
+				drawGrids(bg.ctx, 64, "#BBB");
 			}			
 			else {
 				// Draw static bodies
