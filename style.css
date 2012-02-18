@@ -37,7 +37,7 @@ div#content {
   text-align: center;
   vertical-align: middle;  
 }
-div#main_toolbar {
+div#toolbar {
   margin: 0px auto;
   padding: 0px 8px 0px 8px;
   text-align: left;
@@ -78,7 +78,7 @@ div#info {
   left: 0px;
   cursor: default;
 }
-div#settings_layout {
+div#settings {
   vertical-align: top;
   text-align: left;
   font-size: 10px;

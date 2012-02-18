@@ -16,6 +16,31 @@ RendererCanvas = function() {
 		ctx.stroke();
 	}
 
+	function drawDashLine(ctx, p1, p2, dashSize, strokeStyle) {
+		var dashSize2 = dashSize * 0.5;
+		var dsq = vec2.distsq(p1, p2);
+
+		var d = vec2.truncate(vec2.sub(p2, p1), dashSize);
+		var s1 = p1;
+		var s2 = vec2.add(p1, d);
+
+		ctx.beginPath();
+
+		while (d.lengthsq() > 0) {
+			var s3 = vec2.add(s1, vec2.truncate(vec2.sub(s2, s1), dashSize2));
+
+			ctx.moveTo(s1.x, s1.y);
+			ctx.lineTo(s3.x, s3.y);
+
+			d = vec2.truncate(vec2.sub(p2, s2), dashSize);
+			s1 = s2;
+			s2 = vec2.add(s2, d);
+		} 
+
+		ctx.strokeStyle = strokeStyle;
+		ctx.stroke();
+	}
+
 	function drawArrow(ctx, p1, p2, strokeStyle) {
 		var angle = vec2.toAngle(vec2.sub(p2, p1)) - Math.PI;
 
@@ -68,9 +93,12 @@ RendererCanvas = function() {
 		}		
 
 		if (strokeStyle) {
-			ctx.moveTo(center.x, center.y);
-			var rt = vec2.add(center, vec2.scale(vec2.rotation(angle), radius));
-			ctx.lineTo(rt.x, rt.y);			
+			if (angle) {
+				ctx.moveTo(center.x, center.y);
+				var rt = vec2.add(center, vec2.scale(vec2.rotation(angle), radius));
+				ctx.lineTo(rt.x, rt.y);
+			}
+
 			ctx.strokeStyle = strokeStyle;
 			ctx.stroke();
 		}	
@@ -131,6 +159,7 @@ RendererCanvas = function() {
 	return {
 		scissorRect: scissorRect,
 		drawLine: drawLine,
+		drawDashLine: drawDashLine,
 		drawArrow: drawArrow,
 		drawBox: drawBox,
 		drawCircle: drawCircle,

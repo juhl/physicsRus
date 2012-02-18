@@ -51,6 +51,8 @@ Body = function(type, x, y, angle) {
 
 	// Bounds of all shapes
 	this.bounds = new Bounds;
+
+	this.stepCount = 0;
 }
 
 Body.STATIC = 1;
@@ -121,16 +123,16 @@ Body.prototype.setInertia = function(inertia) {
 
 Body.prototype.resetMassData = function() {
 	if (this.isStatic()) {
+		this.centroid = new vec2(0, 0);
 		this.setMass(Infinity);
 		this.setInertia(Infinity);
-		this.centroid = new vec2(0, 0);
 		this.p = this.xf.transform(this.centroid);
 		return;
 	}
 	
+	var totalMassCentroid = new vec2(0, 0);
 	var totalMass = 0;
-	var totalInertia = 0;
-	var totalCentroid = new vec2(0, 0);
+	var totalInertia = 0;	
 
 	for (var i = 0; i < this.shapeArr.length; i++) {
 		var shape = this.shapeArr[i];
@@ -138,12 +140,12 @@ Body.prototype.resetMassData = function() {
 		var mass = shape.area() * shape.density;
 		var inertia = shape.inertia(mass);
 
+		totalMassCentroid.mad(centroid, mass);
 		totalMass += mass;
-		totalInertia += inertia;
-		totalCentroid.mad(centroid, mass);
+		totalInertia += inertia;		
 	}
 
-	this.centroid = vec2.scale(totalCentroid, 1 / totalMass);
+	this.centroid = vec2.scale(totalMassCentroid, 1 / totalMass);
 	this.setMass(totalMass);
 	this.setInertia(totalInertia - totalMass * vec2.dot(this.centroid, this.centroid));
 	this.p = this.xf.transform(this.centroid);

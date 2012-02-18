@@ -4,8 +4,8 @@
 
 ShapeSegment = function(a, b, radius) {
 	Shape.call(this, Shape.TYPE_SEGMENT);
-	this.a = a;
-	this.b = b;
+	this.a = a.duplicate();
+	this.b = b.duplicate();
 	this.r = radius;
 	this.n = vec2.perp(vec2.sub(b, a));
 	this.n.normalize();

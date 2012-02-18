@@ -24,6 +24,7 @@ App = function() {
 	var mouseDownMoving = false;
 	var mousePosition = new vec2;
 	var mousePositionOld = new vec2;
+	var mouseDownPosition = new vec2;
 	var mouseCursor = "default";
 	var touchPosOld = new Array(2);
 	var gestureStartScale;
@@ -56,6 +57,7 @@ App = function() {
 	var markedFeatureArr = [];	
 	var highlightFeatureArr = [];
 	var clickedFeature;
+	var rotationCenter = new vec2(0, 0);
 	var selectionColor = "rgba(255, 160, 0, 1.0)";
 	var highlightColor = "rgba(255, 255, 255, 0.75)";
 	var selectionPattern;
@@ -105,14 +107,14 @@ App = function() {
 		document.documentElement.style.overflowY = "hidden";
 		document.body.scroll = "no"; // ie only	
 
-		var elements = document.getElementById("settings_layout").querySelectorAll("select, input");
+		var elements = document.getElementById("settings").querySelectorAll("select, input");
 		for (var i in elements) {
 			elements[i].onblur = function() { window.scrollTo(0, 0); };			
 		}
 		
 		window.addEventListener("focus", function(e) { activeWindow = true; }, false);
 		window.addEventListener("blur", function(e) { activeWindow = false; }, false);
-		window.addEventListener("resize", onResize, false);
+		canvas.addEventListener("resize", onResize, false);
 		canvas.addEventListener("mousedown", onMouseDown, false);
 		canvas.addEventListener("mousemove", onMouseMove, false);
 		canvas.addEventListener("mouseup", onMouseUp, false);
@@ -497,12 +499,14 @@ App = function() {
 			bg.ctx.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
 			
 			drawGrids(bg.ctx, 64, "#CCC");
-
-			// Draw static bodies
-			for (var i in space.bodyHash) {
-				var body = space.bodyHash[i];
-				if (body.isStatic()) {
-					drawBody(bg.ctx, body, bodyColor(body), "#000");
+			
+			if (!editMode) {
+				// Draw static bodies
+				for (var i in space.bodyHash) {
+					var body = space.bodyHash[i];
+					if (body.isStatic()) {
+						drawBody(bg.ctx, body, bodyColor(body), "#000");						
+					}
 				}
 			}
 
@@ -545,9 +549,10 @@ App = function() {
 
 		// Draw bodies except for static bodies
 		for (var i in space.bodyHash) {
-			var body = space.bodyHash[i];			
-			if (!body.isStatic()) {
+			var body = space.bodyHash[i];
+			if (editMode || (!editMode && !body.isStatic())) {
 				drawBody(fg.ctx, body, bodyColor(body), "#000");
+				dirtyBounds.addBounds(Bounds.expand(body.bounds, 2, 2));
 			}			
 		}
 
@@ -615,18 +620,12 @@ App = function() {
 
 			drawBodyShape(ctx, shape, fillColor, outlineColor);
 
-			if (showBounds || !body.isStatic()) {
-				var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
-
+			if (showBounds || !body.isStatic()) {				
 				if (showBounds) {
+					var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
 					bounds.expand(1, 1);
-					renderer.drawBox(ctx, bounds.mins, bounds.maxs, null, "#0A0");
-				}
-
-				if (!body.isStatic()) {
-					bounds.expand(1, 1);
-					dirtyBounds.addBounds(bounds);
-				}
+					renderer.drawBox(ctx, shape.bounds.mins, bounds.maxs, null, "#0A0");
+				}				
 			}
 		}
 	}
@@ -675,28 +674,51 @@ App = function() {
 		for (var i in space.jointHash) {
 			drawJoint(ctx, space.jointHash[i], "#F0F");
 		}
+
+		if (transformMode == TM_ROTATE) {
+			var radius = 5 / view.scale;
+
+			renderer.drawCircle(ctx, rotationCenter, radius, undefined, "", "#F80");
+
+			var mins = vec2.sub(rotationCenter, new vec2(radius, radius));
+			var maxs = vec2.add(rotationCenter, new vec2(radius, radius));
+			var bounds = new Bounds(mins, maxs);
+			bounds.expand(2, 2); // for outline
+
+			if (mouseDownMoving && isValidFeature(clickedFeature)) {
+				var p = canvasToWorld(mousePosition);
+				renderer.drawDashLine(ctx, rotationCenter, p, 10, "#F80");
+				bounds.addPoint(p);
+			}
+
+			dirtyBounds.addBounds(bounds);
+		}
 		
 		if (selectionMode == SM_VERTICES) {
 			// Draw vertices
-			for (var i = 0; i < space.shapeArr.length; i++) {
-				var shape = space.shapeArr[i];
-				if (shape.visible) {
-					switch (shape.type) {
-					case Shape.TYPE_CIRCLE:
-						dirtyBounds.addBounds(drawVertex(ctx, shape.tc, "#444"));
-						break;
-					case Shape.TYPE_SEGMENT:
-						dirtyBounds.addBounds(drawVertex(ctx, shape.ta, "#444"));
-						dirtyBounds.addBounds(drawVertex(ctx, shape.tb, "#444"));
-						break;
-					case Shape.TYPE_POLY:
-						for (var j = 0; j < shape.tverts.length; j++) {
-							drawVertex(ctx, shape.tverts[j], "#444");
+			for (var i in space.bodyHash) {
+				var body = space.bodyHash[i];
+
+				for (var j = 0; j < body.shapeArr.length; j++) {
+					var shape = body.shapeArr[j];
+					if (shape.visible) {
+						switch (shape.type) {
+						case Shape.TYPE_CIRCLE:
+							dirtyBounds.addBounds(drawVertex(ctx, shape.tc, "#444"));
+							break;
+						case Shape.TYPE_SEGMENT:
+							dirtyBounds.addBounds(drawVertex(ctx, shape.ta, "#444"));
+							dirtyBounds.addBounds(drawVertex(ctx, shape.tb, "#444"));
+							break;
+						case Shape.TYPE_POLY:
+							for (var k = 0; k < shape.tverts.length; k++) {
+								drawVertex(ctx, shape.tverts[k], "#444");
+							}
+							dirtyBounds.addBounds(Bounds.expand(shape.bounds, 3, 3));
+							break;
 						}
-						dirtyBounds.addBounds(Bounds.expand(shape.bounds, 2, 2));
-						break;
 					}
-				}				
+				}
 			}
 
 			// Draw selected vertices
@@ -710,7 +732,7 @@ App = function() {
 				}
 			}
 
-			// Draw highlighted vertex
+			// Draw highlighted vertex			
 			for (var i = 0; i < highlightFeatureArr.length; i++) {
 				var vertex = highlightFeatureArr[i];
 				var shape = space.shapeById((vertex >> 16) & 0xFFFF);
@@ -727,7 +749,7 @@ App = function() {
 				var shape = selectedFeatureArr[i];
 				if (shape.visible) {
 					drawBodyShapeViewTransformed(ctx, shape, selectionPattern, selectionColor);
-					dirtyBounds.addBounds(Bounds.expand(shape.bounds, 1, 1));
+					dirtyBounds.addBounds(Bounds.expand(shape.bounds, 2, 2));
 				}
 			}
 
@@ -748,7 +770,7 @@ App = function() {
 					var shape = body.shapeArr[j];
 					if (shape.visible) {
 						drawBodyShapeViewTransformed(ctx, shape, selectionPattern, selectionColor);
-						dirtyBounds.addBounds(Bounds.expand(shape.bounds, 1, 1));
+						dirtyBounds.addBounds(Bounds.expand(shape.bounds, 2, 2));
 					}
 				}
 			}
@@ -894,16 +916,29 @@ App = function() {
 		var feature;
 
 		if (selectionMode == SM_VERTICES) {
-			feature = space.findVertexByPoint(p, VERTEX_SELETABLE_RADIUS, selectedFeatureArr[0]);
-			if (feature == -1) {
+			var vertex = space.findVertexByPoint(p, VERTEX_SELETABLE_RADIUS, selectedFeatureArr[0]);
+			if (vertex == -1) {
 				return false;
 			}
+
+			feature = vertex;
+
+			// Set rotationCenter
+			var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+			var body = shape.body;
+			rotationCenter.copy(body.localToWorld(vec2.sub(shape.centroid(), body.centroid)));
 		}
 		else if (selectionMode == SM_SHAPES) {
-			feature = space.findShapeByPoint(p, selectedFeatureArr[0]);
-			if (!feature) {
+			var shape = space.findShapeByPoint(p, selectedFeatureArr[0]);
+			if (!shape) {
 				return false;
 			}
+
+			feature = shape;
+
+			// Set rotationCenter
+			var body = shape.body;
+			rotationCenter.copy(shape.body.localToWorld(vec2.sub(shape.centroid(), body.centroid)));
 		}
 		else if (selectionMode == SM_BODIES) {
 			var shape = space.findShapeByPoint(p, selectedFeatureArr[0]);
@@ -912,6 +947,9 @@ App = function() {
 			}
 
 			feature = shape.body;
+
+			// Set rotationCenter
+			rotationCenter.copy(shape.body.p);
 		}
 		else if (selectionMode == SM_JOINTS) {	
 			return false;
@@ -991,6 +1029,9 @@ App = function() {
 		mousePositionOld.x = pos.x;
 		mousePositionOld.y = pos.y;
 
+		mouseDownPosition.x = pos.x;
+		mouseDownPosition.y = pos.x;
+
 		e.preventDefault();
 	}
 
@@ -1006,16 +1047,20 @@ App = function() {
 		}
 		else {
 			if (!mouseDownMoving) {
-				var flag;
 				if (transformMode == TM_SELECT) {
-					flag = e.shiftKey ? SF_ADDITIVE : (e.metaKey ? SF_XOR : SF_REPLACE);
-				}
-				else {
-					flag = SF_REPLACE;
-				}
+					var flag = e.shiftKey ? SF_ADDITIVE : (e.metaKey ? SF_XOR : SF_REPLACE);
 
-				if (flag == SF_REPLACE && !doSelect(p, flag)) {
-					selectedFeatureArr = [];
+					if (!doSelect(p, flag) && flag == SF_REPLACE) {
+						selectedFeatureArr = [];
+					}
+				}
+				else if (transformMode == TM_TRANSLATE) {					
+					if (!doSelect(p, SF_REPLACE)) {
+						selectedFeatureArr = [];
+					}
+				}
+				else if (transformMode == TM_ROTATE) {
+					rotationCenter.copy(p);
 				}
 			}
 		}
@@ -1059,7 +1104,7 @@ App = function() {
 				var dx = (mousePosition.x - mousePositionOld.x) / view.scale;
 				var dy = -(mousePosition.y - mousePositionOld.y) / view.scale;
 
-				if (!isValidFeature(clickedFeature) && !e.shiftKey && !e.metaKey) {
+				if (e.altKey) {					
 					scrollView(-(mousePosition.x - mousePositionOld.x), mousePosition.y - mousePositionOld.y);
 				}
 				else if (transformMode == TM_SELECT) {
@@ -1069,15 +1114,17 @@ App = function() {
 
 					doSelect(canvasToWorld(mousePosition), e.metaKey ? SF_XOR : SF_ADDITIVE);
 				}
-				else if (transformMode == TM_TRANSLATE || transformMode == TM_ROTATE && isValidFeature(clickedFeature)) {
+				else if ((transformMode == TM_TRANSLATE || transformMode == TM_ROTATE) && isValidFeature(clickedFeature)) {
 					if (selectedFeatureArr.indexOf(clickedFeature) == -1) {
-						selectedFeatureArr[0] = clickedFeature;
+						selectedFeatureArr = []
+						selectedFeatureArr.push(clickedFeature);
 					}
 
 					if (selectionMode == SM_VERTICES) {
 						for (var i = 0; i < selectedFeatureArr.length; i++) {
 							var vertex = selectedFeatureArr[i];
 							var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+							var body = shape.body;
 							var index = vertex & 0xFFFF;
 							var v = getShapeVertex(shape, index);
 
@@ -1086,17 +1133,21 @@ App = function() {
 								v.y += dy;
 							}
 							else if (transformMode == TM_ROTATE) {
-								
+								var v1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
+								var v2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
+								var da = v2.toAngle() - v1.toAngle();
+
+								var wv = body.localToWorld(vec2.sub(v, body.centroid));
+								wv.subself(rotationCenter);
+								wv.rotate(da);
+								wv.addself(rotationCenter);
+								v.copy(body.worldToLocal(wv));
+								v.addself(body.centroid);
 							}
 
 							shape.finishVerts();
 							shape.body.resetMassData();
 							shape.body.cacheData();
-
-							if (shape.body.isStatic()) {
-								dirtyBounds.addBounds(Bounds.expand(shape.bounds, 1, 1));
-								bg.outdated = true;
-							}
 						}
 					}
 					else if (selectionMode == SM_SHAPES) {
@@ -1113,7 +1164,8 @@ App = function() {
 						}
 
 						for (var i = 0; i < selectedFeatureArr.length; i++) {
-							var shape = selectedFeatureArr[i];							
+							var shape = selectedFeatureArr[i];
+							var body = shape.body;
 
 							if (transformMode == TM_TRANSLATE) {								
 								switch (shape.type) {
@@ -1132,17 +1184,47 @@ App = function() {
 								}
 							}
 							else if (transformMode == TM_ROTATE) {
-								
+								var v1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
+								var v2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
+								var da = v2.toAngle() - v1.toAngle();				
+
+								switch (shape.type) {
+								case Shape.TYPE_CIRCLE:
+									var wc = body.localToWorld(vec2.sub(shape.c, body.centroid));
+									wc.subself(rotationCenter);
+									wc.rotate(da);
+									wc.addself(rotationCenter);
+									shape.c.copy(vec2.add(body.worldToLocal(wc), body.centroid));
+									break;
+								case Shape.TYPE_SEGMENT:
+									var wa = body.localToWorld(vec2.sub(shape.a, body.centroid));
+									wa.subself(rotationCenter);
+									wa.rotate(da);
+									wa.addself(rotationCenter);
+									shape.a.copy(vec2.add(body.worldToLocal(wa), body.centroid));
+
+									var wb = body.localToWorld(vec2.sub(shape.b, body.centroid));
+									wb.subself(rotationCenter);
+									wb.rotate(da);
+									wb.addself(rotationCenter);
+									shape.b.copy(vec2.add(body.worldToLocal(wb), body.centroid));
+									break;
+								case Shape.TYPE_POLY:
+									for (var j = 0; j < shape.verts.length; j++){
+										var v = shape.verts[j];
+										var wv = body.localToWorld(vec2.sub(v, body.centroid));
+										wv.subself(rotationCenter);
+										wv.rotate(da);
+										wv.addself(rotationCenter);
+										v.copy(vec2.add(body.worldToLocal(wv), body.centroid));
+									}
+									break;
+								}
 							}
 
 							shape.finishVerts();
 							shape.body.resetMassData();
 							shape.body.cacheData();
-
-							if (shape.body.isStatic()) {
-								dirtyBounds.addBounds(Bounds.expand(shape.bounds, 1, 1));
-								bg.outdated = true;
-							}
 						}
 					}
 					else if (selectionMode == SM_BODIES) {
@@ -1161,25 +1243,23 @@ App = function() {
 						for (var i = 0; i < selectedFeatureArr.length; i++) {
 							var body = selectedFeatureArr[i];
 
-							var tx = body.xf.t.x;
-							var ty = body.xf.t.y;
-							var ta = body.a;
+							var p = body.xf.t.duplicate();
+							var a = body.a;
 
 							if (transformMode == TM_TRANSLATE) {
-								tx += dx;
-								ty += dy;
+								p.x += dx;
+								p.y += dy;
 							}
 							else if (transformMode == TM_ROTATE) {
-								var center = vec2.add(body.xf.t, body.centroid);
-								ta += dy * 0.04 / view.scale;
+								var v1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
+								var v2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
+								var da = v2.toAngle() - v1.toAngle();
+
+								p = vec2.add(vec2.rotate(vec2.sub(p, rotationCenter), da), rotationCenter);								
+								a += da;
 							}
 
-							if (body.isStatic()) {
-								dirtyBounds.addBounds(Bounds.expand(body.bounds, 1, 1));
-								bg.outdated = true;
-							}
-
-							body.setTransform(tx, ty, ta);
+							body.setTransform(p.x, p.y, a);
 							body.cacheData();
 						}
 					}
@@ -1189,10 +1269,12 @@ App = function() {
 				}
 			}
 			else {
-				var feature = getFeatureByPoint(canvasToWorld(mousePosition));
-				if (isValidFeature(feature)) {
-					highlightFeatureArr[0] = feature;
-				}				
+				if (transformMode == TM_SELECT || transformMode == TM_TRANSLATE) {
+					var feature = getFeatureByPoint(canvasToWorld(mousePosition));
+					if (isValidFeature(feature)) {
+						highlightFeatureArr[0] = feature;
+					}
+				}
 			}
 		}
 
@@ -1339,8 +1421,9 @@ App = function() {
 		case 17: // Ctrl
 			e.preventDefault();			
 			break;
-		case 66: // 'b'
-			break;        		
+		case 8: // Delete
+			e.preventDefault();
+			break;
 		case 74: // 'j'
 			break;
 		case 83: // 's'
@@ -1348,16 +1431,19 @@ App = function() {
 		case 81: // 'q'
 			if (editMode) {
 				onClickedTransformMode("select");
+				e.preventDefault();
 			}			
 			break;
 		case 87: // 'w'
 			if (editMode) {
 				onClickedTransformMode("translate");
+				e.preventDefault();
 			}			
 			break;
 		case 69: // 'e'
 			if (editMode) {
 				onClickedTransformMode("rotate");
+				e.preventDefault();
 			}			
 			break;
 		case 49: // '1'
@@ -1365,11 +1451,13 @@ App = function() {
 		case 51: // '3'
 		case 52: // '4'
 			if (editMode) {
-				onClickedSelectMode(["vertices", "shapes", "bodies", "joints"][(e.keyCode - 48) - 1]);				
+				onClickedSelectMode(["vertices", "shapes", "bodies", "joints"][(e.keyCode - 48) - 1]);
+				e.preventDefault();
 			}
 			break;
 		case 32: // 'space'
 			onClickedStep();
+			e.preventDefault();
 			break;
 		}					
 	}
@@ -1389,6 +1477,10 @@ App = function() {
 	function onChangedScene(index) {
 		sceneIndex = index;
 		initScene();
+
+		selectedFeatureArr = [];
+		markedFeatureArr = [];
+		highlightFeatureArr = [];
 	}
 
 	function onChangedGravity(value) {
@@ -1534,6 +1626,7 @@ App = function() {
 		editMode = !editMode;
 		pause = false;
 		step = false;
+
 		selectedFeatureArr = [];
 		markedFeatureArr = [];
 		highlightFeatureArr = [];
@@ -1564,7 +1657,7 @@ App = function() {
 	function onClickedTransformMode(value) {
 		transformMode = { select: TM_SELECT, translate: TM_TRANSLATE, rotate: TM_ROTATE, scale: TM_SCALE }[value];
 
-		updateMainToolbar();
+		updateMainToolbar();		
 
 		return false;
 	}
@@ -1572,8 +1665,8 @@ App = function() {
 	function onClickedSettings() {
 		showSettings = !showSettings;
 
-		var layout = document.getElementById("settings_layout");
-		var button = document.getElementById("settings");
+		var layout = document.getElementById("settings");
+		var button = document.getElementById("toggle_settings");
 
 		if (showSettings) {
 			layout.style.display = "block";

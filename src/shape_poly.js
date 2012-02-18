@@ -4,21 +4,23 @@
 
 ShapePoly = function(verts) {
 	Shape.call(this, Shape.TYPE_POLY);
-	this.verts = verts;
+
+	this.verts = [];
 	this.planes = [];
    
 	this.tverts = [];
-	this.tplanes = [];
-
-	this.finishVerts();
+	this.tplanes = [];	
 
 	for (var i = 0; i < verts.length; i++) {
+		this.verts[i] = verts[i].duplicate();
 		this.tverts[i] = vec2.zero;
 
 		this.tplanes[i] = {};
 		this.tplanes[i].n = vec2.zero;
 		this.tplanes[i].d = 0;
 	}
+
+	this.finishVerts();
 }
 
 ShapePoly.prototype = new Shape;

@@ -1,6 +1,4 @@
 function Space() {
-	this.shapeArr = [];
-
 	this.bodyHash = {};
 	this.numBodies = 0;
 
@@ -30,6 +28,8 @@ Space.prototype.clear = function() {
 	}
 
 	this.contactSolverArr = [];
+
+	this.stepCount = 0;
 }
 
 Space.prototype.toJSON = function(key) {
@@ -139,10 +139,6 @@ Space.prototype.addBody = function(body) {
 	this.bodyHash[body.id] = body;
 	this.numBodies++;
 	
-	for (var i = 0; i < body.shapeArr.length; i++) {
-		this.shapeArr.push(body.shapeArr[i]);
-	}
-
 	body.awake(true);
 	body.space = this;
 	body.cacheData();
@@ -151,14 +147,6 @@ Space.prototype.addBody = function(body) {
 Space.prototype.removeBody = function(body) {
 	if (!this.bodyHash[body.id]) {
 		return;
-	}
-
-	// Remove from space shapeArr
-	for (var j = 0; j < this.shapeArr.length; j++) {
-		if (body.shapeArr[0] == this.shapeArr[j]) {
-			this.shapeArr.splice(j, body.shapeArr.length);
-			break;
-		}
 	}
 
 	// Remove linked joint
@@ -204,19 +192,24 @@ Space.prototype.removeJoint = function(joint) {
 Space.prototype.findShapeByPoint = function(p, refShape) {
 	var firstShape;
 
-	for (var i = 0; i < this.shapeArr.length; i++) {
-		var shape = this.shapeArr[i];
-		if (shape.pointQuery(p)) {
-			if (!refShape) {
-				return shape;
-			}
+	for (var i in this.bodyHash) {
+		var body = this.bodyHash[i];
 
-			if (!firstShape) {
-				firstShape = shape;
-			}
+		for (var j = 0; j < body.shapeArr.length; j++) {
+			var shape = body.shapeArr[j];
 
-			if (shape == refShape) {
-				refShape = null;
+			if (shape.pointQuery(p)) {
+				if (!refShape) {
+					return shape;
+				}
+
+				if (!firstShape) {
+					firstShape = shape;
+				}
+
+				if (shape == refShape) {
+					refShape = null;
+				}
 			}
 		}
 	}
@@ -227,9 +220,13 @@ Space.prototype.findShapeByPoint = function(p, refShape) {
 // TODO: Replace this function to hashing
 Space.prototype.shapeById = function(id) {
 	var shape;
-	for (var i = 0; i < this.shapeArr.length; i++) {		
-		if (this.shapeArr[i].id == id) {
-			return this.shapeArr[i];			
+	for (var i in this.bodyHash) {
+		var body = this.bodyHash[i];
+
+		for (var j = 0; j < body.shapeArr.length; j++) {
+			if (body.shapeArr[j].id == id) {
+				return body.shapeArr[j];
+			}
 		}
 	}
 
@@ -241,22 +238,26 @@ Space.prototype.findVertexByPoint = function(p, minDist, refVertex) {
 
 	refVertex = refVertex || -1;
 
-	for (var i = 0; i < this.shapeArr.length; i++) {
-		var shape = this.shapeArr[i];
-		var index = shape.findVertexByPoint(p, minDist);
-		if (index != -1) {
-			var vertex = shape.id << 16 | index;
-			if (refVertex == -1) {
-				return vertex;
-			}
+	for (var i in this.bodyHash) {
+		var body = this.bodyHash[i];
 
-			if (firstVertex == -1) {
-				firstVertex = vertex;
-			}
+		for (var j = 0; j < body.shapeArr.length; j++) {
+			var shape = body.shapeArr[j];
+			var index = shape.findVertexByPoint(p, minDist);
+			if (index != -1) {
+				var vertex = shape.id << 16 | index;
+				if (refVertex == -1) {
+					return vertex;
+				}
 
-			if (vertex == refVertex) {
-				refVertex = -1;
-			}		
+				if (firstVertex == -1) {
+					firstVertex = vertex;
+				}
+
+				if (vertex == refVertex) {
+					refVertex = -1;
+				}		
+			}
 		}
 	}
 
@@ -298,56 +299,67 @@ Space.prototype.genTemporalContactSolvers = function() {
 
 	this.numContacts = 0;
 
-	for (var i = 0; i < this.shapeArr.length; i++) {
-		for (var j = i + 1; j < this.shapeArr.length; j++) {
-			var shape1 = this.shapeArr[i];
-			var shape2 = this.shapeArr[j];
+	for (var body1_index in this.bodyHash) {
+		var body1 = this.bodyHash[body1_index];
+		
+		body1.stepCount = this.stepCount;
 
-			var body1 = shape1.body;
-			var body2 = shape2.body;
+		for (var body2_index in this.bodyHash) {
+			var body2 = this.bodyHash[body2_index];
 
-			var active1 = body1.isAwake() && !body1.isStatic();
-			var active2 = body2.isAwake() && !body2.isStatic();
-
-			if (!active1 && !active2) {
+			if (body1.stepCount == body2.stepCount) {
 				continue;
 			}
+			
+			var active1 = body1.isAwake() && !body1.isStatic();
+			var active2 = body2.isAwake() && !body2.isStatic();
 
 			if (!this.isCollidable(body1, body2)) {
 				continue;
 			}
-						
-			if (!shape1.bounds.intersectsBounds(shape2.bounds)) {
+
+			if (!active1 && !active2) {
 				continue;
 			}
-
-			var contactArr = [];
-			if (!collision.collide(shape1, shape2, contactArr)) {
+		
+			if (!body1.bounds.intersectsBounds(body2.bounds)) {
 				continue;
 			}
+	
+			for (var i = 0; i < body1.shapeArr.length; i++) {
+				for (var j = 0; j < body2.shapeArr.length; j++) {
+					var shape1 = body1.shapeArr[i];
+					var shape2 = body2.shapeArr[j];
+								
+					var contactArr = [];
+					if (!collision.collide(shape1, shape2, contactArr)) {
+						continue;
+					}
 
-			this.numContacts += contactArr.length;
+					this.numContacts += contactArr.length;
 
-			if (shape1.type > shape2.type) {
-				var temp = shape1;
-				shape1 = shape2;
-				shape2 = temp;
-			}
+					if (shape1.type > shape2.type) {
+						var temp = shape1;
+						shape1 = shape2;
+						shape2 = temp;
+					}
 
-			var contactSolver = this.findContactSolver(shape1, shape2);
-			if (contactSolver) {
-				contactSolver.update(contactArr);
-				newContactSolverArr.push(contactSolver);
-			}
-			else {
-				body1.awake(true);
-				body2.awake(true);
+					var contactSolver = this.findContactSolver(shape1, shape2);
+					if (contactSolver) {
+						contactSolver.update(contactArr);
+						newContactSolverArr.push(contactSolver);
+					}
+					else {
+						body1.awake(true);
+						body2.awake(true);
 
-				var newContactSolver = new ContactSolver(shape1, shape2);
-				newContactSolver.contactArr = contactArr;
-				newContactSolver.e = Math.max(shape1.e, shape2.e);
-				newContactSolver.u = Math.sqrt(shape1.u * shape2.u);
-				newContactSolverArr.push(newContactSolver);
+						var newContactSolver = new ContactSolver(shape1, shape2);
+						newContactSolver.contactArr = contactArr;
+						newContactSolver.e = Math.max(shape1.e, shape2.e);
+						newContactSolver.u = Math.sqrt(shape1.u * shape2.u);
+						newContactSolverArr.push(newContactSolver);
+					}
+				}
 			}
 		}
 	}
@@ -432,7 +444,9 @@ Space.prototype.positionSolver = function(iteration) {
 }
 
 Space.prototype.step = function(dt, vel_iteration, pos_iteration, warmStarting, allowSleep) {
-	var dt_inv = 1 / dt;      
+	var dt_inv = 1 / dt; 
+
+	this.stepCount++;
 	
 	// Generate contact & contactSolver
 	this.contactSolverArr = this.genTemporalContactSolvers();
@@ -532,6 +546,6 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration, warmStarting, 
 				body.awake(false);
 			}
 		}
-	}
+	}	
 }
 
