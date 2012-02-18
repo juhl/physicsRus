@@ -6,24 +6,25 @@ RendererCanvas = function() {
   		ctx.clip();
   	}
 
-	function drawLine(ctx, p1, p2, strokeStyle) {
+	function drawLine(ctx, p1, p2, lineWidth, strokeStyle) {		
 		ctx.beginPath();
 		
 		ctx.moveTo(p1.x, p1.y);
 		ctx.lineTo(p2.x, p2.y);
 
+		ctx.lineWidth = lineWidth;
 		ctx.strokeStyle = strokeStyle;
 		ctx.stroke();
 	}
 
-	function drawDashLine(ctx, p1, p2, dashSize, strokeStyle) {
+	function drawDashLine(ctx, p1, p2, lineWidth, dashSize, strokeStyle) {
 		var dashSize2 = dashSize * 0.5;
 		var dsq = vec2.distsq(p1, p2);
 
 		var d = vec2.truncate(vec2.sub(p2, p1), dashSize);
 		var s1 = p1;
 		var s2 = vec2.add(p1, d);
-
+		
 		ctx.beginPath();
 
 		while (d.lengthsq() > 0) {
@@ -37,14 +38,15 @@ RendererCanvas = function() {
 			s2 = vec2.add(s2, d);
 		} 
 
+		ctx.lineWidth = lineWidth;
 		ctx.strokeStyle = strokeStyle;
 		ctx.stroke();
 	}
 
-	function drawArrow(ctx, p1, p2, strokeStyle) {
+	function drawArrow(ctx, p1, p2, lineWidth, strokeStyle) {
 		var angle = vec2.toAngle(vec2.sub(p2, p1)) - Math.PI;
-
-		ctx.beginPath();		
+		
+		ctx.beginPath();
 
 		ctx.moveTo(p1.x, p1.y);
 		ctx.lineTo(p2.x, p2.y);
@@ -61,12 +63,13 @@ RendererCanvas = function() {
 
 		ctx.restore();
 
+		ctx.lineWidth = lineWidth;
 		ctx.lineJoint = "miter";
 		ctx.strokeStyle = strokeStyle;
 		ctx.stroke();		
 	}    
 
-	function drawBox(ctx, mins, maxs, fillStyle, strokeStyle) {
+	function drawBox(ctx, mins, maxs, lineWidth, fillStyle, strokeStyle) {		
 		ctx.beginPath();
 		ctx.rect(mins.x, mins.y, maxs.x - mins.x, maxs.y - mins.y);
 
@@ -76,13 +79,14 @@ RendererCanvas = function() {
 			ctx.fill();
 		}
 
-		if (strokeStyle) {			
+		if (strokeStyle) {		
+			ctx.lineWidth = lineWidth;	
 			ctx.strokeStyle = strokeStyle;
 			ctx.stroke();			
 		}
 	}
 
-	function drawCircle(ctx, center, radius, angle, fillStyle, strokeStyle) {
+	function drawCircle(ctx, center, radius, angle, lineWidth, fillStyle, strokeStyle) {		
 		ctx.beginPath();
 		ctx.arc(center.x, center.y, radius, 0, Math.PI*2, true);
 
@@ -99,12 +103,13 @@ RendererCanvas = function() {
 				ctx.lineTo(rt.x, rt.y);
 			}
 
+			ctx.lineWidth = lineWidth;
 			ctx.strokeStyle = strokeStyle;
 			ctx.stroke();
 		}	
 	}
 
-	function drawSegment(ctx, a, b, radius, fillStyle, strokeStyle) {
+	function drawSegment(ctx, a, b, radius, lineWidth, fillStyle, strokeStyle) {
 		ctx.beginPath();
 
 		var dn = vec2.normalize(vec2.perp(vec2.sub(b, a)));
@@ -129,12 +134,13 @@ RendererCanvas = function() {
 		}
 
 		if (strokeStyle) {			
+			ctx.lineWidth = lineWidth;
 			ctx.strokeStyle = strokeStyle;
 			ctx.stroke();			
 		}
 	}
 
-	function drawPolygon(ctx, verts, fillStyle, strokeStyle) {
+	function drawPolygon(ctx, verts, lineWidth, fillStyle, strokeStyle) {		
 		ctx.beginPath();
 		ctx.moveTo(verts[0].x, verts[0].y);
 
@@ -151,6 +157,7 @@ RendererCanvas = function() {
 		}
 
 		if (strokeStyle) {
+			ctx.lineWidth = lineWidth;
 			ctx.strokeStyle = strokeStyle;
 			ctx.stroke();
 		}		

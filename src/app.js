@@ -30,7 +30,7 @@ App = function() {
 	var gestureStartScale;
 	var gestureScale;
 
-	var VERTEX_SELETABLE_RADIUS = isAppleMobileDevice() ? 9 : 3;
+	var VERTEX_SELETABLE_RADIUS = isAppleMobileDevice() ? 15 : 5;
 	var EDGE_SELECTABLE_RADIUS = isAppleMobileDevice() ? 12 : 4;
 
 	// selection mode
@@ -61,7 +61,7 @@ App = function() {
 	var clickedFeature;
 	var rotationCenter = new vec2(0, 0);
 	var selectionColor = "rgba(255, 160, 0, 1.0)";
-	var highlightColor = "rgba(255, 255, 255, 0.75)";
+	var highlightColor = "rgba(220, 255, 255, 0.75)";
 	var selectionPattern;
 	var highlightPattern;	
 
@@ -369,7 +369,7 @@ App = function() {
 
 	function bodyColor(body) {
 		if (body.isStatic()) {
-			return "#999";
+			return "#777";
 		}
 
 		if (!body.isAwake()) {
@@ -494,20 +494,21 @@ App = function() {
 		// Update whole background canvas if we needed
 		if (bg.outdated) {
 			bg.outdated = false;
-			bg.ctx.fillStyle = "rgba(244, 244, 244, 1.0)";
+			bg.ctx.fillStyle = "#324860";
 			bg.ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 			bg.ctx.save();
 			bg.ctx.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
 			
-			drawGrids(bg.ctx, 64, "#CCC");
-			
-			if (!editMode) {
+			if (editMode) {
+				drawGrids(bg.ctx, 64, "#CEE");
+			}			
+			else {
 				// Draw static bodies
 				for (var i in space.bodyHash) {
 					var body = space.bodyHash[i];
 					if (body.isStatic()) {
-						drawBody(bg.ctx, body, bodyColor(body), "#000");						
+						drawBody(bg.ctx, body, 1, bodyColor(body), "#000");						
 					}
 				}
 			}
@@ -545,7 +546,7 @@ App = function() {
 
 		fg.ctx.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
 
-		//renderer.drawBox(fg.ctx, dirtyBounds.mins, dirtyBounds.maxs, "", "#00F");
+		//renderer.drawBox(fg.ctx, dirtyBounds.mins, dirtyBounds.maxs, 1, "", "#00F");
 
 		dirtyBounds.clear();
 
@@ -553,7 +554,7 @@ App = function() {
 		for (var i in space.bodyHash) {
 			var body = space.bodyHash[i];
 			if (editMode || (!editMode && !body.isStatic())) {
-				drawBody(fg.ctx, body, bodyColor(body), "#000");
+				drawBody(fg.ctx, body, 1, bodyColor(body), "#000");
 				dirtyBounds.addBounds(Bounds.expand(body.bounds, 2, 2));
 			}			
 		}
@@ -574,9 +575,9 @@ App = function() {
 					var maxs = vec2.add(con.p, offset);
 
 					dirtyBounds.addBounds2(mins, maxs);
-					renderer.drawBox(fg.ctx, mins, maxs, "#F00");
+					renderer.drawBox(fg.ctx, mins, maxs, 1, "#F00");
 					//dirtyBounds.addBounds2();
-					//renderer.drawArrow(fg.ctx, con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), "#F00");
+					//renderer.drawArrow(fg.ctx, con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), 1, "#F00");
 				}
 			}
 		}		
@@ -600,7 +601,7 @@ App = function() {
 		for (var x = start_x; x <= end_x; x += gridSize) {
 			v1.x = x;
 			v2.x = x;			
-			renderer.drawLine(ctx, v1, v2, gridColor);
+			renderer.drawLine(ctx, v1, v2, 0.75 / view.scale, gridColor);
 		}
 
 		v1.set(start_x, start_y);
@@ -609,44 +610,44 @@ App = function() {
 		for (var y = start_y; y <= end_y; y += gridSize) {
 			v1.y = y;
 			v2.y = y;
-			renderer.drawLine(ctx, v1, v2, gridColor);
+			renderer.drawLine(ctx, v1, v2, 0.75 / view.scale, gridColor);
 		}
 	}
 
-	function drawBody(ctx, body, fillColor, outlineColor) {
+	function drawBody(ctx, body, lineWidth, fillColor, outlineColor) {
 		for (var i = 0; i < body.shapeArr.length; i++) {
 			var shape = body.shapeArr[i];
 			if (!shape.visible) {
 				continue;
 			}			
 
-			drawBodyShape(ctx, shape, fillColor, outlineColor);
+			drawBodyShape(ctx, shape, lineWidth, fillColor, outlineColor);
 
 			if (showBounds || !body.isStatic()) {				
 				if (showBounds) {
 					var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
 					bounds.expand(1, 1);
-					renderer.drawBox(ctx, shape.bounds.mins, bounds.maxs, null, "#0A0");
+					renderer.drawBox(ctx, shape.bounds.mins, bounds.maxs, lineWidth, null, "#0A0");
 				}				
 			}
 		}
 	}
 
-	function drawBodyShape(ctx, shape, fillColor, outlineColor) {
+	function drawBodyShape(ctx, shape, lineWidth, fillColor, outlineColor) {
 		switch (shape.type) {
 		case Shape.TYPE_CIRCLE:
-			renderer.drawCircle(ctx, shape.tc, shape.r, shape.body.a, fillColor, outlineColor);
+			renderer.drawCircle(ctx, shape.tc, shape.r, shape.body.a, lineWidth, fillColor, outlineColor);
 			break;
 		case Shape.TYPE_SEGMENT:
-			renderer.drawSegment(ctx, shape.ta, shape.tb, shape.r, fillColor, outlineColor);
+			renderer.drawSegment(ctx, shape.ta, shape.tb, shape.r, lineWidth, fillColor, outlineColor);
 			break;
 		case Shape.TYPE_POLY:
-			renderer.drawPolygon(ctx, shape.tverts, fillColor, !shape.convexity ? "#F00" : outlineColor);
+			renderer.drawPolygon(ctx, shape.tverts, lineWidth, fillColor, !shape.convexity ? "#F00" : outlineColor);
 			break;
 		}
 	}
 
-	function drawBodyShapeViewTransformed(ctx, shape, fillColor, outlineColor) {
+	function drawBodyShapeViewTransformed(ctx, shape, lineWidth, fillColor, outlineColor) {
 		ctx.save();
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 
@@ -654,17 +655,17 @@ App = function() {
 
 		switch (shape.type) {
 		case Shape.TYPE_CIRCLE:
-			renderer.drawCircle(ctx, worldToCanvas(shape.tc), shape.r * view.scale, -shape.body.a, fillColor, outlineColor);
+			renderer.drawCircle(ctx, worldToCanvas(shape.tc), shape.r * view.scale, -shape.body.a, lineWidth, fillColor, outlineColor);
 			break;
 		case Shape.TYPE_SEGMENT:
-			renderer.drawSegment(ctx, worldToCanvas(shape.ta), worldToCanvas(shape.tb), shape.r * view.scale, fillColor, outlineColor);
+			renderer.drawSegment(ctx, worldToCanvas(shape.ta), worldToCanvas(shape.tb), shape.r * view.scale, lineWidth, fillColor, outlineColor);
 			break;
 		case Shape.TYPE_POLY:
 			var ctverts = new Array(shape.tverts.length);
 			for (var i = 0; i < ctverts.length; i++) {
 			 	ctverts[i] = worldToCanvas(shape.tverts[i]);
 			}
-			renderer.drawPolygon(ctx, ctverts, fillColor, outlineColor);
+			renderer.drawPolygon(ctx, ctverts, lineWidth, fillColor, outlineColor);
 			break;
 		}		
 
@@ -680,7 +681,7 @@ App = function() {
 		if (transformMode == TM_ROTATE) {
 			var radius = 5 / view.scale;
 
-			renderer.drawCircle(ctx, rotationCenter, radius, undefined, "", "#F80");
+			renderer.drawCircle(ctx, rotationCenter, radius, undefined, 1, "", "#F80");
 
 			var mins = vec2.sub(rotationCenter, new vec2(radius, radius));
 			var maxs = vec2.add(rotationCenter, new vec2(radius, radius));
@@ -689,7 +690,7 @@ App = function() {
 
 			if (mouseDownMoving && isValidFeature(clickedFeature)) {
 				var p = canvasToWorld(mousePosition);
-				renderer.drawDashLine(ctx, rotationCenter, p, 10, "#F80");
+				renderer.drawDashLine(ctx, rotationCenter, p, 2, 10, "#F80");
 				bounds.addPoint(p);
 			}
 
@@ -755,7 +756,7 @@ App = function() {
 					var v1 = shape.tverts[index];
 					var v2 = shape.tverts[(index + 1) % shape.tverts.length];
 
-			 		renderer.drawLine(ctx, v1, v2, selectionColor);
+			 		renderer.drawLine(ctx, v1, v2, 2, selectionColor);			 		
 
 					dirtyBounds.addPoint(v1);
 					dirtyBounds.addPoint(v2);
@@ -770,8 +771,8 @@ App = function() {
 					var index = edge & 0xFFFF;
 					var v1 = shape.tverts[index];
 					var v2 = shape.tverts[(index + 1) % shape.tverts.length];
-					
-			 		renderer.drawLine(ctx, v1, v2, highlightColor);
+
+			 		renderer.drawLine(ctx, v1, v2, 2, highlightColor);
 
 					dirtyBounds.addPoint(v1);
 					dirtyBounds.addPoint(v2);
@@ -783,7 +784,7 @@ App = function() {
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
 				var shape = selectedFeatureArr[i];
 				if (shape.visible) {
-					drawBodyShapeViewTransformed(ctx, shape, selectionPattern, selectionColor);
+					drawBodyShapeViewTransformed(ctx, shape, 1, selectionPattern, selectionColor);
 					dirtyBounds.addBounds(Bounds.expand(shape.bounds, 2, 2));
 				}
 			}
@@ -792,7 +793,7 @@ App = function() {
 			for (var i = 0; i < highlightFeatureArr.length; i++) {
 				var shape = highlightFeatureArr[i];
 				if (shape.visible) {
-					drawBodyShapeViewTransformed(ctx, shape, highlightPattern);
+					drawBodyShapeViewTransformed(ctx, shape, 1, highlightPattern);
 					dirtyBounds.addBounds(shape.bounds);
 				}
 			}
@@ -804,7 +805,7 @@ App = function() {
 				for (var j = 0; j < body.shapeArr.length; j++) {
 					var shape = body.shapeArr[j];
 					if (shape.visible) {
-						drawBodyShapeViewTransformed(ctx, shape, selectionPattern, selectionColor);
+						drawBodyShapeViewTransformed(ctx, shape, 1, selectionPattern, selectionColor);
 						dirtyBounds.addBounds(Bounds.expand(shape.bounds, 2, 2));
 					}
 				}
@@ -816,7 +817,7 @@ App = function() {
 				for (var j = 0; j < body.shapeArr.length; j++) {
 					var shape = body.shapeArr[j];
 					if (shape.visible) {
-						drawBodyShapeViewTransformed(ctx, shape, highlightPattern);
+						drawBodyShapeViewTransformed(ctx, shape, 1, highlightPattern);
 						dirtyBounds.addBounds(shape.bounds);
 					}
 				}
@@ -830,7 +831,7 @@ App = function() {
 		var mins = vec2.sub(v, vertex_offset);
 		var maxs = vec2.add(v, vertex_offset);
 
-		renderer.drawBox(ctx, mins, maxs, color);
+		renderer.drawBox(ctx, mins, maxs, 1, color);
 
 		return new Bounds(mins, maxs);		
 	}
@@ -873,13 +874,13 @@ App = function() {
 			return;
 		}
 
-		renderer.drawLine(ctx, p1, p2, strokeStyle);
+		renderer.drawLine(ctx, p1, p2, 1, strokeStyle);
 
 		var offset = new vec2(2, 2);
-		renderer.drawBox(ctx, vec2.sub(p1, offset), vec2.add(p1, offset), "#808");
-		renderer.drawBox(ctx, vec2.sub(p2, offset), vec2.add(p2, offset), "#808");
-		//renderer.drawCircle(ctx, p1, 2.5, 0, "#808");
-		//renderer.drawCircle(ctx, p2, 2.5, 0, "#808");
+		renderer.drawBox(ctx, vec2.sub(p1, offset), vec2.add(p1, offset), 1, "#808");
+		renderer.drawBox(ctx, vec2.sub(p2, offset), vec2.add(p2, offset), 1, "#808");
+		//renderer.drawCircle(ctx, p1, 2.5, 0, 1, "#808");
+		//renderer.drawCircle(ctx, p2, 2.5, 0, 1, "#808");
 
 		if (!body1.isStatic() || !body2.isStatic()) {
 			dirtyBounds.addBounds(bounds);
