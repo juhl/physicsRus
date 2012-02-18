@@ -1,7 +1,7 @@
 var stats = {};
 
 App = function() {
-	var mainView;	
+	var mainView;
 	var canvas;
 	var fg = {};
 	var bg = {};
@@ -30,13 +30,15 @@ App = function() {
 	var gestureStartScale;
 	var gestureScale;
 
-	var VERTEX_SELETABLE_RADIUS = isAppleMobileDevice() ? 10 : 3;
+	var VERTEX_SELETABLE_RADIUS = isAppleMobileDevice() ? 9 : 3;
+	var EDGE_SELECTABLE_RADIUS = isAppleMobileDevice() ? 12 : 4;
 
 	// selection mode
 	var SM_VERTICES = 0;
-	var SM_SHAPES = 1;
-	var SM_BODIES = 2;
-	var SM_JOINTS = 3;	
+	var SM_EDGES = 1;
+	var SM_SHAPES = 2;
+	var SM_BODIES = 3;
+	var SM_JOINTS = 4;	
 
 	// selection flag
 	var SF_REPLACE = 0;
@@ -743,6 +745,39 @@ App = function() {
 				}				
 			}
 		}
+		else if (selectionMode == SM_EDGES) {
+			// Draw selected edges
+			for (var i = 0; i < selectedFeatureArr.length; i++) {
+				var edge = selectedFeatureArr[i];
+				var shape = space.shapeById((edge >> 16) & 0xFFFF);
+				if (shape && shape.visible) {
+					var index = edge & 0xFFFF;
+					var v1 = shape.tverts[index];
+					var v2 = shape.tverts[(index + 1) % shape.tverts.length];
+
+			 		renderer.drawLine(ctx, v1, v2, selectionColor);
+
+					dirtyBounds.addPoint(v1);
+					dirtyBounds.addPoint(v2);
+				}
+			}
+
+			// Draw highlighted edges
+			for (var i = 0; i < highlightFeatureArr.length; i++) {
+				var edge = highlightFeatureArr[i];
+				var shape = space.shapeById((edge >> 16) & 0xFFFF);
+				if (shape && shape.visible) {
+					var index = edge & 0xFFFF;
+					var v1 = shape.tverts[index];
+					var v2 = shape.tverts[(index + 1) % shape.tverts.length];
+					
+			 		renderer.drawLine(ctx, v1, v2, highlightColor);
+
+					dirtyBounds.addPoint(v1);
+					dirtyBounds.addPoint(v2);
+				}
+			}
+		}
 		else if (selectionMode == SM_SHAPES) {
 			// Draw selected shapes
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
@@ -880,6 +915,9 @@ App = function() {
 		if (selectionMode == SM_VERTICES) {
 			return space.findVertexByPoint(p, VERTEX_SELETABLE_RADIUS, selectedFeatureArr[0]);
 		}
+		else if (selectionMode == SM_EDGES) {
+			return space.findEdgeByPoint(p, EDGE_SELECTABLE_RADIUS, selectedFeatureArr[0]);
+		}
 		else if (selectionMode == SM_SHAPES) {
 			return space.findShapeByPoint(p, selectedFeatureArr[0]);
 		}
@@ -899,6 +937,8 @@ App = function() {
 	function isValidFeature(feature) {
 		switch (selectionMode) {
 		case SM_VERTICES:
+			return feature != -1 ? true : false;
+		case SM_EDGES:
 			return feature != -1 ? true : false;
 		case SM_SHAPES:
 			return feature ? true : false;
@@ -925,6 +965,19 @@ App = function() {
 
 			// Set rotationCenter
 			var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+			var body = shape.body;
+			rotationCenter.copy(body.localToWorld(vec2.sub(shape.centroid(), body.centroid)));
+		}
+		else if (selectionMode == SM_EDGES) {
+			var edge = space.findEdgeByPoint(p, EDGE_SELECTABLE_RADIUS, selectedFeatureArr[0]);
+			if (edge == -1) {
+				return false;
+			}
+			
+			feature = edge;
+
+			// Set rotationCenter
+			var shape = space.shapeById((edge >> 16) & 0xFFFF);
 			var body = shape.body;
 			rotationCenter.copy(body.localToWorld(vec2.sub(shape.centroid(), body.centroid)));
 		}
@@ -985,13 +1038,19 @@ App = function() {
 		if (shape.type == Shape.TYPE_CIRCLE && index == 0) {
 			return shape.c;
 		}
-		else if (shape.type == Shape.TYPE_SEGMENT && (index == 0 || index == 1)) {
+		
+		if (shape.type == Shape.TYPE_SEGMENT && (index == 0 || index == 1)) {
 			if (index == 0) {
 				return shape.a;
 			}
 			return shape.b;
 		}
-		else if (shape.type == Shape.TYPE_POLY && index >= 0 && index < shape.verts.length) {
+		
+		if (shape.type == Shape.TYPE_POLY && index >= 0) {
+			index = index % shape.verts.length;
+			if (index < 0) {
+				index += shape.verts.length;
+			}
 			return shape.verts[index];
 		}
 
@@ -1133,9 +1192,9 @@ App = function() {
 								v.y += dy;
 							}
 							else if (transformMode == TM_ROTATE) {
-								var v1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
-								var v2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
-								var da = v2.toAngle() - v1.toAngle();
+								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
+								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
+								var da = p2.toAngle() - p1.toAngle();
 
 								var wv = body.localToWorld(vec2.sub(v, body.centroid));
 								wv.subself(rotationCenter);
@@ -1143,6 +1202,69 @@ App = function() {
 								wv.addself(rotationCenter);
 								v.copy(body.worldToLocal(wv));
 								v.addself(body.centroid);
+							}
+
+							shape.finishVerts();
+							shape.body.resetMassData();
+							shape.body.cacheData();
+						}
+					}
+					else if (selectionMode == SM_EDGES) {
+						var markedVertexArr = [];
+
+						for (var i = 0; i < selectedFeatureArr.length; i++) {
+							var edge = selectedFeatureArr[i];
+							var shape = space.shapeById((edge >> 16) & 0xFFFF);
+							var body = shape.body;
+							var index = edge & 0xFFFF;
+
+							var v1 = getShapeVertex(shape, index);
+							var v2 = getShapeVertex(shape, index + 1);
+
+							var vertex1 = (shape.id << 16) | index;
+							var vertex2 = (shape.id << 16) | ((index + 1) % shape.verts.length);
+
+							if (transformMode == TM_TRANSLATE) {
+								if (markedVertexArr.indexOf(vertex1) == -1) {
+									markedVertexArr.push(vertex1);
+
+									v1.x += dx;
+									v1.y += dy;
+								}
+
+								if (markedVertexArr.indexOf(vertex2) == -1) {
+									markedVertexArr.push(vertex2);
+
+									v2.x += dx;
+									v2.y += dy;
+								}
+							}
+							else if (transformMode == TM_ROTATE) {
+								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
+								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
+								var da = p2.toAngle() - p1.toAngle();
+								
+								if (markedVertexArr.indexOf(vertex1) == -1) {
+									markedVertexArr.push(vertex1);
+
+									var wv = body.localToWorld(vec2.sub(v1, body.centroid));
+									wv.subself(rotationCenter);
+									wv.rotate(da);
+									wv.addself(rotationCenter);
+									v1.copy(body.worldToLocal(wv));
+									v1.addself(body.centroid);
+								}
+
+								if (markedVertexArr.indexOf(vertex2) == -1) {
+									markedVertexArr.push(vertex2);
+																		
+									var wv = body.localToWorld(vec2.sub(v2, body.centroid));
+									wv.subself(rotationCenter);
+									wv.rotate(da);
+									wv.addself(rotationCenter);
+									v2.copy(body.worldToLocal(wv));
+									v2.addself(body.centroid);
+								}
 							}
 
 							shape.finishVerts();
@@ -1184,9 +1306,9 @@ App = function() {
 								}
 							}
 							else if (transformMode == TM_ROTATE) {
-								var v1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
-								var v2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
-								var da = v2.toAngle() - v1.toAngle();				
+								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
+								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
+								var da = p2.toAngle() - p1.toAngle();
 
 								switch (shape.type) {
 								case Shape.TYPE_CIRCLE:
@@ -1251,9 +1373,9 @@ App = function() {
 								p.y += dy;
 							}
 							else if (transformMode == TM_ROTATE) {
-								var v1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
-								var v2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
-								var da = v2.toAngle() - v1.toAngle();
+								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
+								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
+								var da = p2.toAngle() - p1.toAngle();
 
 								p = vec2.add(vec2.rotate(vec2.sub(p, rotationCenter), da), rotationCenter);								
 								a += da;
@@ -1272,6 +1394,12 @@ App = function() {
 				if (transformMode == TM_SELECT || transformMode == TM_TRANSLATE) {
 					var feature = getFeatureByPoint(canvasToWorld(mousePosition));
 					if (isValidFeature(feature)) {
+						highlightFeatureArr[0] = feature;
+					}
+				}
+				else if (transformMode == TM_ROTATE) {
+					var feature = getFeatureByPoint(canvasToWorld(mousePosition));
+					if (isValidFeature(feature) && selectedFeatureArr.indexOf(feature) != -1) {
 						highlightFeatureArr[0] = feature;
 					}
 				}
@@ -1421,13 +1549,13 @@ App = function() {
 		case 17: // Ctrl
 			e.preventDefault();			
 			break;
-		case 8: // Delete
+		case 8: // Delete			
 			e.preventDefault();
 			break;
 		case 74: // 'j'
 			break;
 		case 83: // 's'
-			break;        		
+			break;
 		case 81: // 'q'
 			if (editMode) {
 				onClickedTransformMode("select");
@@ -1450,8 +1578,9 @@ App = function() {
 		case 50: // '2'
 		case 51: // '3'
 		case 52: // '4'
+		case 53: // '5'
 			if (editMode) {
-				onClickedSelectMode(["vertices", "shapes", "bodies", "joints"][(e.keyCode - 48) - 1]);
+				onClickedSelectMode(["vertices", "edges", "shapes", "bodies", "joints"][(e.keyCode - 48) - 1]);
 				e.preventDefault();
 			}
 			break;
@@ -1540,7 +1669,7 @@ App = function() {
 			}
 		
 			// select mode buttons
-			var value = ["vertices", "shapes", "bodies", "joints"][selectionMode];
+			var value = ["vertices", "edges", "shapes", "bodies", "joints"][selectionMode];
 			for (var i = 0; i < selectionModeButtons.length; i++) {
 				var e = selectionModeButtons[i];
 				
@@ -1644,7 +1773,7 @@ App = function() {
 	}
 
 	function onClickedSelectMode(value) {
-		selectionMode = { vertices: SM_VERTICES, shapes: SM_SHAPES, bodies: SM_BODIES, joints: SM_JOINTS }[value];
+		selectionMode = { vertices: SM_VERTICES, edges: SM_EDGES, shapes: SM_SHAPES, bodies: SM_BODIES, joints: SM_JOINTS }[value];
 		selectedFeatureArr = [];
 		markedFeatureArr = [];
 		highlightFeatureArr = [];

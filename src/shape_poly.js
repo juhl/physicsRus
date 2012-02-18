@@ -132,6 +132,40 @@ ShapePoly.prototype.findVertexByPoint = function(p, minDist) {
 	return -1;
 }
 
+ShapePoly.prototype.findEdgeByPoint = function(p, minDist) {
+	var dsq = minDist * minDist;
+	var numVerts = this.tverts.length;
+
+	for (var i = 0; i < this.tverts.length; i++) {
+		var v1 = this.tverts[i];
+		var v2 = this.tverts[(i + 1) % numVerts];
+		var n = this.tplanes[i].n;
+
+		var dtv1 = vec2.cross(v1, n);
+		var dtv2 = vec2.cross(v2, n);
+		var dt = vec2.cross(p, n);
+
+		if (dt > dtv1) {
+			if (vec2.distsq(v1, p) < dsq) {
+				return i;
+			}
+		}
+		else if (dt < dtv2) {
+			if (vec2.distsq(v2, p) < dsq) {
+				return i;
+			}
+		}
+		else {
+			var dist = vec2.dot(n, p) - vec2.dot(n, v1);
+			if (dist * dist < dsq) {
+				return i;
+			}
+		}
+	}
+
+	return -1;
+}
+
 ShapePoly.prototype.distanceOnPlane = function(n, d) {
 	var min = 999999;
 	for (var i = 0; i < this.verts.length; i++) {

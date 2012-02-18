@@ -93,7 +93,7 @@ RendererCanvas = function() {
 		}		
 
 		if (strokeStyle) {
-			if (angle) {
+			if (typeof angle == "number") {
 				ctx.moveTo(center.x, center.y);
 				var rt = vec2.add(center, vec2.scale(vec2.rotation(angle), radius));
 				ctx.lineTo(rt.x, rt.y);

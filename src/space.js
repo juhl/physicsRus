@@ -245,7 +245,7 @@ Space.prototype.findVertexByPoint = function(p, minDist, refVertex) {
 			var shape = body.shapeArr[j];
 			var index = shape.findVertexByPoint(p, minDist);
 			if (index != -1) {
-				var vertex = shape.id << 16 | index;
+				var vertex = (shape.id << 16) | index;
 				if (refVertex == -1) {
 					return vertex;
 				}
@@ -262,6 +262,41 @@ Space.prototype.findVertexByPoint = function(p, minDist, refVertex) {
 	}
 
 	return firstVertex;
+}
+
+Space.prototype.findEdgeByPoint = function(p, minDist, refEdge) {
+	var firstEdge = -1;
+
+	refEdge = refEdge || -1;
+
+	for (var i in this.bodyHash) {
+		var body = this.bodyHash[i];
+
+		for (var j = 0; j < body.shapeArr.length; j++) {
+			var shape = body.shapeArr[j];
+			if (shape.type != Shape.TYPE_POLY) {
+				continue;
+			}
+
+			var index = shape.findEdgeByPoint(p, minDist);
+			if (index != -1) {
+				var edge = (shape.id << 16) | index;
+				if (refEdge == -1) {
+					return edge;
+				}
+
+				if (firstEdge == -1) {
+					firstEdge = edge;
+				}
+
+				if (edge == refEdge) {
+					refEdge = -1;
+				}		
+			}
+		}
+	}
+
+	return firstEdge;	
 }
 
 Space.prototype.findContactSolver = function(shape1, shape2) {
