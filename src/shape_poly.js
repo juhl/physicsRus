@@ -13,7 +13,7 @@ ShapePoly = function(verts) {
 
 	for (var i = 0; i < verts.length; i++) {
 		this.verts[i] = verts[i].duplicate();
-		this.tverts[i] = vec2.zero;
+		this.tverts[i] = this.verts[i];
 
 		this.tplanes[i] = {};
 		this.tplanes[i].n = vec2.zero;
@@ -27,7 +27,15 @@ ShapePoly.prototype = new Shape;
 ShapePoly.prototype.constructor = ShapePoly;
 
 ShapePoly.prototype.finishVerts = function() {
+	if (this.verts < 2) {
+		this.convexity = false;
+		this.planes = [];
+		return;
+	}
+
 	this.convexity = true;
+	this.tverts = [];
+	this.tplanes = [];
 
 	// Must be counter-clockwise verts
 	for (var i = 0; i < this.verts.length; i++) {
@@ -38,6 +46,12 @@ ShapePoly.prototype.finishVerts = function() {
 		this.planes[i] = {};
 		this.planes[i].n = n;
 		this.planes[i].d = vec2.dot(n, a);
+
+		this.tverts[i] = this.verts[i];
+
+		this.tplanes[i] = {};
+		this.tplanes[i].n = vec2.zero;
+		this.tplanes[i].d = 0;
 
 		if (i > 0 && this.convexity) {
 			var a = this.verts[i - 1];
@@ -98,6 +112,11 @@ ShapePoly.prototype.cacheData = function(pos, centroid, angle) {
 	}
 
 	this.bounds.clear();
+
+	if (this.verts < 2) {
+		this.bounds.addPoint(this.tverts[i]);
+		return;
+	}	
 
 	for (var i = 0; i < numVerts; i++) {
 		var a = this.tverts[i];

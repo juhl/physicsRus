@@ -62,8 +62,10 @@ App = function() {
 	var rotationCenter = new vec2(0, 0);
 	var selectionColor = "rgba(255, 160, 0, 1.0)";
 	var highlightColor = "rgba(220, 255, 255, 0.75)";
+	var backgroundColor = "rgb(244, 244, 244)";
+	var vertexColor = "#444";
 	var selectionPattern;
-	var highlightPattern;	
+	var highlightPattern;
 
 	var space;
 	var demoArr = [DemoCar, DemoRagDoll, DemoSeeSaw, DemoPyramid, DemoCrank, DemoRope, DemoWeb, DemoBounce];
@@ -86,7 +88,7 @@ App = function() {
 	var showContacts = false;
 	var showStats = false;
 
-	function main() {
+	function ready() {
 		mainView = document.getElementById("main_view");
 
 		// Initialize canvas context
@@ -99,10 +101,7 @@ App = function() {
 		fg.canvas = canvas;
 		fg.ctx = fg.canvas.getContext("2d");
 		bg.canvas = document.createElement("canvas");
-		bg.ctx = bg.canvas.getContext("2d");
-
-		selectionPattern = createCheckPattern(selectionColor);
-		highlightPattern = createCheckPattern(highlightColor);
+		bg.ctx = bg.canvas.getContext("2d");		
 
 		// Horizontal & vertical scrollbar will be hidden
 		document.documentElement.style.overflowX = "hidden";
@@ -150,7 +149,11 @@ App = function() {
 			document.onkeydown = onKeyDown;
 			document.onkeyup = onKeyUp
 			document.onkeypress = onKeyPress;
-		}		
+		}
+	}
+
+	function main() {
+		ready();
 
 		// Add scenes from demos
 		var combobox = document.getElementById("scene");
@@ -183,19 +186,10 @@ App = function() {
 		sceneIndex = 0;
 		combobox.selectedIndex = sceneIndex;
 
-		var editbox = document.getElementById("gravity");
-		editbox.value = gravity.y;
-
-		var editbox = document.getElementById("frameRateHz");
-		editbox.value = frameRateHz;
-
-		var editbox = document.getElementById("v_iters");
-		editbox.value = velocityIterations;
-
-		var editbox = document.getElementById("p_iters");
-		editbox.value = positionIterations;		
-
 		renderer = RendererCanvas;
+
+		selectionPattern = createCheckPattern(selectionColor);
+		highlightPattern = createCheckPattern(highlightColor);
 
 		// Random color for bodies
 		randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"];
@@ -494,7 +488,7 @@ App = function() {
 		// Update whole background canvas if we needed
 		if (bg.outdated) {
 			bg.outdated = false;
-			bg.ctx.fillStyle = "rgb(244, 244, 244)";
+			bg.ctx.fillStyle = backgroundColor;
 			bg.ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 			bg.ctx.save();
@@ -707,15 +701,15 @@ App = function() {
 					if (shape.visible) {
 						switch (shape.type) {
 						case Shape.TYPE_CIRCLE:
-							dirtyBounds.addBounds(drawVertex(ctx, shape.tc, "#444"));
+							dirtyBounds.addBounds(drawVertex(ctx, shape.tc, vertexColor));
 							break;
 						case Shape.TYPE_SEGMENT:
-							dirtyBounds.addBounds(drawVertex(ctx, shape.ta, "#444"));
-							dirtyBounds.addBounds(drawVertex(ctx, shape.tb, "#444"));
+							dirtyBounds.addBounds(drawVertex(ctx, shape.ta, vertexColor));
+							dirtyBounds.addBounds(drawVertex(ctx, shape.tb, vertexColor));
 							break;
 						case Shape.TYPE_POLY:
 							for (var k = 0; k < shape.tverts.length; k++) {
-								drawVertex(ctx, shape.tverts[k], "#444");
+								drawVertex(ctx, shape.tverts[k], vertexColor);
 							}
 							dirtyBounds.addBounds(Bounds.expand(shape.bounds, 3, 3));
 							break;
@@ -756,7 +750,7 @@ App = function() {
 					var v1 = shape.tverts[index];
 					var v2 = shape.tverts[(index + 1) % shape.tverts.length];
 
-			 		renderer.drawLine(ctx, v1, v2, 2, selectionColor);			 		
+			 		renderer.drawLine(ctx, v1, v2, 1.5, selectionColor);			 		
 
 					dirtyBounds.addPoint(v1);
 					dirtyBounds.addPoint(v2);
@@ -772,7 +766,7 @@ App = function() {
 					var v1 = shape.tverts[index];
 					var v2 = shape.tverts[(index + 1) % shape.tverts.length];
 
-			 		renderer.drawLine(ctx, v1, v2, 2, highlightColor);
+			 		renderer.drawLine(ctx, v1, v2, 1.5, highlightColor);
 
 					dirtyBounds.addPoint(v1);
 					dirtyBounds.addPoint(v2);
@@ -1550,7 +1544,8 @@ App = function() {
 		case 17: // Ctrl
 			e.preventDefault();			
 			break;
-		case 8: // Delete			
+		case 8: // Delete
+			onDelete();
 			e.preventDefault();
 			break;
 		case 74: // 'j'
@@ -1792,8 +1787,100 @@ App = function() {
 		return false;
 	}
 
+	function deleteShape(shape) {
+		var body = shape.body;
+
+		body.removeShape(shape);
+		if (body.shapeArr.length != 0) {
+			body.resetMassData();
+			body.cacheData();
+		}
+		else {
+			space.removeBody(body);
+		}
+	}
+
+	function onDelete() {
+		if (selectionMode == SM_VERTICES) {
+			selectedFeatureArr.sort(function(a, b) { return (b & 0xFFFF) - (a & 0xFFFF); });
+
+			for (var i = 0; i < selectedFeatureArr.length; i++) {
+				var vertex = selectedFeatureArr[i];
+				var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+				var index = vertex & 0xFFFF;
+
+				if (shape.type == Shape.TYPE_POLY) {
+					shape.verts.splice(index, 1);
+
+					shape.finishVerts();
+					shape.body.resetMassData();
+					shape.body.cacheData();	
+				}
+				
+				if (shape.verts.length == 0) {
+					deleteShape(shape);
+					delete shape;
+				}
+			}
+		}
+		else if (selectionMode == SM_EDGES) {
+			selectedFeatureArr.sort(function(a, b) { return (b & 0xFFFF) - (a & 0xFFFF); });
+
+			for (var i = 0; i < selectedFeatureArr.length; i++) {
+				var edge = selectedFeatureArr[i];
+				var shape = space.shapeById((edge >> 16) & 0xFFFF);
+				var index = edge & 0xFFFF;
+
+				if (shape.type == Shape.TYPE_POLY) {
+					shape.verts.splice(index, 1);
+
+					shape.finishVerts();
+					shape.body.resetMassData();
+					shape.body.cacheData();	
+				}
+				
+				if (shape.verts.length == 0) {
+					deleteShape(shape);
+					delete shape;
+				}
+			}
+		}
+		else if (selectionMode == SM_SHAPES) {
+			for (var i = 0; i < selectedFeatureArr.length; i++) {
+				var shape = selectedFeatureArr[i];
+				deleteShape(shape);
+				delete shape;
+			}
+		}
+		else if (selectionMode == SM_BODIES) {
+			for (var i = 0; i < selectedFeatureArr.length; i++) {
+				var body = selectedFeatureArr[i];
+				space.removeBody(body);
+				delete body;
+			}
+		}
+		else if (selectionMode == SM_JOINTS) {
+			
+		}
+
+		selectedFeatureArr = [];
+		highlightFeatureArr = [];
+	}
+
 	function onClickedSettings() {
 		showSettings = !showSettings;
+
+		var editbox = document.getElementById("gravity");
+		editbox.value = gravity.y;
+
+		var editbox = document.getElementById("frameRateHz");
+		editbox.value = frameRateHz;
+
+		var editbox = document.getElementById("v_iters");
+		editbox.value = velocityIterations;
+
+		var editbox = document.getElementById("p_iters");
+		editbox.value = positionIterations;
 
 		var layout = document.getElementById("settings");
 		var button = document.getElementById("toggle_settings");
@@ -1816,7 +1903,7 @@ App = function() {
 		return false;
 	}
 
-	return { 
+	return {
 		main: main,
 		onChangedScene: onChangedScene,
 		onChangedGravity: onChangedGravity,

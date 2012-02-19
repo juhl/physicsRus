@@ -98,6 +98,14 @@ Body.prototype.addShape = function(shape) {
 	this.shapeArr.push(shape);
 }
 
+Body.prototype.removeShape = function(shape) {
+	var index = this.shapeArr.indexOf(shape);
+	if (index != -1) {
+		this.shapeArr.splice(index, 1);
+		shape.body = undefined;
+	}
+}
+
 // Internal function
 Body.prototype.cacheData = function() {	
 	this.bounds.clear();
