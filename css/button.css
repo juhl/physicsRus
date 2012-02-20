@@ -1,8 +1,8 @@
-button {
+.btn {
   background-color: #111;
 }
 
-button { 
+.btn { 
   padding: 0px 0px 0px 0px;
   height: 24px;
   font-size: 10px;
@@ -53,11 +53,11 @@ button {
   -moz-user-select: none;
 }
 
-button:first-child {
+.btn:first-child {
   margin-left: 8px;
 }
 
-button.segment {
+.btn.segment {
   margin-left: -4px;
   display: inline-block;
   border-radius: 0px;
@@ -65,7 +65,7 @@ button.segment {
   -webkit-border-radius: 0px;
 }
 
-button.segment:first-child {  
+.btn.segment:first-child {  
   margin-left: 8px;
   border-top-left-radius: 5px;
   border-bottom-left-radius: 5px;
@@ -75,7 +75,7 @@ button.segment:first-child {
   -webkit-border-bottom-left-radius: 5px;
 }
 
-button.segment:last-child, input.segment:last-child, a.button.segment:last-child {  
+.btn.segment:last-child {
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
   -moz-border-top-right-radius: 5px; 
@@ -85,16 +85,17 @@ button.segment:last-child, input.segment:last-child, a.button.segment:last-child
 }
 
 /* hide selection background color */
-button::selection {
+.btn::selection {
   background: transparent;
 }
 
-button:hover {
+.btn:hover {
   /*background-position: 0 -50px;*/
   /*border: 1px solid #FFF;*/  
   color: white;  
 }
-button:active { 
+
+.btn:active { 
   position:relative;  
   padding: 7px 0px 5px 0px;  
   
@@ -108,7 +109,7 @@ button:active {
   border-top: 1px solid #666\9;
 }
 
-button.pushed {
+.btn.pushed {
   padding: 7px 0px 5px 0px;
   color: black;
   background-color: #fa0;
@@ -124,12 +125,12 @@ button.pushed {
   border-top: 1px solid #666\9;
 }
 
-button.pushed:hover {
+.btn.pushed:hover {
   color: black;
 }
 
-button.blue   { background-color: #005AFF !important; } button.blue.pushed    { color: white; } button.blue.pushed:hover   { color: white; }
-button.red    { background-color: #E32100 !important; } button.red.pushed     { color: white; } button.red.pushed:hover    { color: white; }
-button.green  { background-color: #20A000 !important; } button.green.pushed   { color: white; } button.green.pushed:hover  { color: white; }
-button.yellow { background-color: #F0A000 !important; } button.yellow.pushed  { color: white; } button.yellow.pushed:hover { color: white; }
-button.purple { background-color: #6E00EE !important; } button.purple.pushed  { color: white; } button.purple.pushed:hover { color: white; }
+.btn.blue   { background-color: #005AFF !important; } .btn.blue.pushed    { color: white; } .btn.blue.pushed:hover   { color: white; }
+.btn.red    { background-color: #E32100 !important; } .btn.red.pushed     { color: white; } .btn.red.pushed:hover    { color: white; }
+.btn.green  { background-color: #20A000 !important; } .btn.green.pushed   { color: white; } .btn.green.pushed:hover  { color: white; }
+.btn.yellow { background-color: #F0A000 !important; } .btn.yellow.pushed  { color: white; } .btn.yellow.pushed:hover { color: white; }
+.btn.purple { background-color: #6E00EE !important; } .btn.purple.pushed  { color: white; } .btn.purple.pushed:hover { color: white; }
