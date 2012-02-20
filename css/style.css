@@ -24,17 +24,18 @@ label {
   vertical-align: middle;
 }
 select {  
-  border: 1px solid #ccc;
+  border: 1px solid #222;
   height: 21px;
   font-size: 13px;
-  color: #555555;
+  color: #333;
   vertical-align: middle;
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
 }
 input {
-  border: 1px solid #ccc;
+  border: 1px solid #222;
+  line-height: 15px;
   vertical-align: middle;
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
@@ -108,7 +109,7 @@ div#settings {
   top: 0px;  
   position: absolute;
   display: none;
-  vertical-align: top;
+  vertical-align: middle;
   text-align: left;
   font-size: 10px;  
   background-color: #444;
