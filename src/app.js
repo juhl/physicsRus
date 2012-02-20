@@ -93,7 +93,7 @@ App = function() {
 	var enableDirtyBounds = true;
 	var showBounds = false;
 	var showContacts = false;
-	var showStats = false;	
+	var showStats = false;
 
 	function onReady() {
 		mainView = document.getElementById("main_view");
@@ -181,6 +181,67 @@ App = function() {
 		}
 
 		updateToolbar();
+	}	
+
+	function onLoad() {
+		// Add scenes from demos
+		var combobox = toolbar.querySelector("#scene");
+		for (var i = 0; i < demoArr.length; i++) {
+			var option = document.createElement("option");
+			var name = demoArr[i].name();
+			option.text = name;
+			option.value = name;
+			combobox.add(option);
+			sceneNameArr.push(name);
+		}
+/*
+		// Add scenes from list of JSON files in server
+		httpGetText("scene.rb?action=list", false, function(text) { 
+			text.replace(/\s*(.+?\.json)/g, function($0, filename) {
+				var option = document.createElement("option");
+				option.text = filename;
+				option.value = filename;
+				combobox.add(option);
+				sceneNameArr.push(filename);
+			});
+		});*/
+
+		sceneIndex = 0;
+		combobox.selectedIndex = sceneIndex;
+
+		// HACK
+		onResize();
+
+		renderer = RendererCanvas;
+
+		selectionPattern = createCheckPattern(selectionColor);
+		highlightPattern = createCheckPattern(highlightColor);
+
+		// Random color for bodies
+		randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"];
+
+		collision.init();		
+
+		space = new Space();
+
+		mouseBody = new Body(Body.KINETIC);
+		mouseBody.resetMassData();
+		space.addBody(mouseBody);
+
+		initScene();
+
+		window.requestAnimFrame = window.requestAnimationFrame || 
+			window.webkitRequestAnimationFrame || 
+			window.mozRequestAnimationFrame || 
+			window.oRequestAnimationFrame || 
+			window.msRequestAnimationFrame;
+
+		if (window.requestAnimationFrame) {
+			window.requestAnimFrame(function() { window.requestAnimFrame(arguments.callee); runFrame(); });
+		}
+		else {
+			window.setInterval(runFrame, parseInt(1000 / 60));
+		}
 	}
 
 	function updateToolbar() {
@@ -259,67 +320,6 @@ App = function() {
 		var button = toolbar.querySelector("#pause");
 		button.innerHTML = pause ? "<i class='icon-white icon-play'></i>" : "<i class='icon-white icon-pause'></i>";
 	}
-
-	function onLoad() {
-		// Add scenes from demos
-		var combobox = toolbar.querySelector("#scene");
-		for (var i = 0; i < demoArr.length; i++) {
-			var option = document.createElement("option");
-			var name = demoArr[i].name();
-			option.text = name;
-			option.value = name;
-			combobox.add(option);
-			sceneNameArr.push(name);
-		}
-/*
-		// Add scenes from list of JSON files in server
-		httpGetText("scene.rb?action=list", false, function(text) { 
-			text.replace(/\s*(.+?\.json)/g, function($0, filename) {
-				var option = document.createElement("option");
-				option.text = filename;
-				option.value = filename;
-				combobox.add(option);
-				sceneNameArr.push(filename);
-			});
-		});*/
-
-		sceneIndex = 0;
-		combobox.selectedIndex = sceneIndex;
-
-		// HACK
-		onResize();
-
-		renderer = RendererCanvas;
-
-		selectionPattern = createCheckPattern(selectionColor);
-		highlightPattern = createCheckPattern(highlightColor);
-
-		// Random color for bodies
-		randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"];
-
-		collision.init();		
-
-		space = new Space();
-
-		mouseBody = new Body(Body.KINETIC);
-		mouseBody.resetMassData();
-		space.addBody(mouseBody);
-
-		initScene();
-
-		window.requestAnimFrame = window.requestAnimationFrame || 
-			window.webkitRequestAnimationFrame || 
-			window.mozRequestAnimationFrame || 
-			window.oRequestAnimationFrame || 
-			window.msRequestAnimationFrame;
-
-		if (window.requestAnimationFrame) {
-			window.requestAnimFrame(function() { window.requestAnimFrame(arguments.callee); runFrame(); });
-		}
-		else {
-			window.setInterval(runFrame, parseInt(1000 / 60));
-		}
-	}	
 
 	function createCheckPattern(color) {
 		var digits = color.match(/rgba\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\)/);
