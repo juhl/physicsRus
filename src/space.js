@@ -310,24 +310,6 @@ Space.prototype.findContactSolver = function(shape1, shape2) {
 	return null;
 }
 
-Space.prototype.isCollidable = function(body1, body2) {
-	if (body1 == body2)
-		return false;
-
-	if (body1.isStatic() && body2.isStatic())
-		return false;
-
-	for (var i in body1.jointHash) {
-		var joint = body1.jointHash[i];
-
-		if (!joint.collideConnected && body2.jointHash[joint.id]) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
 Space.prototype.genTemporalContactSolvers = function() {
 	var t0 = Date.now();
 	var newContactSolverArr = [];
@@ -349,7 +331,7 @@ Space.prototype.genTemporalContactSolvers = function() {
 			var active1 = body1.isAwake() && !body1.isStatic();
 			var active2 = body2.isAwake() && !body2.isStatic();
 
-			if (!this.isCollidable(body1, body2)) {
+			if (!body1.isCollidable(body2)) {
 				continue;
 			}
 

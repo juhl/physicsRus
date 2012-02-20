@@ -1,36 +1,26 @@
-/*  
-awesome buttons are based on a blog post by ZERB
-Read there blog post for more information:
-"Super awesome Buttons with CSS3 and RGBA":http://www.zurb.com/article/266/super-awesome-buttons-with-css3-and-rgba 
-
-this buttons are even more awesome, as the need only one color for all three states,
-and have an super awesome onclick state
-*/
-
-/* set an awesome color for the buttons */
 button.awesome, 
 input.awesome, 
 a.button.awesome {
   background-color: #111;
 }
-/* Touch the rest at your onw risk. */
+
 button.awesome,
 input.awesome,
 a.button.awesome { 
-  font: inherit;
-  background-repeat: repeat-x; 
-  color: #eee;
-  text-decoration: none; 
-  position: relative;
-  cursor: pointer; 
-  border: 0px;
-  font-style: normal; 
-
   padding: 6px 0px 6px 0px;
   font-size: 10px;
   line-height: 12px;
+
+  border: 0px;
+  position: relative;
+  background-repeat: repeat-x; 
+  color: #eee;  
+  cursor: pointer;   
+  text-decoration: none;   
+  font-style: normal; 
+  font: inherit;  
     
-  text-shadow: 0px -1px 1px rgba(0,0,0,0.3), -1px 0px 1px rgba(0,0,0,0.3); 
+  text-shadow: 0px -1px 2px rgba(0, 0, 0, 0.5), -1px 0px 2px rgba(0, 0, 0, 0.5); 
 
   border-radius: 5px; 
   -moz-border-radius: 5px; 
@@ -39,14 +29,13 @@ a.button.awesome {
   box-shadow: 0 1px 2px rgba(0,0,0,0.5), 0 -1px 0 rgba(0,0,0,0.5), 0 1px 0 rgba(0,0,0,0.5), -1px 0 0 rgba(0,0,0,0.5), 1px 0 0 rgba(0,0,0,0.5);
   -moz-box-shadow: 0 1px 2px rgba(0,0,0,0.5), 0 -1px 0 rgba(0,0,0,0.5), 0 1px 0 rgba(0,0,0,0.5), -1px 0 0 rgba(0,0,0,0.5), 1px 0 0 rgba(0,0,0,0.5);
   -webkit-box-shadow: 0 1px 2px rgba(0,0,0,0.5), 0 -1px 0 rgba(0,0,0,0.5), 0 1px 0 rgba(0,0,0,0.5), -1px 0 0 rgba(0,0,0,0.5), 1px 0 0 rgba(0,0,0,0.5);
-
-  /*background: -moz-linear-gradient(#4B4947, #32302D);
-  background: -webkit-gradient(linear, left top, left bottom, from(#4B4947), to(#32302D));*/
   
   /* one image for all states 
   see http://www.alistapart.com/articles/sprites */
   background-image: url(img/awesome-overlay-sprite.png);
   /*background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(75, 73, 71)), to(rgb(50, 48, 45)));*/
+  /*background: -moz-linear-gradient(#4B4947, #32302D);
+  background: -webkit-gradient(linear, left top, left bottom, from(#4B4947), to(#32302D));*/
   background-position: 0 0;
   
   /* cross browser inline block hack 
@@ -60,7 +49,7 @@ a.button.awesome {
   /* help IE to calm down a bit */
   zoom: 1;
 
-   /* IE only stuff */
+  /* IE only stuff */
   border-bottom: 1px solid transparent\9;
   
   /*disable text selection (Firefox only)*/

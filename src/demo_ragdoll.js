@@ -209,7 +209,7 @@ DemoRagDoll = function() {
 		joint.setLimits(deg2rad(-160), deg2rad(30));
 		space.addJoint(joint);
 
-		bodyHead.applyLinearImpulse(new vec2(2100000, 0), vec2.zero);
+		bodyHead.applyLinearImpulse(new vec2(2100000, 0), new vec2(0, 367));
 	}
 
 	function runFrame() {

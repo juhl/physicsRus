@@ -19,7 +19,10 @@ Body = function(type, x, y, angle) {
 	// Transform
 	this.xf = new Transform(x, y, angle);
 
-	// Position
+	// Local center of mass
+	this.centroid = new vec2(0, 0);
+
+	// World position of centroid
 	this.p = new vec2(x, y);
 	
 	// Velocity
@@ -131,7 +134,7 @@ Body.prototype.setInertia = function(inertia) {
 
 Body.prototype.resetMassData = function() {
 	if (this.isStatic()) {
-		this.centroid = new vec2(0, 0);
+		this.centroid.set(0, 0);
 		this.setMass(Infinity);
 		this.setInertia(Infinity);
 		this.p = this.xf.transform(this.centroid);
@@ -140,7 +143,7 @@ Body.prototype.resetMassData = function() {
 	
 	var totalMassCentroid = new vec2(0, 0);
 	var totalMass = 0;
-	var totalInertia = 0;	
+	var totalInertia = 0;
 
 	for (var i = 0; i < this.shapeArr.length; i++) {
 		var shape = this.shapeArr[i];
@@ -150,15 +153,21 @@ Body.prototype.resetMassData = function() {
 
 		totalMassCentroid.mad(centroid, mass);
 		totalMass += mass;
-		totalInertia += inertia;		
+		totalInertia += inertia;
 	}
-
-	this.centroid = vec2.scale(totalMassCentroid, 1 / totalMass);
+	
+	this.centroid.copy(vec2.scale(totalMassCentroid, 1 / totalMass));
 	this.setMass(totalMass);
 	this.setInertia(totalInertia - totalMass * vec2.dot(this.centroid, this.centroid));
+	//console.log("mass = " + this.m + " inertia = " + this.i);
+
+	// Move center of mass	
+	var old_p = this.p;
 	this.p = this.xf.transform(this.centroid);
 
-	//console.log("mass = " + this.m + " inertia = " + this.i);
+	// Update center of mass velocity ??
+	this.v.mad(vec2.perp(vec2.sub(this.p, old_p)), this.w);
+	//console.log(this.v.x, this.v.y);
 }
 
 // Local (center of mass) -> World
@@ -195,7 +204,7 @@ Body.prototype.resetForce = function() {
 	this.t = 0;
 }
 
-Body.prototype.applyForce = function(force, r) {
+Body.prototype.applyForce = function(force, p) {
 	if (this.isStatic())
 		return;
 
@@ -203,7 +212,17 @@ Body.prototype.applyForce = function(force, r) {
 		this.awake(true);
 	
 	this.f.addself(force);
-	this.t += vec2.cross(r, force);
+	this.t += vec2.cross(vec2.sub(p, this.p), force);
+}
+
+Body.prototype.applyForceToCenter = function(force) {
+	if (this.isStatic())
+		return;
+
+	if (!this.isAwake())
+		this.awake(true);
+	
+	this.f.addself(force);
 }
 
 Body.prototype.applyTorque = function(torque) {
@@ -216,7 +235,7 @@ Body.prototype.applyTorque = function(torque) {
 	this.t += torque;
 }
 
-Body.prototype.applyLinearImpulse = function(impulse, r) {
+Body.prototype.applyLinearImpulse = function(impulse, p) {
 	if (this.isStatic())
 		return;
 
@@ -224,7 +243,7 @@ Body.prototype.applyLinearImpulse = function(impulse, r) {
 		this.awake(true);
 
 	this.v.mad(impulse, this.m_inv);
-	this.w += vec2.cross(r, impulse) * this.i_inv;
+	this.w += vec2.cross(vec2.sub(p, this.p), impulse) * this.i_inv;
 }
 
 Body.prototype.applyAngularImpulse = function(impulse) {
@@ -258,4 +277,22 @@ Body.prototype.awake = function(flag) {
 		this.f.set(0, 0);
 		this.t = 0;
 	}
+}
+
+Body.prototype.isCollidable = function(other) {
+	if (this == other)
+		return false;
+
+	if (this.isStatic() && other.isStatic())
+		return false;
+
+	for (var i in this.jointHash) {
+		var joint = this.jointHash[i];
+
+		if (!joint.collideConnected && other.jointHash[joint.id]) {
+			return false;
+		}
+	}
+
+	return true;
 }

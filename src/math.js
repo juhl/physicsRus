@@ -14,6 +14,10 @@ function vec2(x, y) {
 
 vec2.zero = new vec2(0, 0);
 
+vec2.prototype.toString = function() {
+	return ["x:", this.x, "y:", this.y].join(" ");
+}
+
 vec2.prototype.set = function(x, y) {
 	this.x = x;
 	this.y = y;
@@ -223,6 +227,10 @@ function vec3(x, y, z) {
 
 vec3.zero = new vec3(0, 0, 0);
 
+vec3.prototype.toString = function() {
+	return ["x:", this.x, "y:", this.y, "z:", this.z].join(" ");
+}
+
 vec3.prototype.set = function(x, y, z) {
 	this.x = x;
 	this.y = y;
@@ -353,6 +361,10 @@ function mat2(_11, _12, _21, _22) {
 
 mat2.zero = new mat2(0, 0, 0, 0);
 
+mat2.prototype.toString = function() {
+	return ["[", this._11, this._12, this_21, this._22, "]"].join(" ");
+}
+
 mat2.prototype.set = function(_11, _12, _21, _22) {
 	this._11 = _11;
 	this._12 = _12;
@@ -444,6 +456,10 @@ function mat3(_11, _12, _13, _21, _22, _23, _31, _32, _33) {
 }
 
 mat3.zero = new mat3(0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+mat3.prototype.toString = function() {
+	return ["[", this._11, this._12, this._13, this_21, this._22, this._23, this._31, this._32, this._33, "]"].join(" ");
+}
 
 mat3.prototype.set = function(_11, _12, _13, _21, _22, _23, _31, _32, _33) {
 	this._11 = _11;
@@ -587,7 +603,7 @@ mat3.mul = function(m1, m2) {
 Transform = function(x, y, angle) {
 	this.t = new vec2(x, y);
 	this.c = Math.cos(angle);
-	this.s = Math.sin(angle);    
+	this.s = Math.sin(angle);
 }
 
 Transform.prototype.set = function(x, y, angle) {
@@ -617,6 +633,10 @@ Transform.prototype.transform = function(v) {
 Bounds = function(mins, maxs) {
 	this.mins = mins ? new vec2(mins.x, mins.y) : new vec2(999999, 999999);
 	this.maxs = maxs ? new vec2(maxs.x, maxs.y) : new vec2(-999999, -999999);
+}
+
+Bounds.prototype.toString = function() {
+	return ["mins:", this.mins.toString(), "maxs:", this.maxs.toString()].join(" ");
 }
 
 Bounds.prototype.set = function(mins, maxs) {

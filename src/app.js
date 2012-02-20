@@ -8,7 +8,11 @@ App = function() {
 	var renderer;
 	var activeWindow = true;
 
-	var view = { origin: new vec2(0, 0), scale: 1, minScale: 0.5, maxScale: 4.0, bounds: new Bounds, scroll: new vec2(0, 0) };
+	var view = { origin: new vec2(0, 0), 
+		scale: 1, minScale: 0.5, maxScale: 4.0, 
+		bounds: new Bounds, 
+		scroll: new vec2(0, 0) 
+	};
 	var dirtyBounds = new Bounds; // dirty bounds in world space	
 	var pause = false;
 	var step = false;
@@ -55,6 +59,7 @@ App = function() {
 	var editMode = false;
 	var selectionMode = SM_SHAPES;
 	var transformMode = TM_SELECT;
+	var snap = true;
 	var selectedFeatureArr = [];
 	var markedFeatureArr = [];	
 	var highlightFeatureArr = [];
@@ -100,6 +105,7 @@ App = function() {
 
 		fg.canvas = canvas;
 		fg.ctx = fg.canvas.getContext("2d");
+
 		bg.canvas = document.createElement("canvas");
 		bg.ctx = bg.canvas.getContext("2d");		
 
@@ -115,7 +121,7 @@ App = function() {
 		
 		window.addEventListener("focus", function(e) { activeWindow = true; }, false);
 		window.addEventListener("blur", function(e) { activeWindow = false; }, false);
-		canvas.addEventListener("resize", onResize, false);
+		window.addEventListener("resize", onResize, false);
 		canvas.addEventListener("mousedown", onMouseDown, false);
 		canvas.addEventListener("mousemove", onMouseMove, false);
 		canvas.addEventListener("mouseup", onMouseUp, false);
@@ -177,14 +183,13 @@ App = function() {
 			});
 		});*/
 
-		updateMainToolbar();
-
-		// HACK
-		onResize();		
-
-		// Select scene
 		sceneIndex = 0;
 		combobox.selectedIndex = sceneIndex;
+
+		// HACK
+		onResize();
+
+		updateMainToolbar();
 
 		renderer = RendererCanvas;
 
@@ -594,7 +599,7 @@ App = function() {
 
 		for (var x = start_x; x <= end_x; x += gridSize) {
 			v1.x = x;
-			v2.x = x;			
+			v2.x = x;
 			renderer.drawLine(ctx, v1, v2, 0.75 / view.scale, gridColor);
 		}
 
@@ -1654,6 +1659,7 @@ App = function() {
 		var playerButtons = document.getElementsByName("player");
 		var selectionModeButtons = document.getElementsByName("selectmode");
 		var transformModeButtons = document.getElementsByName("transformmode");
+		var snapButton = document.getElementById("toggle_snap");
 
 		if (editMode) {
 			// edit button
@@ -1695,6 +1701,16 @@ App = function() {
 					e.className = e.className.replace(" pushed", "");
 				}
 			}
+
+			snapButton.style.display = "inline";
+			if (snap) {
+				if (snapButton.className.indexOf(" pushed") == -1) {
+					snapButton.className += " pushed";
+				}
+			}
+			else {
+				snapButton.className = snapButton.className.replace(" pushed", "");
+			}			
 		}
 		else {
 			// edit button
@@ -1713,8 +1729,10 @@ App = function() {
 			// transform mode buttons
 			for (var i = 0 ; i < transformModeButtons.length; i++) {
 				transformModeButtons[i].style.display = "none";
-			}			
-		}		
+			}
+
+			snapButton.style.display = "none";
+		}				
 		
 		updatePauseButton();	
 	}
@@ -1867,6 +1885,14 @@ App = function() {
 		highlightFeatureArr = [];
 	}
 
+	function onClickedSnap() {
+		snap = !snap;
+
+		updateMainToolbar();
+
+		return false;
+	}
+
 	function onClickedSettings() {
 		showSettings = !showSettings;
 
@@ -1922,6 +1948,7 @@ App = function() {
 		onClickedEdit: onClickedEdit,
 		onClickedSelectMode: onClickedSelectMode,
 		onClickedTransformMode: onClickedTransformMode,
+		onClickedSnap: onClickedSnap,
 		onClickedSettings: onClickedSettings
 	};
 }();
