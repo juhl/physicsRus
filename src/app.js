@@ -1199,7 +1199,7 @@ App = function() {
 			}
 		}
 		else {
-			if (!mouseDownMoving) {
+			if (mouseDown && !mouseDownMoving) {
 				if (transformMode == TM_SELECT) {
 					var flag = e.shiftKey ? SF_ADDITIVE : (e.metaKey ? SF_XOR : SF_REPLACE);
 
@@ -1644,8 +1644,10 @@ App = function() {
 			e.preventDefault();			
 			break;
 		case 8: // Delete
-			onDelete();
-			e.preventDefault();
+			if (editMode) {
+				onDelete();
+				e.preventDefault();
+			}
 			break;
 		case 74: // 'j'
 			break;
@@ -1680,8 +1682,10 @@ App = function() {
 			}
 			break;
 		case 32: // 'space'
-			onClickedStep();
-			e.preventDefault();
+			if (!editMode) {
+				onClickedStep();
+				e.preventDefault();
+			}
 			break;
 		}					
 	}
