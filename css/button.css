@@ -53,11 +53,11 @@ button {
   -moz-user-select: none;
 }
 
-button:first-child, input:first-child, a.button:first-child {
+button:first-child {
   margin-left: 8px;
 }
 
-button.segment, input.segment, a.button.segment {
+button.segment {
   margin-left: -4px;
   display: inline-block;
   border-radius: 0px;
@@ -65,7 +65,7 @@ button.segment, input.segment, a.button.segment {
   -webkit-border-radius: 0px;
 }
 
-button.segment:first-child, input.segment:first-child, a.button.segment:first-child {  
+button.segment:first-child {  
   margin-left: 8px;
   border-top-left-radius: 5px;
   border-bottom-left-radius: 5px;
@@ -89,12 +89,12 @@ button::selection {
   background: transparent;
 }
 
-button:hover, input.hover, a.button:hover {
+button:hover {
   /*background-position: 0 -50px;*/
   /*border: 1px solid #FFF;*/  
   color: white;  
 }
-button:active, input:active, a.button:active { 
+button:active { 
   position:relative;  
   padding: 7px 0px 5px 0px;  
   
