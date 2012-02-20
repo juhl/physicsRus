@@ -1,13 +1,10 @@
-button.awesome, 
-input.awesome, 
-a.button.awesome {
+button {
   background-color: #111;
 }
 
-button.awesome,
-input.awesome,
-a.button.awesome { 
-  padding: 6px 0px 6px 0px;
+button { 
+  padding: 0px 0px 0px 0px;
+  height: 24px;
   font-size: 10px;
   line-height: 12px;
 
@@ -32,7 +29,7 @@ a.button.awesome {
   
   /* one image for all states 
   see http://www.alistapart.com/articles/sprites */
-  background-image: url(img/awesome-overlay-sprite.png);
+  background-image: url(../img/awesome-overlay-sprite.png);
   /*background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(75, 73, 71)), to(rgb(50, 48, 45)));*/
   /*background: -moz-linear-gradient(#4B4947, #32302D);
   background: -webkit-gradient(linear, left top, left bottom, from(#4B4947), to(#32302D));*/
@@ -56,15 +53,11 @@ a.button.awesome {
   -moz-user-select: none;
 }
 
-button.awesome:first-child,
-input.awesome:first-child,
-a.button.awesome:first-child {
+button:first-child, input:first-child, a.button:first-child {
   margin-left: 8px;
 }
 
-button.awesome.segment,
-input.awesome.segment,
-a.button.awesome.segment {
+button.segment, input.segment, a.button.segment {
   margin-left: -4px;
   display: inline-block;
   border-radius: 0px;
@@ -72,9 +65,7 @@ a.button.awesome.segment {
   -webkit-border-radius: 0px;
 }
 
-button.awesome.segment:first-child,
-input.awesome.segment:first-child,
-a.button.awesome.segment:first-child {  
+button.segment:first-child, input.segment:first-child, a.button.segment:first-child {  
   margin-left: 8px;
   border-top-left-radius: 5px;
   border-bottom-left-radius: 5px;
@@ -84,9 +75,7 @@ a.button.awesome.segment:first-child {
   -webkit-border-bottom-left-radius: 5px;
 }
 
-button.awesome.segment:last-child,
-input.awesome.segment:last-child,
-a.button.awesome.segment:last-child {  
+button.segment:last-child, input.segment:last-child, a.button.segment:last-child {  
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
   -moz-border-top-right-radius: 5px; 
@@ -96,20 +85,16 @@ a.button.awesome.segment:last-child {
 }
 
 /* hide selection background color */
-.awesome::selection {
+button::selection {
   background: transparent;
 }
 
-button.awesome:hover,
-input.awesome:hover,
-a.button.awesome:hover {
+button:hover, input.hover, a.button:hover {
   /*background-position: 0 -50px;*/
   /*border: 1px solid #FFF;*/  
   color: white;  
 }
-button.awesome:active,
-input.awesome:active,
-a.button.awesome:active { 
+button:active, input:active, a.button:active { 
   position:relative;  
   padding: 7px 0px 5px 0px;  
   
@@ -123,7 +108,7 @@ a.button.awesome:active {
   border-top: 1px solid #666\9;
 }
 
-.awesome.pushed {
+button.pushed {
   padding: 7px 0px 5px 0px;
   color: black;
   background-color: #fa0;
@@ -139,12 +124,12 @@ a.button.awesome:active {
   border-top: 1px solid #666\9;
 }
 
-.awesome.pushed:hover {
+button.pushed:hover {
   color: black;
 }
 
-.awesome.blue   { background-color: #004AFF !important; } .awesome.blue.pushed    { color: white; } .awesome.blue.pushed:hover   { color: white; }
-.awesome.red    { background-color: #E32100 !important; } .awesome.red.pushed     { color: white; } .awesome.red.pushed:hover    { color: white; }
-.awesome.green  { background-color: #20A000 !important; } .awesome.green.pushed   { color: white; } .awesome.green.pushed:hover  { color: white; }
-.awesome.yellow { background-color: #F0A000 !important; } .awesome.yellow.pushed  { color: white; } .awesome.yellow.pushed:hover { color: white; }
-.awesome.purple { background-color: #6E00EE !important; } .awesome.purple.pushed  { color: white; } .awesome.purple.pushed:hover { color: white; }
+button.blue   { background-color: #005AFF !important; } button.blue.pushed    { color: white; } button.blue.pushed:hover   { color: white; }
+button.red    { background-color: #E32100 !important; } button.red.pushed     { color: white; } button.red.pushed:hover    { color: white; }
+button.green  { background-color: #20A000 !important; } button.green.pushed   { color: white; } button.green.pushed:hover  { color: white; }
+button.yellow { background-color: #F0A000 !important; } button.yellow.pushed  { color: white; } button.yellow.pushed:hover { color: white; }
+button.purple { background-color: #6E00EE !important; } button.purple.pushed  { color: white; } button.purple.pushed:hover { color: white; }

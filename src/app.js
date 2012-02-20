@@ -2,6 +2,8 @@ var stats = {};
 
 App = function() {
 	var mainView;
+	var toolbar;
+	var settings;
 	var canvas;
 	var fg = {};
 	var bg = {};
@@ -91,9 +93,9 @@ App = function() {
 	var enableDirtyBounds = true;
 	var showBounds = false;
 	var showContacts = false;
-	var showStats = false;
+	var showStats = false;	
 
-	function ready() {
+	function onReady() {
 		mainView = document.getElementById("main_view");
 
 		// Initialize canvas context
@@ -107,62 +109,160 @@ App = function() {
 		fg.ctx = fg.canvas.getContext("2d");
 
 		bg.canvas = document.createElement("canvas");
-		bg.ctx = bg.canvas.getContext("2d");		
+		bg.ctx = bg.canvas.getContext("2d");
+		
+		addEvent(window, "focus", function(e) { activeWindow = true; });
+		addEvent(window, "blur", function(e) { activeWindow = false; });
+		addEvent(window, "resize", onResize);
+		addEvent(canvas, "resize", onResize);
+		addEvent(canvas, "mousedown", onMouseDown);
+		addEvent(canvas, "mousemove", onMouseMove);
+		addEvent(canvas, "mouseup", onMouseUp);
+		addEvent(canvas, "mouseleave", onMouseLeave);
+
+		var eventname = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
+		addEvent(canvas, eventname, onMouseWheel);
+
+		addEvent(canvas, "touchstart", touchHandler);
+		addEvent(canvas, "touchmove", touchHandler);
+		addEvent(canvas, "touchend", touchHandler);
+		addEvent(canvas, "touchcancel", touchHandler);
+
+		addEvent(canvas, "gesturestart", onGestureStart);
+		addEvent(canvas, "gesturechange", onGestureChange);
+		addEvent(canvas, "gestureend", onGestureEnd);
+		addEvent(window, "orientationchange", onResize);
+
+		// Prevent elastic scrolling on iOS
+		addEvent(document.body, "touchmove", function(event) { event.preventDefault(); });
+
+		addEvent(document, "keydown", onKeyDown);
+		addEvent(document, "keyup", onKeyUp);
+		addEvent(document, "keypress", onKeyPress);
 
 		// Horizontal & vertical scrollbar will be hidden
 		document.documentElement.style.overflowX = "hidden";
 		document.documentElement.style.overflowY = "hidden";
-		document.body.scroll = "no"; // ie only	
+		document.body.scroll = "no"; // ie only		
 
-		var elements = document.getElementById("settings").querySelectorAll("select, input");
+		// Toolbar events
+		toolbar = document.querySelector("#toolbar");
+		toolbar.querySelector("#scene").onchange = function() { onChangedScene(this.selectedIndex); };
+		toolbar.querySelector("#edit").onclick = function() { return onClickedEdit(); };
+		toolbar.querySelector("#restart").onclick = function() { return onClickedRestart(); };
+		toolbar.querySelector("#pause").onclick = function() { return onClickedPause(); };
+		toolbar.querySelector("#step").onclick = function() { return onClickedStep(); };
+		var elements = toolbar.querySelectorAll("[name=selectionmode]");
 		for (var i in elements) {
-			elements[i].onblur = function() { window.scrollTo(0, 0); };			
+			elements[i].onclick = function() { return onClickedSelectMode(this.value); };
 		}
-		
-		window.addEventListener("focus", function(e) { activeWindow = true; }, false);
-		window.addEventListener("blur", function(e) { activeWindow = false; }, false);
-		window.addEventListener("resize", onResize, false);
-		canvas.addEventListener("mousedown", onMouseDown, false);
-		canvas.addEventListener("mousemove", onMouseMove, false);
-		canvas.addEventListener("mouseup", onMouseUp, false);
-		canvas.addEventListener("mouseleave", onMouseLeave, false);
-		canvas.addEventListener("mousewheel", onMouseWheel, false);
-
-		canvas.addEventListener("touchstart", touchHandler, false);
-		canvas.addEventListener("touchmove", touchHandler, false);
-		canvas.addEventListener("touchend", touchHandler, false);		
-		canvas.addEventListener("touchcancel", touchHandler, false);
-
-		canvas.addEventListener("gesturestart", onGestureStart, false);
-		canvas.addEventListener("gesturechange", onGestureChange, false);
-		canvas.addEventListener("gestureend", onGestureEnd, false);		
-		window.addEventListener("orientationchange", onResize, false);
-
-		// Prevent elastic scrolling on iOS
-		document.body.addEventListener("touchmove", function(event) { event.preventDefault(); }, false);
-
-		if (document.addEventListener) {
-			document.addEventListener("keydown", onKeyDown, false);
-			document.addEventListener("keyup", onKeyUp, false);
-			document.addEventListener("keypress", onKeyPress, false);
+		var elements = toolbar.querySelectorAll("[name=transformmode]");
+		for (var i in elements) {
+			elements[i].onclick = function() { return onClickedTransformMode(this.value); };
 		}
-		else if (document.attachEvent) {
-			document.attachEvent("onkeydown", onKeyDown);
-			document.attachEvent("onkeyup", onKeyUp);
-			document.attachEvent("onkeypress", onKeyPress);
+		toolbar.querySelector("#toggle_snap").onclick = function() { return onClickedSnap(); };
+		toolbar.querySelector("#toggle_settings").onclick = function() { return onClickedSettings(); };
+
+		// Setting events
+		settings = document.querySelector("#settings");		
+		settings.querySelector("#gravity").onchange = function() { onChangedGravity(this.value); };
+		settings.querySelector("#frameRateHz").onchange = function() { onChangedFrameRateHz(this.value); };
+		settings.querySelector("#v_iters").onchange = function() { onChangedVelocityIterations(this.value); };
+		settings.querySelector("#p_iters").onchange = function() { onChangedPositionIterations(this.value); };
+		settings.querySelector("#warmStarting").onclick = function() { return onClickedWarmStarting(); };		
+		settings.querySelector("#allowSleep").onclick = function() { return onClickedAllowSleep(); };
+		settings.querySelector("#enableDirtyRect").onclick = function() { return onClickedEnableDirtyRect(); };
+		settings.querySelector("#showBounds").onclick = function() { return onClickedShowBounds(); };
+		settings.querySelector("#showContacts").onclick = function() { return onClickedShowContacts(); };
+		settings.querySelector("#showStats").onclick = function() { return onClickedShowStats(); };
+		var elements = settings.querySelectorAll("select, input");
+		for (var i in elements) {
+			addEvent(elements[i], "blur", function() { window.scrollTo(0, 0); });
 		}
-		else {
-			document.onkeydown = onKeyDown;
-			document.onkeyup = onKeyUp
-			document.onkeypress = onKeyPress;
-		}
+
+		updateToolbar();
 	}
 
-	function main() {
-		ready();
+	function updateToolbar() {
+		var editButton = toolbar.querySelector("#edit");
+		var snapButton = toolbar.querySelector("#toggle_snap");
+		var playerSpan = toolbar.querySelector("#player");
+		var selectionModeSpan = toolbar.querySelector("#selectionmode");
+		var transformModeSpan = toolbar.querySelector("#transformmode");
+		var selectionModeButtons = toolbar.querySelectorAll("#selectionmode > [name=selectionmode]");
+		var transformModeButtons = toolbar.querySelectorAll("#transformmode > [name=transformmode]");		
 
+		if (editMode) {
+			// show / hide
+			playerSpan.style.display = "none";
+			selectionModeSpan.style.display = "inline";
+			transformModeSpan.style.display = "inline";
+			snapButton.style.display = "inline";
+
+			// edit button
+			editButton.innerHTML = "Run";			
+		
+			// selection mode buttons
+			var value = ["vertices", "edges", "shapes", "bodies", "joints"][selectionMode];
+			for (var i = 0; i < selectionModeButtons.length; i++) {
+				var e = selectionModeButtons[i];
+								
+				if (e.value == value) {
+					if (e.className.indexOf(" pushed") == -1) {
+						e.className += " pushed";
+					}
+				}
+				else {
+					e.className = e.className.replace(" pushed", "");
+				}
+			}
+
+			// transform mode buttons
+			var value = ["select", "translate", "rotate", "scale"][transformMode];
+			for (var i = 0; i < transformModeButtons.length; i++) {
+				var e = transformModeButtons[i];
+				
+				if (e.value == value) {
+					if (e.className.indexOf(" pushed") == -1) {
+						e.className += " pushed";
+					}
+				}
+				else {
+					e.className = e.className.replace(" pushed", "");
+				}
+			}
+			
+			if (snap) {
+				if (snapButton.className.indexOf(" pushed") == -1) {
+					snapButton.className += " pushed";
+				}
+			}
+			else {
+				snapButton.className = snapButton.className.replace(" pushed", "");
+			}
+		}
+		else {
+			// show / hide
+			playerSpan.style.display = "inline";
+			selectionModeSpan.style.display = "none";
+			transformModeSpan.style.display = "none";
+			snapButton.style.display = "none";
+
+			// edit button
+			editButton.innerHTML = "Edit";
+		}
+
+		updatePauseButton();
+	}
+
+	function updatePauseButton() {
+		var button = toolbar.querySelector("#pause");
+		button.innerHTML = pause ? "<i class='icon-white icon-play'></i>" : "<i class='icon-white icon-pause'></i>";
+	}
+
+	function onLoad() {
 		// Add scenes from demos
-		var combobox = document.getElementById("scene");
+		var combobox = toolbar.querySelector("#scene");
 		for (var i = 0; i < demoArr.length; i++) {
 			var option = document.createElement("option");
 			var name = demoArr[i].name();
@@ -188,8 +288,6 @@ App = function() {
 
 		// HACK
 		onResize();
-
-		updateMainToolbar();
 
 		renderer = RendererCanvas;
 
@@ -221,11 +319,7 @@ App = function() {
 		else {
 			window.setInterval(runFrame, parseInt(1000 / 60));
 		}
-	}
-
-	function isAppleMobileDevice() {
-		return navigator.userAgent.match(/iPhone|iPod|iPad/gi) ? true : false;
-	}
+	}	
 
 	function createCheckPattern(color) {
 		var digits = color.match(/rgba\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\)/);
@@ -301,9 +395,9 @@ App = function() {
 		request.setRequestHeader("Content-length", text.length);
 		request.setRequestHeader("Connection", "close");
 		request.send(text);
-	}	
+	}
 
-	function loadSceneFromServer(name) {		
+	function loadSceneFromServer(name) {
 		var uri = "scenes/" + encodeURIComponent(name);
 		httpGetText(uri, false, function(text) {
 			space.create(text);
@@ -1654,94 +1748,6 @@ App = function() {
 		showStats = !showStats;
 	}	
 
-	function updateMainToolbar() {
-		var editButton = document.getElementById("edit");
-		var playerButtons = document.getElementsByName("player");
-		var selectionModeButtons = document.getElementsByName("selectmode");
-		var transformModeButtons = document.getElementsByName("transformmode");
-		var snapButton = document.getElementById("toggle_snap");
-
-		if (editMode) {
-			// edit button
-			editButton.innerHTML = "Run";
-
-			// player buttons
-			for (var i = 0; i < playerButtons.length; i++) {
-				playerButtons[i].style.display = "none";
-			}
-		
-			// select mode buttons
-			var value = ["vertices", "edges", "shapes", "bodies", "joints"][selectionMode];
-			for (var i = 0; i < selectionModeButtons.length; i++) {
-				var e = selectionModeButtons[i];
-				
-				e.style.display = "inline";
-				if (e.value == value) {
-					if (e.className.indexOf(" pushed") == -1) {
-						e.className += " pushed";
-					}
-				}
-				else {
-					e.className = e.className.replace(" pushed", "");
-				}
-			}
-
-			// transform mode buttons
-			var value = ["select", "translate", "rotate", "scale"][transformMode];
-			for (var i = 0; i < transformModeButtons.length; i++) {
-				var e = transformModeButtons[i];
-				
-				e.style.display = "inline";
-				if (e.value == value) {
-					if (e.className.indexOf(" pushed") == -1) {
-						e.className += " pushed";
-					}
-				}
-				else {
-					e.className = e.className.replace(" pushed", "");
-				}
-			}
-
-			snapButton.style.display = "inline";
-			if (snap) {
-				if (snapButton.className.indexOf(" pushed") == -1) {
-					snapButton.className += " pushed";
-				}
-			}
-			else {
-				snapButton.className = snapButton.className.replace(" pushed", "");
-			}			
-		}
-		else {
-			// edit button
-			editButton.innerHTML = "Edit";
-
-			// player buttons
-			for (var i = 0; i < playerButtons.length; i++) {
-				playerButtons[i].style.display = "inline";
-			}
-			
-			// select mode buttons
-			for (var i = 0 ; i < selectionModeButtons.length; i++) {
-				selectionModeButtons[i].style.display = "none";
-			}
-
-			// transform mode buttons
-			for (var i = 0 ; i < transformModeButtons.length; i++) {
-				transformModeButtons[i].style.display = "none";
-			}
-
-			snapButton.style.display = "none";
-		}				
-		
-		updatePauseButton();	
-	}
-
-	function updatePauseButton() {
-		var button = document.getElementById("pause");
-		button.innerHTML = pause ? "Play" : "Pause";
-	}
-
 	function onClickedRestart() {
 		initScene();
 		pause = false;
@@ -1774,7 +1780,7 @@ App = function() {
 		markedFeatureArr = [];
 		highlightFeatureArr = [];
 
-		updateMainToolbar();
+		updateToolbar();
 
 		if (editMode) {
 			initScene();
@@ -1792,7 +1798,7 @@ App = function() {
 		markedFeatureArr = [];
 		highlightFeatureArr = [];
 
-		updateMainToolbar();
+		updateToolbar();
 
 		return false;
 	}
@@ -1800,7 +1806,7 @@ App = function() {
 	function onClickedTransformMode(value) {
 		transformMode = { select: TM_SELECT, translate: TM_TRANSLATE, rotate: TM_ROTATE, scale: TM_SCALE }[value];
 
-		updateMainToolbar();		
+		updateToolbar();		
 
 		return false;
 	}
@@ -1888,7 +1894,7 @@ App = function() {
 	function onClickedSnap() {
 		snap = !snap;
 
-		updateMainToolbar();
+		updateToolbar();
 
 		return false;
 	}
@@ -1929,26 +1935,8 @@ App = function() {
 		return false;
 	}
 
-	return {
-		main: main,
-		onChangedScene: onChangedScene,
-		onChangedGravity: onChangedGravity,
-		onChangedFrameRateHz: onChangedFrameRateHz,
-		onChangedVelocityIterations: onChangedVelocityIterations,
-		onChangedPositionIterations: onChangedPositionIterations,
-		onClickedWarmStarting: onClickedWarmStarting,
-		onClickedAllowSleep: onClickedAllowSleep,
-		onClickedEnableDirtyRect: onClickedEnableDirtyRect,
-		onClickedShowBounds: onClickedShowBounds,
-		onClickedShowContacts: onClickedShowContacts,
-		onClickedShowStats: onClickedShowStats,
-		onClickedRestart: onClickedRestart,
-		onClickedPause: onClickedPause,
-		onClickedStep: onClickedStep,
-		onClickedEdit: onClickedEdit,
-		onClickedSelectMode: onClickedSelectMode,
-		onClickedTransformMode: onClickedTransformMode,
-		onClickedSnap: onClickedSnap,
-		onClickedSettings: onClickedSettings
-	};
+	return { onReady: onReady, onLoad: onLoad };
 }();
+
+ready(App.onReady);
+addEvent(window, "load", App.onLoad);

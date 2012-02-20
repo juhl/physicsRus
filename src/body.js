@@ -167,7 +167,6 @@ Body.prototype.resetMassData = function() {
 
 	// Update center of mass velocity ??
 	this.v.mad(vec2.perp(vec2.sub(this.p, old_p)), this.w);
-	//console.log(this.v.x, this.v.y);
 }
 
 // Local (center of mass) -> World

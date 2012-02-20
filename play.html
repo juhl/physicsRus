@@ -10,85 +10,16 @@
   <link rel="apple-touch-icon-precomposed" href="img/apple-touch-icon-precomposed.png" />
   <!--<link rel="apple-touch-startup-image" href="img/startup-ipad-portrait.png" media="screen and (min-device-width: 481px) and (max-device-width: 1024px)" />
   <link rel="apple-touch-startup-image" href="img/startup.png" media="screen and (max-device-width: 320px)" />-->
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="button.css" />
-  <link rel="stylesheet" href="add2home.css" />
-  <title>RigidDyn2D</title>  
-</head>
+  <!--<link rel="stylesheet" href="css/bootstrap.css" />-->
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/button.css" />
+  <link rel="stylesheet" href="css/add2home.css" />    
+  <title>RigidDyn2D</title> 
 
-<body>
-
-  <div id="toolbar">
-    <div style="margin: 9px 0px 0;">
-      <span class="combo">
-        <label for="scene" style="font-size: 10px">Scene: </label><select id="scene" style="width:100px;" onchange="App.onChangedScene(this.selectedIndex);"></select>
-      </span>
-
-      <span style="margin-left:8px"></span>
-
-      <button type="button" class="awesome blue" id="edit" style="width:52px; font-weight:bold" onclick="return App.onClickedEdit();">Edit</button>      
-
-      <span>
-        <button type="button" class="awesome" name="player" id="restart" style="width:52px" onclick="return App.onClickedRestart();">Restart</button>
-        <button type="button" class="awesome" name="player" id="pause" style="width:52px" onclick="return App.onClickedPause();">Pause</button>
-        <button type="button" class="awesome" name="player" id="step" style="width:52px" onclick="return App.onClickedStep();">Step</button>      
-      </span>
-
-      <span>
-        <button type="button" class="awesome segment" name="selectmode" value="vertices" style="width:60px" onclick="return App.onClickedSelectMode(this.value);">Vertices</button>
-        <button type="button" class="awesome segment" name="selectmode" value="edges" style="width:60px" onclick="return App.onClickedSelectMode(this.value);">Edge</button>
-        <button type="button" class="awesome segment" name="selectmode" value="shapes" style="width:60px" onclick="return App.onClickedSelectMode(this.value);">Shapes</button>
-        <button type="button" class="awesome segment" name="selectmode" value="bodies" style="width:60px" onclick="return App.onClickedSelectMode(this.value);">Bodies</button>
-        <button type="button" class="awesome segment" name="selectmode" value="joints" style="width:60px" onclick="return App.onClickedSelectMode(this.value);">Joints</button>
-      </span>      
-
-      <span>
-        <button type="button" class="awesome segment" name="transformmode" value="select" style="width:60px" onclick="return App.onClickedTransformMode(this.value);">Select</button>
-        <button type="button" class="awesome segment" name="transformmode" value="translate" style="width:60px" onclick="return App.onClickedTransformMode(this.value);">Translate</button>
-        <button type="button" class="awesome segment" name="transformmode" value="rotate" style="width:60px" onclick="return App.onClickedTransformMode(this.value);">Rotate</button>
-      </span>
-
-      <span> 
-        <button type="button" class="awesome" id="toggle_snap" style="width:52px" onclick="return App.onClickedSnap();">Snap</button>
-      </span>
-
-      <span>
-        <button type="button" class="awesome red" id="toggle_settings" style="width:52px;" onclick="return App.onClickedSettings();">Settings</button>
-      </span>
-    </div>
-  </div>
-
-  <div id="main_view">
-    <canvas id="canvas"></canvas>
-    <div id="info"></div>
-
-    <div id="settings">
-      <div style="text-align:right">
-        <label for="gravity">Gravity: </label><input type="number" id="gravity" size="8" min="-999" max="999" onchange="App.onChangedGravity(this.value);" /><br />
-        <label for="frameRateHz">Frame rate: </label><input type="number" id="frameRateHz" size="5" min="10" max="120" onchange="App.onChangedFrameRateHz(this.value);" /><br />
-        <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="5" min="1" max="100" onchange="App.onChangedVelocityIterations(this.value);" /><br />
-        <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" onchange="App.onChangedPositionIterations(this.value);" /><br />        
-      </div>
-      <div>
-        <input type="checkbox" id="warmStarting" checked="true" onclick="App.onClickedWarmStarting();" />Warm starting<br />
-        <input type="checkbox" id="allowSleep" checked="true" onclick="App.onClickedAllowSleep();" />Allow sleep<br />
-        <input type="checkbox" id="enableDirtyRect" checked="true" onclick="App.onClickedEnableDirtyRect();" />Enable dirty rect<br />
-        <input type="checkbox" id="showBounds" onclick="App.onClickedShowBounds();" />Show bounding boxes<br />
-        <input type="checkbox" id="showContacts" onclick="App.onClickedShowContacts();" />Show contacts<br />
-        <input type="checkbox" id="showStats" onclick="App.onClickedShowStats();" />Show statistics<br />      
-      </div>
-    </div>
-
-    <!--<div id="shape_inspector">
-      <label for="type">Type: </label><input type="edit" id="type" />
-      <label for="density">Density: </label><input type="range" id="density" min="0.0001" max="10" value="0.1" step="0.0001" onchange="App.onChangedDensity(this.value)" />
-      <label for="elasticity">Elasticity: </label><input type="range" id="elasticity" min="0" max="1" value="0" step="0.02" onchange="App.onChangedElasticity(this.value)" />
-      <label for="friction">Friction: </label><input type="range" id="friction" min="0" max="1" value="0" step="0.02" onchange="App.onChangedFriction(this.value)" />
-    </div>-->
-  </div>
-
+  <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>-->  
   <script src="lib/json2.js"></script>
   <script src="lib/add2home.js"></script>  
+  <script src="src/base.js"></script>
   <script src="src/math.js"></script>
   <script src="src/util.js"></script>
   <script src="src/collision.js"></script>
@@ -119,6 +50,78 @@
   <script src="src/renderer_canvas.js"></script>
   <script src="src/renderer_webgl.js"></script>
   <script src="src/app.js"></script>
-  <script>App.main();</script>
+</head>
+
+<body>
+
+  <div id="toolbar">
+    <div style="margin: 9px 0px 0;">
+      <span class="combo">
+        <label for="scene" style="font-size:10px; display:inline">Scene: </label><select id="scene" style="width:100px;"></select>
+      </span>
+
+      <span style="margin-left:8px"></span>
+
+      <button type="button" class="blue" id="edit" style="width:52px; font-weight:bold">Edit</button>      
+
+      <span id="player">        
+        <button type="button" name="player" id="pause" style="width:32px"><i class="icon-white icon-pause"></i></button>
+        <button type="button" name="player" id="step" style="width:32px"><i class="icon-white icon-step-forward"></i></button>
+        <button type="button" name="player" id="restart" style="width:32px"><i class="icon-white icon-repeat"></i></button>
+      </span>
+
+      <span id="selectionmode">
+        <button type="button" class="segment" name="selectionmode" value="vertices" style="width:60px">Vertices</button>
+        <button type="button" class="segment" name="selectionmode" value="edges" style="width:60px">Edge</button>
+        <button type="button" class="segment" name="selectionmode" value="shapes" style="width:60px">Shapes</button>
+        <button type="button" class="segment" name="selectionmode" value="bodies" style="width:60px">Bodies</button>
+        <button type="button" class="segment" name="selectionmode" value="joints" style="width:60px">Joints</button>
+      </span>
+
+      <span id="transformmode">
+        <button type="button" class="segment" name="transformmode" value="select" style="width:60px">Select</button>
+        <button type="button" class="segment" name="transformmode" value="translate" style="width:60px">Translate</button>
+        <button type="button" class="segment" name="transformmode" value="rotate" style="width:60px">Rotate</button>
+      </span>
+
+      <span> 
+        <button type="button" id="toggle_snap" style="width:52px">Snap</button>
+      </span>
+
+      <span>
+        <button type="button" class="red" id="toggle_settings" style="width:52px;">Settings</button>
+      </span>
+    </div>
+  </div>
+
+  <div id="main_view">
+    <canvas id="canvas"></canvas>
+    <div id="info"></div>
+
+    <div id="settings">
+      <div style="text-align:right">
+        <label for="gravity">Gravity: </label><input type="number" id="gravity" size="8" min="-999" max="999" /><br />
+        <label for="frameRateHz">Frame rate: </label><input type="number" id="frameRateHz" size="5" min="10" max="120" /><br />
+        <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="5" min="1" max="100" /><br />
+        <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" /><br />        
+      </div>
+      <div>
+        <input type="checkbox" id="warmStarting" checked="true" />Warm starting<br />
+        <input type="checkbox" id="allowSleep" checked="true" />Allow sleep<br />
+        <input type="checkbox" id="enableDirtyRect" checked="true" />Enable dirty rect<br />
+        <input type="checkbox" id="showBounds" />Show bounding boxes<br />
+        <input type="checkbox" id="showContacts" />Show contacts<br />
+        <input type="checkbox" id="showStats" />Show statistics<br />      
+      </div>
+    </div>
+
+    <!--<div id="shape_inspector">
+      <label for="type">Type: </label><input type="edit" id="type" />
+      <label for="density">Density: </label><input type="range" id="density" min="0.0001" max="10" value="0.1" step="0.0001" />
+      <label for="elasticity">Elasticity: </label><input type="range" id="elasticity" min="0" max="1" value="0" step="0.02" />
+      <label for="friction">Friction: </label><input type="range" id="friction" min="0" max="1" value="0" step="0.02" />
+    </div>-->
+  </div>  
+
 </body>
 </html>
