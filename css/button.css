@@ -4,7 +4,7 @@
 
 .btn { 
   padding: 0px 0px 0px 0px;
-  height: 24px;
+  height: 25px;
   font-size: 10px;
   line-height: 12px;
 
@@ -133,4 +133,5 @@
 .btn.red    { background-color: #E32100 !important; } .btn.red.pushed     { color: white; } .btn.red.pushed:hover    { color: white; }
 .btn.green  { background-color: #20A000 !important; } .btn.green.pushed   { color: white; } .btn.green.pushed:hover  { color: white; }
 .btn.yellow { background-color: #F0A000 !important; } .btn.yellow.pushed  { color: white; } .btn.yellow.pushed:hover { color: white; }
-.btn.purple { background-color: #6E00EE !important; } .btn.purple.pushed  { color: white; } .btn.purple.pushed:hover { color: white; }
+.btn.orange { background-color: #F87006 !important; } .btn.orange.pushed  { color: white; } .btn.orange.pushed:hover { color: white; }
+.btn.purple { background-color: #7D13B6 !important; } .btn.purple.pushed  { color: white; } .btn.purple.pushed:hover { color: white; }

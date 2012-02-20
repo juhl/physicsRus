@@ -477,61 +477,60 @@ App = function() {
 		var frameTime = (time - lastTime) / 1000;
 		lastTime = time;
 
-		if (!activeWindow) {
-			return;
-		}
-
-		if (!mouseDown) {
-			if (!editMode) {
-				var p = canvasToWorld(mousePosition);
-				var shape = space.findShapeByPoint(p);
-				mouseCursor = shape ? "pointer" : "default";
+		if (activeWindow) {
+			if (!mouseDown) {
+				if (!editMode) {
+					var p = canvasToWorld(mousePosition);
+					var shape = space.findShapeByPoint(p);
+					mouseCursor = shape ? "pointer" : "default";
+				}
+				else {
+					
+				}
 			}
-			else {
-				
-			}
-		}
 
-		canvas.style.cursor = mouseCursor;
-		
-		if (window.requestAnimFrame) {
-			frameTime = Math.floor(frameTime * 60 + 0.5) / 60;
-		}
-
-		if ((!pause || step) && !editMode) {
-			var h = 1 / frameRateHz;
-
-			timeDelta += frameTime;
-
-			if (step) {
-				step = false;
-				timeDelta = h;
-			}
+			canvas.style.cursor = mouseCursor;
 			
-			stats.timeStep = 0;
-			stats.stepCount = 0;
-
-			for (var maxSteps = 4; maxSteps > 0 && timeDelta >= h; maxSteps--) {
-				var t0 = Date.now();
-				space.step(h, velocityIterations, positionIterations, warmStarting, allowSleep);
-				stats.timeStep += Date.now() - t0;
-				stats.stepCount++;
-
-				timeDelta -= h;
+			if (window.requestAnimFrame) {
+				frameTime = Math.floor(frameTime * 60 + 0.5) / 60;
 			}
 
-			if (timeDelta > h) {
-				timeDelta = 0;
+			if ((!pause || step) && !editMode) {
+				var h = 1 / frameRateHz;
+
+				timeDelta += frameTime;
+
+				if (step) {
+					step = false;
+					timeDelta = h;
+				}
+				
+				stats.timeStep = 0;
+				stats.stepCount = 0;
+
+				for (var maxSteps = 4; maxSteps > 0 && timeDelta >= h; maxSteps--) {
+					var t0 = Date.now();
+					space.step(h, velocityIterations, positionIterations, warmStarting, allowSleep);
+					stats.timeStep += Date.now() - t0;
+					stats.stepCount++;
+
+					timeDelta -= h;
+				}
+
+				if (timeDelta > h) {
+					timeDelta = 0;
+				}
 			}
+
+			if (stats.stepCount > 0) {
+				updateScreen(frameTime);
+			}			
 		}
 
-		if (stats.stepCount > 0) {
-			updateScreen(frameTime);
-		}
-
-		frameCount++;		
+		frameCount++;
 			
 		// Calc frame per second
+
 		fps_frameCount++;
 		fps_time += frameTime;
 
@@ -554,7 +553,7 @@ App = function() {
 			// Update info once per every 10 frames
 			if ((frameCount % 10) == 0) {
 				info.innerHTML =
-					["fps:", Math.round(fps), "tm_draw:", stats.timeDrawFrame, "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "<br />"].join(" ") +
+					["fps:", fps.toFixed(1), "tm_draw:", stats.timeDrawFrame, "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "<br />"].join(" ") +
 					["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver, "<br />"].join(" ") +
 					["bodies:", space.numBodies, "joints:", space.numJoints, "contacts:", space.numContacts, "pos_iters:", stats.positionIterations].join(" ");
 			}
