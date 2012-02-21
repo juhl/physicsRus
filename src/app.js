@@ -37,7 +37,7 @@ App = function() {
 	var gestureScale;
 
 	var SELECTABLE_POINT_DIST_THREHOLD = isAppleMobileDevice() ? 15 : 5;
-	var SELECTABLE_LINE_DIST_THREHOLD = isAppleMobileDevice() ? 10 : 4;
+	var SELECTABLE_LINE_DIST_THREHOLD = isAppleMobileDevice() ? 8 : 4;
 	var SELECTABLE_CIRCLE_DIST_THREHOLD = isAppleMobileDevice() ? 10 : 5;	
 
 	// selection mode
@@ -1366,19 +1366,23 @@ App = function() {
 		else if (transformMode == TM_SCALE) {
 			var center = worldToCanvas(transformCenter);			
 			var dsq = vec2.distsq(point, center);
+			var cd = GIZMO_INNER_RADIUS;// + SELECTABLE_CIRCLE_DIST_THREHOLD;
 
-			if (dsq < GIZMO_INNER_RADIUS * GIZMO_INNER_RADIUS) {
+			if (dsq < cd * cd) {
 				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
 			}
 			else {
 				var px = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
+				var dx = Math.abs(point.x - px.x);
+				var dy = Math.abs(point.y - px.y);
+				var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + SELECTABLE_LINE_DIST_THREHOLD;
 
-				if (Math.abs(point.x - px.x) < GIZMO_SCALE_AXIS_BOX_EXTENT && Math.abs(point.y - px.y) < GIZMO_SCALE_AXIS_BOX_EXTENT) {
+				if (dx < cd && dy < cd) {
 					transformAxis = TRANSFORM_AXIS_X;
 				}
 				else {
 					var py = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
-					if (Math.abs(point.x - py.x) < GIZMO_SCALE_AXIS_BOX_EXTENT && Math.abs(point.y - py.y) < GIZMO_SCALE_AXIS_BOX_EXTENT) {
+					if (dx < cd && dy < cd) {
 						transformAxis = TRANSFORM_AXIS_Y;
 					}
 				}
