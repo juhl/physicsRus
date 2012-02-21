@@ -126,8 +126,8 @@ RevoluteJoint.prototype.initSolver = function(dt, warmStarting) {
 	}	
 
 	// Transformed r1, r2
-	this.r1 = vec2.rotate(this.anchor1, body1.a);
-	this.r2 = vec2.rotate(this.anchor2, body2.a);
+	this.r1 = vec2.rotate(vec2.sub(this.anchor1, body1.centroid), body1.a);
+	this.r2 = vec2.rotate(vec2.sub(this.anchor2, body2.centroid), body2.a);
 
 	// invEM = J * invM * JT
 	var sum_m_inv = body1.m_inv + body2.m_inv;
@@ -304,8 +304,8 @@ RevoluteJoint.prototype.solvePositionConstraints = function() {
 	// Solve point-to-point constraint
 	{
 		// Transformed r1, r2
-		var r1 = vec2.rotate(this.anchor1, body1.a);
-		var r2 = vec2.rotate(this.anchor2, body2.a);
+		var r1 = vec2.rotate(vec2.sub(this.anchor1, body1.centroid), body1.a);
+		var r2 = vec2.rotate(vec2.sub(this.anchor2, body2.centroid), body2.a);
 
 		// Position constraint
 		var c = vec2.sub(vec2.add(body2.p, r2), vec2.add(body1.p, r1));

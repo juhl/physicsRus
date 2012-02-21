@@ -111,8 +111,8 @@ App = function() {
 		bg.canvas = document.createElement("canvas");
 		bg.ctx = bg.canvas.getContext("2d");
 		
-		addEvent(window, "focus", function(e) { activeWindow = true; });
-		addEvent(window, "blur", function(e) { activeWindow = false; });
+		addEvent(window, "focus", function(ev) { activeWindow = true; });
+		addEvent(window, "blur", function(ev) { activeWindow = false; });
 		addEvent(window, "resize", onResize);
 		addEvent(canvas, "resize", onResize);
 		addEvent(canvas, "mousedown", onMouseDown);
@@ -134,7 +134,7 @@ App = function() {
 		addEvent(window, "orientationchange", onResize);
 
 		// Prevent elastic scrolling on iOS
-		addEvent(document.body, "touchmove", function(event) { event.preventDefault(); });
+		addEvent(document.body, "touchmove", function(ev) { ev.preventDefault(); });
 
 		addEvent(document, "keydown", onKeyDown);
 		addEvent(document, "keyup", onKeyUp);
@@ -145,36 +145,37 @@ App = function() {
 		document.documentElement.style.overflowY = "hidden";
 		document.body.scroll = "no"; // ie only		
 
-		// Toolbar events
+		// Setting up toolbar events
 		toolbar = document.querySelector("#toolbar");
-		toolbar.querySelector("#scene").onchange = function() { onChangedScene(this.selectedIndex); };
-		toolbar.querySelector("#edit").onclick = function() { return onClickedEdit(); };
-		toolbar.querySelector("#restart").onclick = function() { return onClickedRestart(); };
-		toolbar.querySelector("#pause").onclick = function() { return onClickedPause(); };
-		toolbar.querySelector("#step").onclick = function() { return onClickedStep(); };
+		addEvent(toolbar.querySelector("#scene"), "change", function() { onChangedScene(this.selectedIndex); });
+		addEvent(toolbar.querySelector("#edit"), "click", onClickedEdit);
+		var elements = toolbar.querySelectorAll("[name=player]");
+		for (var i in elements) {
+			addEvent(elements[i], "click", function() { return onClickedPlayer(this.value); });
+		}
 		var elements = toolbar.querySelectorAll("[name=selectionmode]");
 		for (var i in elements) {
-			elements[i].onclick = function() { return onClickedSelectMode(this.value); };
+			addEvent(elements[i], "click", function() { return onClickedSelectMode(this.value); });
 		}
 		var elements = toolbar.querySelectorAll("[name=transformmode]");
 		for (var i in elements) {
-			elements[i].onclick = function() { return onClickedTransformMode(this.value); };
+			addEvent(elements[i], "click", function() { return onClickedTransformMode(this.value); });
 		}
-		toolbar.querySelector("#toggle_snap").onclick = function() { return onClickedSnap(); };
-		toolbar.querySelector("#toggle_settings").onclick = function() { return onClickedSettings(); };
+		addEvent(toolbar.querySelector("#toggle_snap"), "click", onClickedSnap);
+		addEvent(toolbar.querySelector("#toggle_settings"), "click", onClickedSettings);
 
-		// Setting events
-		settings = document.querySelector("#settings");		
-		settings.querySelector("#gravity").onchange = function() { onChangedGravity(this.value); };
-		settings.querySelector("#frameRateHz").onchange = function() { onChangedFrameRateHz(this.value); };
-		settings.querySelector("#v_iters").onchange = function() { onChangedVelocityIterations(this.value); };
-		settings.querySelector("#p_iters").onchange = function() { onChangedPositionIterations(this.value); };
-		settings.querySelector("#warmStarting").onclick = function() { return onClickedWarmStarting(); };		
-		settings.querySelector("#allowSleep").onclick = function() { return onClickedAllowSleep(); };
-		settings.querySelector("#enableDirtyRect").onclick = function() { return onClickedEnableDirtyRect(); };
-		settings.querySelector("#showBounds").onclick = function() { return onClickedShowBounds(); };
-		settings.querySelector("#showContacts").onclick = function() { return onClickedShowContacts(); };
-		settings.querySelector("#showStats").onclick = function() { return onClickedShowStats(); };
+		// Setting up settings events
+		settings = document.querySelector("#settings");
+		addEvent(settings.querySelector("#gravity"), "change", function() { onChangedGravity(this.value); });
+		addEvent(settings.querySelector("#frameRateHz"), "change", function() { onChangedFrameRateHz(this.value); });
+		addEvent(settings.querySelector("#v_iters"), "change", function() { onChangedVelocityIterations(this.value); });
+		addEvent(settings.querySelector("#p_iters"), "change", function() { onChangedPositionIterations(this.value); });
+		addEvent(settings.querySelector("#warmStarting"), "click", onClickedWarmStarting);
+		addEvent(settings.querySelector("#allowSleep"), "click", onClickedAllowSleep);
+		addEvent(settings.querySelector("#enableDirtyRect"), "click", onClickedEnableDirtyRect);
+		addEvent(settings.querySelector("#showBounds"), "click", onClickedShowBounds);
+		addEvent(settings.querySelector("#showContacts"), "click", onClickedShowContacts);
+		addEvent(settings.querySelector("#showStats"), "click", onClickedShowStats);
 		var elements = settings.querySelectorAll("select, input");
 		for (var i in elements) {
 			addEvent(elements[i], "blur", function() { window.scrollTo(0, 0); });
@@ -220,7 +221,7 @@ App = function() {
 		// Random color for bodies
 		randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"];
 
-		collision.init();		
+		collision.init();
 
 		space = new Space();
 
@@ -317,7 +318,7 @@ App = function() {
 	}
 
 	function updatePauseButton() {
-		var button = toolbar.querySelector("#pause");
+		var button = toolbar.querySelector("#player > [value=pause]");
 		button.innerHTML = pause ? "<i class='icon-white icon-play'></i>" : "<i class='icon-white icon-pause'></i>";
 	}
 
@@ -428,7 +429,7 @@ App = function() {
 
 	function initFrame() {
 		frameCount = 0;
-		lastTime = Date.now();	
+		lastTime = Date.now();
 		timeDelta = 0;
 
 		// Set dirtyBounds to full screen
@@ -954,8 +955,8 @@ App = function() {
 		var body1 = joint.body1;
 		var body2 = joint.body2;
 
-		var p1 = vec2.add(vec2.rotate(joint.anchor1, body1.a), body1.p);
-		var p2 = vec2.add(vec2.rotate(joint.anchor2, body2.a), body2.p);
+		var p1 = body1.localToWorld(joint.anchor1);
+		var p2 = body2.localToWorld(joint.anchor2);
 
 		var bounds = new Bounds;
 		bounds.addPoint(p1);
@@ -979,7 +980,7 @@ App = function() {
 		}
 	}
 
-	function onResize(e) {
+	function onResize(ev) {
 		window.scrollTo(0, 0);
 
 		fg.canvas.width = window.innerWidth - mainView.offsetLeft;
@@ -998,10 +999,10 @@ App = function() {
 		fg.canvas.style.top = "0px";		
 	}
 
-	function getMousePosition(e) {
+	function getMousePosition(ev) {
 		return new vec2(
-			e.clientX + document.body.scrollLeft - mainView.offsetLeft, 
-			e.clientY + document.body.scrollTop - mainView.offsetTop);
+			ev.clientX + document.body.scrollLeft - mainView.offsetLeft, 
+			ev.clientY + document.body.scrollTop - mainView.offsetTop);
 	}
 
 	function getFeatureByPoint(p) {
@@ -1059,7 +1060,7 @@ App = function() {
 			// Set rotationCenter
 			var shape = space.shapeById((vertex >> 16) & 0xFFFF);
 			var body = shape.body;
-			rotationCenter.copy(body.localToWorld(vec2.sub(shape.centroid(), body.centroid)));
+			rotationCenter.copy(body.localToWorld(shape.centroid()));
 		}
 		else if (selectionMode == SM_EDGES) {
 			var edge = space.findEdgeByPoint(p, EDGE_SELECTABLE_RADIUS, selectedFeatureArr[0]);
@@ -1072,7 +1073,7 @@ App = function() {
 			// Set rotationCenter
 			var shape = space.shapeById((edge >> 16) & 0xFFFF);
 			var body = shape.body;
-			rotationCenter.copy(body.localToWorld(vec2.sub(shape.centroid(), body.centroid)));
+			rotationCenter.copy(body.localToWorld(shape.centroid()));
 		}
 		else if (selectionMode == SM_SHAPES) {
 			var shape = space.findShapeByPoint(p, selectedFeatureArr[0]);
@@ -1084,7 +1085,7 @@ App = function() {
 
 			// Set rotationCenter
 			var body = shape.body;
-			rotationCenter.copy(shape.body.localToWorld(vec2.sub(shape.centroid(), body.centroid)));
+			rotationCenter.copy(shape.body.localToWorld(shape.centroid()));
 		}
 		else if (selectionMode == SM_BODIES) {
 			var shape = space.findShapeByPoint(p, selectedFeatureArr[0]);
@@ -1129,32 +1130,61 @@ App = function() {
 
 	function getShapeVertex(shape, index) {
 		if (shape.type == Shape.TYPE_CIRCLE && index == 0) {
-			return shape.c;
+			return shape.tc;
 		}
 		
 		if (shape.type == Shape.TYPE_SEGMENT && (index == 0 || index == 1)) {
 			if (index == 0) {
-				return shape.a;
+				return shape.ta;
 			}
-			return shape.b;
+			return shape.tb;
 		}
 		
 		if (shape.type == Shape.TYPE_POLY && index >= 0) {
-			index = index % shape.verts.length;
+			index = index % shape.tverts.length;
 			if (index < 0) {
-				index += shape.verts.length;
+				index += shape.tverts.length;
 			}
-			return shape.verts[index];
+			return shape.tverts[index];
 		}
 
 		console.log("invalid vertex index: " + index);		
 	}
+
+	function setShapeVertex(shape, index, v) {
+		var body = shape.body;
+
+		if (shape.type == Shape.TYPE_CIRCLE && index == 0) {
+			shape.c.copy(body.worldToLocal(v));
+			return;
+		}
 		
-	function onMouseDown(e) {
+		if (shape.type == Shape.TYPE_SEGMENT && (index == 0 || index == 1)) {
+			if (index == 0) {
+				shape.a.copy(body.worldToLocal(v));
+				return;
+			}
+			shape.b.copy(body.worldToLocal(v));
+			return;
+		}
+		
+		if (shape.type == Shape.TYPE_POLY && index >= 0) {
+			index = index % shape.tverts.length;
+			if (index < 0) {
+				index += shape.tverts.length;
+			}
+			shape.verts[index].copy(body.worldToLocal(v));
+			return;
+		}
+
+		console.log("invalid vertex index: " + index);
+	}
+		
+	function onMouseDown(ev) {
 		mouseDown = true;
 		mouseDownMoving = false;
 
-		var pos = getMousePosition(e);
+		var pos = getMousePosition(ev);
 		var p = canvasToWorld(pos);
 
 		if (!editMode) {
@@ -1184,11 +1214,11 @@ App = function() {
 		mouseDownPosition.x = pos.x;
 		mouseDownPosition.y = pos.x;
 
-		e.preventDefault();
+		ev.preventDefault();
 	}
 
-	function onMouseUp(e) {
-		var pos = getMousePosition(e);
+	function onMouseUp(ev) {
+		var pos = getMousePosition(ev);
 		var p = canvasToWorld(pos);
 
 		if (!editMode) {
@@ -1200,7 +1230,7 @@ App = function() {
 		else {
 			if (mouseDown && !mouseDownMoving) {
 				if (transformMode == TM_SELECT) {
-					var flag = e.shiftKey ? SF_ADDITIVE : (e.metaKey ? SF_XOR : SF_REPLACE);
+					var flag = ev.shiftKey ? SF_ADDITIVE : (ev.metaKey ? SF_XOR : SF_REPLACE);
 
 					if (!doSelect(p, flag) && flag == SF_REPLACE) {
 						selectedFeatureArr = [];
@@ -1222,7 +1252,7 @@ App = function() {
 		mouseDown = false;
 		mouseDownMoving = false;
 
-		e.preventDefault();
+		ev.preventDefault();
 	}
 
 	function scrollView(dx, dy) {
@@ -1236,8 +1266,8 @@ App = function() {
 		bg.outdated = true;
 	}
 
-	function onMouseMove(e) {
-		mousePosition = getMousePosition(e);
+	function onMouseMove(ev) {
+		mousePosition = getMousePosition(ev);
 
 		if (!editMode) {
 			if (mouseDown) {
@@ -1256,15 +1286,15 @@ App = function() {
 				var dx = (mousePosition.x - mousePositionOld.x) / view.scale;
 				var dy = -(mousePosition.y - mousePositionOld.y) / view.scale;
 
-				if (e.altKey) {					
+				if (ev.altKey) {					
 					scrollView(-(mousePosition.x - mousePositionOld.x), mousePosition.y - mousePositionOld.y);
 				}
 				else if (transformMode == TM_SELECT) {
-					if (!mouseDownMoving && !e.shiftKey && !e.metaKey) {
+					if (!mouseDownMoving && !ev.shiftKey && !ev.metaKey) {
 						selectedFeatureArr = [];
 					}
 
-					doSelect(canvasToWorld(mousePosition), e.metaKey ? SF_XOR : SF_ADDITIVE);
+					doSelect(canvasToWorld(mousePosition), ev.metaKey ? SF_XOR : SF_ADDITIVE);
 				}
 				else if ((transformMode == TM_TRANSLATE || transformMode == TM_ROTATE) && isValidFeature(clickedFeature)) {
 					if (selectedFeatureArr.indexOf(clickedFeature) == -1) {
@@ -1277,28 +1307,24 @@ App = function() {
 							var vertex = selectedFeatureArr[i];
 							var shape = space.shapeById((vertex >> 16) & 0xFFFF);
 							var body = shape.body;
+							var delta = new vec2(dx, dy);
 							var index = vertex & 0xFFFF;
 							var v = getShapeVertex(shape, index);
 
 							if (transformMode == TM_TRANSLATE) {
-								v.x += dx;
-								v.y += dy;
+								setShapeVertex(shape, index, vec2.add(v, delta));
 							}
 							else if (transformMode == TM_ROTATE) {
 								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
 								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
 								var da = p2.toAngle() - p1.toAngle();
-
-								var wv = body.localToWorld(vec2.sub(v, body.centroid));
-								wv.subself(rotationCenter);
-								wv.rotate(da);
-								wv.addself(rotationCenter);
-								v.copy(body.worldToLocal(wv));
-								v.addself(body.centroid);
+								var wv = vec2.add(vec2.rotate(vec2.sub(v, rotationCenter), da), rotationCenter);
+								setShapeVertex(shape, index, wv);
 							}
 
 							shape.finishVerts();
 							shape.body.resetMassData();
+							shape.body.syncTransform();
 							shape.body.cacheData();
 						}
 					}
@@ -1309,6 +1335,7 @@ App = function() {
 							var edge = selectedFeatureArr[i];
 							var shape = space.shapeById((edge >> 16) & 0xFFFF);
 							var body = shape.body;
+							var delta = new vec2(dx, dy);
 							var index = edge & 0xFFFF;
 
 							var v1 = getShapeVertex(shape, index);
@@ -1321,15 +1348,13 @@ App = function() {
 								if (markedVertexArr.indexOf(vertex1) == -1) {
 									markedVertexArr.push(vertex1);
 
-									v1.x += dx;
-									v1.y += dy;
+									setShapeVertex(shape, index, vec2.add(v1, delta));
 								}
 
 								if (markedVertexArr.indexOf(vertex2) == -1) {
 									markedVertexArr.push(vertex2);
 
-									v2.x += dx;
-									v2.y += dy;
+									setShapeVertex(shape, index + 1, vec2.add(v2, delta));
 								}
 							}
 							else if (transformMode == TM_ROTATE) {
@@ -1340,33 +1365,26 @@ App = function() {
 								if (markedVertexArr.indexOf(vertex1) == -1) {
 									markedVertexArr.push(vertex1);
 
-									var wv = body.localToWorld(vec2.sub(v1, body.centroid));
-									wv.subself(rotationCenter);
-									wv.rotate(da);
-									wv.addself(rotationCenter);
-									v1.copy(body.worldToLocal(wv));
-									v1.addself(body.centroid);
+									var wv = vec2.add(vec2.rotate(vec2.sub(v1, rotationCenter), da), rotationCenter);
+									setShapeVertex(shape, index, wv);
 								}
 
 								if (markedVertexArr.indexOf(vertex2) == -1) {
 									markedVertexArr.push(vertex2);
-																		
-									var wv = body.localToWorld(vec2.sub(v2, body.centroid));
-									wv.subself(rotationCenter);
-									wv.rotate(da);
-									wv.addself(rotationCenter);
-									v2.copy(body.worldToLocal(wv));
-									v2.addself(body.centroid);
+
+									var wv = vec2.add(vec2.rotate(vec2.sub(v2, rotationCenter), da), rotationCenter);
+									setShapeVertex(shape, index + 1, wv);
 								}
 							}
 
 							shape.finishVerts();
 							shape.body.resetMassData();
+							shape.body.syncTransform();
 							shape.body.cacheData();
 						}
 					}
 					else if (selectionMode == SM_SHAPES) {
-						if (!mouseDownMoving && e.shiftKey) {
+						if (!mouseDownMoving && ev.shiftKey) {
 							for (var i = 0; i < selectedFeatureArr.length; i++) {
 								var shape = selectedFeatureArr[i];
 								var dup = shape.duplicate();
@@ -1381,19 +1399,24 @@ App = function() {
 						for (var i = 0; i < selectedFeatureArr.length; i++) {
 							var shape = selectedFeatureArr[i];
 							var body = shape.body;
+							var delta = new vec2(dx, dy);
 
 							if (transformMode == TM_TRANSLATE) {								
 								switch (shape.type) {
 								case Shape.TYPE_CIRCLE:
-									shape.c.addself(new vec2(dx, dy));
+									var wc = vec2.add(shape.tc, delta);
+									shape.c.copy(body.worldToLocal(wc));
 									break;
 								case Shape.TYPE_SEGMENT:
-									shape.a.addself(new vec2(dx, dy));
-									shape.b.addself(new vec2(dx, dy));
+									var wa = vec2.add(shape.ta, delta);
+									var wb = vec2.add(shape.ta, delta);
+									shape.a.copy(body.worldToLocal(wa));
+									shape.b.copy(body.worldToLocal(wb));
 									break;
 								case Shape.TYPE_POLY:
-									for (var j = 0; j < shape.verts.length; j++){
-										shape.verts[j].addself(new vec2(dx, dy));
+									for (var j = 0; j < shape.tverts.length; j++){
+										var wv = vec2.add(shape.tverts[j], delta);
+										shape.verts[j].copy(body.worldToLocal(wv));
 									}
 									break;
 								}
@@ -1404,34 +1427,21 @@ App = function() {
 								var da = p2.toAngle() - p1.toAngle();
 
 								switch (shape.type) {
-								case Shape.TYPE_CIRCLE:
-									var wc = body.localToWorld(vec2.sub(shape.c, body.centroid));
-									wc.subself(rotationCenter);
-									wc.rotate(da);
-									wc.addself(rotationCenter);
-									shape.c.copy(vec2.add(body.worldToLocal(wc), body.centroid));
+								case Shape.TYPE_CIRCLE:									
+									var wc = vec2.add(vec2.rotate(vec2.sub(shape.tc, rotationCenter), da), rotationCenter);
+									shape.c.copy(body.worldToLocal(wc));
 									break;
 								case Shape.TYPE_SEGMENT:
-									var wa = body.localToWorld(vec2.sub(shape.a, body.centroid));
-									wa.subself(rotationCenter);
-									wa.rotate(da);
-									wa.addself(rotationCenter);
-									shape.a.copy(vec2.add(body.worldToLocal(wa), body.centroid));
+									var wa = vec2.add(vec2.rotate(vec2.sub(shape.ta, rotationCenter), da), rotationCenter);
+									shape.a.copy(body.worldToLocal(wa));
 
-									var wb = body.localToWorld(vec2.sub(shape.b, body.centroid));
-									wb.subself(rotationCenter);
-									wb.rotate(da);
-									wb.addself(rotationCenter);
-									shape.b.copy(vec2.add(body.worldToLocal(wb), body.centroid));
+									var wb = vec2.add(vec2.rotate(vec2.sub(shape.tb, rotationCenter), da), rotationCenter);
+									shape.b.copy(body.worldToLocal(wb));
 									break;
 								case Shape.TYPE_POLY:
 									for (var j = 0; j < shape.verts.length; j++){
-										var v = shape.verts[j];
-										var wv = body.localToWorld(vec2.sub(v, body.centroid));
-										wv.subself(rotationCenter);
-										wv.rotate(da);
-										wv.addself(rotationCenter);
-										v.copy(vec2.add(body.worldToLocal(wv), body.centroid));
+										var wv = vec2.add(vec2.rotate(vec2.sub(shape.tverts[j], rotationCenter), da), rotationCenter);
+										shape.verts[j].copy(body.worldToLocal(wv));
 									}
 									break;
 								}
@@ -1439,11 +1449,12 @@ App = function() {
 
 							shape.finishVerts();
 							shape.body.resetMassData();
+							shape.body.syncTransform();
 							shape.body.cacheData();
 						}
 					}
 					else if (selectionMode == SM_BODIES) {
-						if (!mouseDownMoving && e.shiftKey) {
+						if (!mouseDownMoving && ev.shiftKey) {
 							for (var i = 0; i < selectedFeatureArr.length; i++) {
 								var body = selectedFeatureArr[i];
 								var dup = body.duplicate();
@@ -1506,17 +1517,17 @@ App = function() {
 			mouseDownMoving = true;
 		}
 
-		e.preventDefault();
+		ev.preventDefault();
 	}
 
-	function onMouseLeave(e) {
+	function onMouseLeave(ev) {
 		if (mouseJoint) {
 			space.removeJoint(mouseJoint);
 			mouseJoint = null;
 		}
 	}
 
-	function onMouseWheel(e) {
+	function onMouseWheel(ev) {
 		// Zoom in and out using vertical mouse wheel
 		var ds = -e.wheelDeltaY * 0.001;
 		var oldViewScale = view.scale;
@@ -1530,7 +1541,7 @@ App = function() {
 		view.origin.y += p.y * ds;
 
 		// Horizontal scroll using horizontal mouse wheel
-		var dx = e.wheelDeltaX * 0.2;
+		var dx = ev.wheelDeltaX * 0.2;
 		view.origin.x -= dx;
 
 		// Clamp view origin limit
@@ -1540,48 +1551,48 @@ App = function() {
 		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
 		bg.outdated = true;
 
-		e.preventDefault();		
+		ev.preventDefault();		
 	}
 
-	function touchHandler(e) {
-		if (e.touches.length <= 1) {
-			var first = e.changedTouches[0];
-			var type = {touchstart: "mousedown", touchmove: "mousemove", touchend: "mouseup"}[e.type] || "";			
+	function touchHandler(ev) {
+		if (ev.touches.length <= 1) {
+			var first = ev.changedTouches[0];
+			var type = {touchstart: "mousedown", touchmove: "mousemove", touchend: "mouseup"}[ev.type] || "";			
 			//initMouseEvent(type, canBubble, cancelable, view, clickCount, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
 			var simulatedEvent = document.createEvent("MouseEvent");			
 			simulatedEvent.initMouseEvent(type, true, true, window, 1, first.screenX, first.screenY, first.clientX, first.clientY, false, false, false, false, 0, null);
 			first.target.dispatchEvent(simulatedEvent);
 		}
 		else {
-			var handler = {touchstart: onTouchStart, touchmove: onTouchMove, touchend: onTouchEnd}[e.type];
+			var handler = {touchstart: onTouchStart, touchmove: onTouchMove, touchend: onTouchEnd}[ev.type];
 			if (handler) {
 				handler(e);
 			}
 		}
 
-		e.preventDefault();
+		ev.preventDefault();
 	}
 
-	function onTouchStart(e) {
+	function onTouchStart(ev) {
 		if (mouseJoint) {
 			space.removeJoint(mouseJoint);
 			mouseJoint = null;
 		}
 
-		if (e.touches.length == 2) {
-			touchPosOld[0] = getMousePosition(e.touches[0]);
-			touchPosOld[1] = getMousePosition(e.touches[1]);
+		if (ev.touches.length == 2) {
+			touchPosOld[0] = getMousePosition(ev.touches[0]);
+			touchPosOld[1] = getMousePosition(ev.touches[1]);
 			
-			e.preventDefault();
+			ev.preventDefault();
 		}
 	}
 
-	function onTouchMove(e) {
-		if (e.touches.length == 2) {
+	function onTouchMove(ev) {
+		if (ev.touches.length == 2) {
 			var touchPos = [];
 
-			touchPos[0] = getMousePosition(e.touches[0]);
-			touchPos[1] = getMousePosition(e.touches[1]);
+			touchPos[0] = getMousePosition(ev.touches[0]);
+			touchPos[1] = getMousePosition(ev.touches[1]);
 
 			var v1 = vec2.sub(touchPos[0], touchPosOld[0]);
 			var v2 = vec2.sub(touchPos[1], touchPosOld[1]);
@@ -1609,43 +1620,43 @@ App = function() {
 			touchPosOld[0] = touchPos[0];
 			touchPosOld[1] = touchPos[1];			
 
-			e.preventDefault();
+			ev.preventDefault();
 		}
 	}
 
-	function onTouchEnd(e) {
+	function onTouchEnd(ev) {
 		
 	}
 
-	function onGestureStart(e) {
+	function onGestureStart(ev) {
 		gestureStartScale = view.scale;
 
-		e.preventDefault();
+		ev.preventDefault();
 	}
 
-	function onGestureChange(e) {
-		var threhold = Math.clamp(e.scale - 1, -0.1, 0.1);
-		gestureScale = gestureStartScale * (e.scale - threhold);
+	function onGestureChange(ev) {
+		var threhold = Math.clamp(ev.scale - 1, -0.1, 0.1);
+		gestureScale = gestureStartScale * (ev.scale - threhold);
 
-		e.preventDefault();
+		ev.preventDefault();
 	}
 
-	function onGestureEnd(e) {
+	function onGestureEnd(ev) {
 	}
 
-	function onKeyDown(e) {
-		if (!e) {
-			e = event;
+	function onKeyDown(ev) {
+		if (!ev) {
+			ev = event;
 		}
 
-		switch (e.keyCode) {
+		switch (ev.keyCode) {
 		case 17: // Ctrl
-			e.preventDefault();			
+			ev.preventDefault();			
 			break;
 		case 8: // Delete
 			if (editMode) {
 				onDelete();
-				e.preventDefault();
+				ev.preventDefault();
 			}
 			break;
 		case 74: // 'j'
@@ -1655,19 +1666,19 @@ App = function() {
 		case 81: // 'q'
 			if (editMode) {
 				onClickedTransformMode("select");
-				e.preventDefault();
+				ev.preventDefault();
 			}			
 			break;
 		case 87: // 'w'
 			if (editMode) {
 				onClickedTransformMode("translate");
-				e.preventDefault();
+				ev.preventDefault();
 			}			
 			break;
 		case 69: // 'e'
 			if (editMode) {
 				onClickedTransformMode("rotate");
-				e.preventDefault();
+				ev.preventDefault();
 			}			
 			break;
 		case 49: // '1'
@@ -1676,28 +1687,28 @@ App = function() {
 		case 52: // '4'
 		case 53: // '5'
 			if (editMode) {
-				onClickedSelectMode(["vertices", "edges", "shapes", "bodies", "joints"][(e.keyCode - 48) - 1]);
-				e.preventDefault();
+				onClickedSelectMode(["vertices", "edges", "shapes", "bodies", "joints"][(ev.keyCode - 48) - 1]);
+				ev.preventDefault();
 			}
 			break;
 		case 32: // 'space'
 			if (!editMode) {
 				onClickedStep();
-				e.preventDefault();
+				ev.preventDefault();
 			}
 			break;
 		}					
 	}
 
-	function onKeyUp(e) {
-		if (!e) {
-			e = event;
+	function onKeyUp(ev) {
+		if (!ev) {
+			ev = event;
 		}
 	}
 
-	function onKeyPress(e) {
-		if (!e) {
-			e = event;
+	function onKeyPress(ev) {
+		if (!ev) {
+			ev = event;
 		}
 	}
 
@@ -1751,24 +1762,21 @@ App = function() {
 		showStats = !showStats;
 	}	
 
-	function onClickedRestart() {
-		initScene();
-		pause = false;
-		updatePauseButton();
-
-		return false;
-	}
-
-	function onClickedPause() {
-		pause = !pause;
-		updatePauseButton();
-
-		return false;
-	}
-
-	function onClickedStep() {
-		pause = true;
-		step = true;
+	function onClickedPlayer(value) {
+		switch (value) {
+		case "restart":
+			initScene();
+			pause = false;
+			break;
+		case "pause":
+			pause = !pause;
+			break;
+		case "step":
+			pause = true;
+			step = true;
+			break;
+		}
+		
 		updatePauseButton();
 
 		return false;
@@ -1785,13 +1793,8 @@ App = function() {
 
 		updateToolbar();
 
-		if (editMode) {
-			initScene();
-		}
-		else {
-			initFrame();
-		}
-
+		initFrame();
+		
 		return false;
 	}
 
@@ -1820,6 +1823,7 @@ App = function() {
 		body.removeShape(shape);
 		if (body.shapeArr.length != 0) {
 			body.resetMassData();
+			body.syncTransform();
 			body.cacheData();
 		}
 		else {
@@ -1841,6 +1845,7 @@ App = function() {
 
 					shape.finishVerts();
 					shape.body.resetMassData();
+					shape.body.syncTransform();
 					shape.body.cacheData();	
 				}
 				
@@ -1863,6 +1868,7 @@ App = function() {
 
 					shape.finishVerts();
 					shape.body.resetMassData();
+					shape.body.syncTransform();
 					shape.body.cacheData();	
 				}
 				

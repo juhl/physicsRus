@@ -105,10 +105,11 @@ ShapePoly.prototype.inertia = function(mass) {
 	return inertiaForPoly(mass, this.verts, vec2.zero);
 }
 
-ShapePoly.prototype.cacheData = function(pos, centroid, angle) {	
+// pos is world centroid
+ShapePoly.prototype.cacheData = function(xf) {
 	var numVerts = this.verts.length;
 	for (var i = 0; i < numVerts; i++) {
-		this.tverts[i] = vec2.add(pos, vec2.rotate(vec2.sub(this.verts[i], centroid), angle));
+		this.tverts[i] = xf.transform(this.verts[i]);
 	}
 
 	this.bounds.clear();

@@ -67,8 +67,8 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.maxImpulse = this.maxForce * dt;
 
 	// Transformed r1, r2
-	this.r1 = vec2.rotate(this.anchor1, body1.a);
-	this.r2 = vec2.rotate(this.anchor2, body2.a);
+	this.r1 = vec2.rotate(vec2.sub(this.anchor1, body1.centroid), body1.a);
+	this.r2 = vec2.rotate(vec2.sub(this.anchor2, body2.centroid), body2.a);
 
 	// Delta vector between two world anchors
 	var d = vec2.sub(vec2.add(body2.p, this.r2), vec2.add(body1.p, this.r1));
@@ -160,8 +160,8 @@ DistanceJoint.prototype.solvePositionConstraints = function() {
 	var body2 = this.body2;
 
 	// Transformed r1, r2
-	var r1 = vec2.rotate(this.anchor1, body1.a);
-	var r2 = vec2.rotate(this.anchor2, body2.a);
+	var r1 = vec2.rotate(vec2.sub(this.anchor1, body1.centroid), body1.a);
+	var r2 = vec2.rotate(vec2.sub(this.anchor2, body2.centroid), body2.a);
 
 	// Delta vector between two anchors
 	var d = vec2.sub(vec2.add(body2.p, r2), vec2.add(body1.p, r1));
@@ -219,8 +219,8 @@ MaxDistanceJoint = function(body1, body2, anchor1, anchor2, minDist, maxDist) {
 	this.maxDist = maxDist;
 
 	if (maxDist == undefined) {
-		var p1 = vec2.add(vec2.rotate(this.anchor1, body1.a), body1.p);
-		var p2 = vec2.add(vec2.rotate(this.anchor2, body2.a), body2.p);
+		var p1 = vec2.add(vec2.rotate(vec2.sub(this.anchor1, body1.centroid), body1.a), body1.p);
+		var p2 = vec2.add(vec2.rotate(vec2.sub(this.anchor2, body2.centroid), body2.a), body2.p);
 
 		this.maxDist = vec2.dist(p1, p2);
 	}
@@ -401,8 +401,8 @@ SpringJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body2 = this.body2;
 
 	// transformed r1, r2
-	this.r1 = vec2.rotate(this.anchor1, body1.a);
-	this.r2 = vec2.rotate(this.anchor2, body2.a);
+	this.r1 = vec2.rotate(vec2.sub(this.anchor1, body2.centroid), body1.a);
+	this.r2 = vec2.rotate(vec2.sub(this.anchor2, body2.centroid), body2.a);
 
 	var d = vec2.sub(vec2.add(body2.p, this.r2), vec2.add(body1.p, this.r1));
 	var dist = d.length();

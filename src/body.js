@@ -110,17 +110,6 @@ Body.prototype.removeShape = function(shape) {
 }
 
 // Internal function
-Body.prototype.cacheData = function() {	
-	this.bounds.clear();
-	
-	for (var i = 0; i < this.shapeArr.length; i++) {
-		var shape = this.shapeArr[i];
-		shape.cacheData(this.p, this.centroid, this.a);
-		this.bounds.addBounds(shape.bounds);
-	}
-}
-
-// Internal function
 Body.prototype.setMass = function(mass) {
 	this.m = mass;
 	this.m_inv = 1 / mass; // 0 = 1 / Infinity
@@ -130,6 +119,25 @@ Body.prototype.setMass = function(mass) {
 Body.prototype.setInertia = function(inertia) {
 	this.i = inertia;
 	this.i_inv = 1 / inertia; // 0 = 1 / Infinity
+}
+
+Body.prototype.setTransform = function(x, y, angle) {
+	this.xf.set(x, y, angle);
+	this.p = this.xf.transform(this.centroid);
+	this.a = angle;	
+}
+
+Body.prototype.syncTransform = function() {
+	this.xf.setRotation(this.a);
+	this.xf.setPosition(vec2.sub(this.p, this.xf.rotate(this.centroid)));
+}
+
+Body.prototype.localToWorld = function(v) {
+	return this.xf.transform(v);
+}
+
+Body.prototype.worldToLocal = function(v) {
+	return this.xf.untransform(v);	
 }
 
 Body.prototype.resetMassData = function() {
@@ -161,28 +169,23 @@ Body.prototype.resetMassData = function() {
 	this.setInertia(totalInertia - totalMass * vec2.dot(this.centroid, this.centroid));
 	//console.log("mass = " + this.m + " inertia = " + this.i);
 
-	// Move center of mass	
+	// Move center of mass
 	var old_p = this.p;
-	this.p = this.xf.transform(this.centroid);
+	this.p = this.xf.transform(this.centroid);	
 
 	// Update center of mass velocity ??
-	this.v.mad(vec2.perp(vec2.sub(this.p, old_p)), this.w);
+	this.v.mad(vec2.perp(vec2.sub(this.p, old_p)), this.w);	
 }
 
-// Local (center of mass) -> World
-Body.prototype.localToWorld = function(v) {
-	return vec2.add(this.p, vec2.rotate(v, this.a));
-}
-
-// World -> Local (center of mass)
-Body.prototype.worldToLocal = function(v) {
-	return vec2.rotate(vec2.sub(v, this.p), -this.a);
-}
-
-Body.prototype.setTransform = function(x, y, angle) {
-	this.xf.set(x, y, angle);
-	this.p = this.xf.transform(this.centroid);
-	this.a = angle;
+// Internal function
+Body.prototype.cacheData = function() {	
+	this.bounds.clear();
+	
+	for (var i = 0; i < this.shapeArr.length; i++) {
+		var shape = this.shapeArr[i];
+		shape.cacheData(this.xf);
+		this.bounds.addBounds(shape.bounds);
+	}
 }
 
 Body.prototype.updateVelocity = function(gravity, damping, dt) {

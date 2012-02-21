@@ -47,8 +47,8 @@ ShapeCircle.prototype.inertia = function(mass) {
 	return inertiaForCircle(mass, this.c, this.r, 0);
 }
 
-ShapeCircle.prototype.cacheData = function(pos, centroid, angle) {
-	this.tc = vec2.add(pos, vec2.rotate(vec2.sub(this.c, centroid), angle));
+ShapeCircle.prototype.cacheData = function(xf) {
+	this.tc = xf.transform(this.c);
 	this.bounds.mins.set(this.tc.x - this.r, this.tc.y - this.r);
 	this.bounds.maxs.set(this.tc.x + this.r, this.tc.y + this.r);
 }

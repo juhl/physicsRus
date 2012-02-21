@@ -327,17 +327,17 @@ Space.prototype.genTemporalContactSolvers = function() {
 			if (body1.stepCount == body2.stepCount) {
 				continue;
 			}
-			
+
 			var active1 = body1.isAwake() && !body1.isStatic();
 			var active2 = body2.isAwake() && !body2.isStatic();
-
-			if (!body1.isCollidable(body2)) {
-				continue;
-			}
 
 			if (!active1 && !active2) {
 				continue;
 			}
+						
+			if (!body1.isCollidable(body2)) {
+				continue;
+			}			
 		
 			if (!body1.bounds.intersectsBounds(body2.bounds)) {
 				continue;
@@ -519,6 +519,11 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration, warmStarting, 
 
 	// Iterative position constraints solver
 	var positionSolved = this.positionSolver(pos_iteration);
+
+	for (var i in this.bodyHash) {
+		var body = this.bodyHash[i];
+		body.syncTransform();
+	}
 
 	// Post solve collision callback
 	for (var i = 0; i < this.contactSolverArr.length; i++) {

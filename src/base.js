@@ -9,7 +9,7 @@ function addEvent(obj, name, fn) {
 		obj.attachEvent("on" + name, obj[name + fn]);
 	}
 	else { // No much to do
-		obj[name] = fn;
+		obj["on" + name] = fn;
 	}
 }
 

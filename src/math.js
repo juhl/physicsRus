@@ -613,6 +613,17 @@ Transform.prototype.set = function(x, y, angle) {
 	return this;
 }
 
+Transform.prototype.setRotation = function(angle) {
+	this.c = Math.cos(angle);
+	this.s = Math.sin(angle);
+	return this;
+}
+
+Transform.prototype.setPosition = function(p) {
+	this.t.copy(p);
+	return this;
+}
+
 Transform.prototype.identity = function() {
 	this.t.set(0, 0);
 	this.c = 1;
@@ -620,10 +631,22 @@ Transform.prototype.identity = function() {
 	return this;
 }
 
+Transform.prototype.rotate = function(v) {
+	return new vec2(v.x * this.c - v.y * this.s, v.x * this.s + v.y * this.c);
+}
+
+Transform.prototype.unrotate = function(v) {
+	return new vec2(v.x * this.c + v.y * this.s, -v.x * this.s + v.y * this.c);
+}
+
 Transform.prototype.transform = function(v) {
-	return new vec2(
-		v.x * this.c - v.y * this.s + this.t.x, 
-		v.x * this.s + v.y * this.c + this.t.y);
+	return new vec2(v.x * this.c - v.y * this.s + this.t.x, v.x * this.s + v.y * this.c + this.t.y);
+}
+
+Transform.prototype.untransform = function(v) {
+	var px = v.x - this.t.x;
+	var py = v.y - this.t.y;
+	return new vec2(px * this.c + py * this.s, -px * this.s + py * this.c);
 }
 
 //-----------------------------------

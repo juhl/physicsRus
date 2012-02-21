@@ -64,9 +64,9 @@
     <button type="button" class="btn blue" id="edit" style="width:52px; font-weight:bold">Edit</button>      
 
     <span id="player">
-      <button type="button" class="btn" name="player" id="restart" style="width:32px"><i class="icon-white icon-repeat"></i></button>
-      <button type="button" class="btn" name="player" id="pause" style="width:32px"><i class="icon-white icon-pause"></i></button>
-      <button type="button" class="btn" name="player" id="step" style="width:32px"><i class="icon-white icon-step-forward"></i></button>
+      <button type="button" class="btn" name="player" value="restart" style="width:32px"><i class="icon-white icon-repeat"></i></button>
+      <button type="button" class="btn" name="player" value="pause" style="width:32px"><i class="icon-white icon-pause"></i></button>
+      <button type="button" class="btn" name="player" value="step" style="width:32px"><i class="icon-white icon-step-forward"></i></button>
     </span>
 
     <span id="selectionmode">
@@ -103,7 +103,7 @@
         <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="5" min="1" max="100" /><br />
         <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" /><br />
       </div>
-      <div>      
+      <div>
         <input type="checkbox" id="warmStarting" checked="true" />Warm starting<br />        
         <input type="checkbox" id="allowSleep" checked="true" />Allow sleep<br />
         <input type="checkbox" id="enableDirtyRect" checked="true" />Enable dirty rect<br />
