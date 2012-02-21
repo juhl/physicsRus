@@ -13,6 +13,8 @@ ShapeSegment = function(a, b, radius) {
 	this.ta = vec2.zero;
 	this.tb = vec2.zero;
 	this.tn = vec2.zero;
+
+	this.finishVerts();
 }
 
 ShapeSegment.prototype = new Shape;
@@ -21,6 +23,8 @@ ShapeSegment.prototype.constructor = ShapeSegment;
 ShapeSegment.prototype.finishVerts = function() {
 	this.n = vec2.perp(vec2.sub(this.b, this.a));
 	this.n.normalize();
+
+	this.r = Math.abs(this.r);
 }
 
 ShapeSegment.prototype.duplicate = function() {

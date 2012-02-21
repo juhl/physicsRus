@@ -43,7 +43,7 @@ RendererCanvas = function() {
 		ctx.stroke();
 	}
 
-	function drawArrow(ctx, p1, p2, lineWidth, strokeStyle) {
+	function drawArrow(ctx, p1, p2, lineWidth, headSize, strokeStyle) {
 		var angle = vec2.toAngle(vec2.sub(p2, p1)) - Math.PI;
 		
 		ctx.beginPath();
@@ -54,12 +54,12 @@ RendererCanvas = function() {
 		ctx.save();
 		ctx.translate(p2.x, p2.y);
 
-		ctx.rotate(angle - Math.PI * 0.15);
-		ctx.moveTo(6, 0);
+		ctx.rotate(angle - Math.PI * 0.12);
+		ctx.moveTo(headSize, 0);
 		ctx.lineTo(0, 0);
 
-		ctx.rotate(Math.PI * 0.3);
-		ctx.lineTo(6, 0);
+		ctx.rotate(Math.PI * 0.24);
+		ctx.lineTo(headSize, 0);
 
 		ctx.restore();
 

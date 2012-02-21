@@ -7,13 +7,16 @@ ShapeCircle = function(offset_x, offset_y, radius) {
 	this.c = new vec2(offset_x || 0, offset_y || 0);
 	this.r = radius;
 
-	this.tc = vec2.zero;    
+	this.tc = vec2.zero;
+
+	this.finishVerts();
 }
 
 ShapeCircle.prototype = new Shape;
 ShapeCircle.prototype.constructor = ShapeCircle;
 
 ShapeCircle.prototype.finishVerts = function() {
+	this.r = Math.abs(this.r);
 }
 
 ShapeCircle.prototype.duplicate = function() {

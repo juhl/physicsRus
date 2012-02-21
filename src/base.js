@@ -1,3 +1,7 @@
+window.onerror = function(msg, url, line) {	
+	alert(["There was an error on this page.\n\n", url, " (", line, ") : ", msg].join(""));
+}
+
 function addEvent(obj, name, fn) {
 	if (obj.addEventListener) { // W3C DOM
 		obj.addEventListener(name, fn, false);

@@ -36,8 +36,9 @@ App = function() {
 	var gestureStartScale;
 	var gestureScale;
 
-	var VERTEX_SELETABLE_RADIUS = isAppleMobileDevice() ? 15 : 5;
-	var EDGE_SELECTABLE_RADIUS = isAppleMobileDevice() ? 10 : 4;
+	var SELECTABLE_POINT_DIST_THREHOLD = isAppleMobileDevice() ? 15 : 5;
+	var SELECTABLE_LINE_DIST_THREHOLD = isAppleMobileDevice() ? 10 : 4;
+	var SELECTABLE_CIRCLE_DIST_THREHOLD = isAppleMobileDevice() ? 10 : 5;	
 
 	// selection mode
 	var SM_VERTICES = 0;
@@ -54,8 +55,21 @@ App = function() {
 	// transform mode
 	var TM_SELECT = 0;
 	var TM_TRANSLATE = 1;
-	var TM_ROTATE = 2;
-	var TM_SCALE = 3;
+	var TM_SCALE = 2;
+	var TM_ROTATE = 3;
+
+	// transform axis
+	var TRANSFORM_AXIS_X = 1;
+	var TRANSFORM_AXIS_Y = 2;
+	var TRANSFORM_AXIS_Z = 4;
+	var TRANSFORM_AXIS_XY = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
+	var TRANSFORM_AXIS_XYZ = TRANSFORM_AXIS_XY | TRANSFORM_AXIS_Z;
+
+	// gizmo value
+	var GIZMO_RADIUS = 100;
+	var GIZMO_INNER_OFFSET = 32;
+	var GIZMO_INNER_RADIUS = 15;
+	var GIZMO_SCALE_AXIS_BOX_EXTENT = 6;
 
 	// editor variables
 	var editMode = false;
@@ -66,7 +80,8 @@ App = function() {
 	var markedFeatureArr = [];	
 	var highlightFeatureArr = [];
 	var clickedFeature;
-	var rotationCenter = new vec2(0, 0);
+	var transformCenter = new vec2(0, 0);
+	var transformAxis = 0;
 	var selectionColor = "rgba(255, 160, 0, 1.0)";
 	var highlightColor = "rgba(220, 255, 255, 0.75)";
 	var backgroundColor = "rgb(244, 244, 244)";
@@ -280,7 +295,7 @@ App = function() {
 			}
 
 			// transform mode buttons
-			var value = ["select", "translate", "rotate", "scale"][transformMode];
+			var value = ["select", "translate", "scale", "rotate"][transformMode];
 			for (var i = 0; i < transformModeButtons.length; i++) {
 				var e = transformModeButtons[i];
 				
@@ -486,7 +501,9 @@ App = function() {
 					mouseCursor = shape ? "pointer" : "default";
 				}
 				else {
-					
+					checkHighlight(mousePosition);
+
+					mouseCursor = "default";
 				}
 			}
 
@@ -618,9 +635,11 @@ App = function() {
 				var y = Math.max(Math.floor(maxs.y), 0);
 				var w = Math.min(Math.ceil(maxs.x + 1), canvas.width) - x;
 				var h = Math.min(Math.ceil(mins.y + 1), canvas.height) - y;
-
-				// void drawImage(HTMLVideoElement image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh);
-				fg.ctx.drawImage(bg.canvas, x, y, w, h, x, y, w, h);
+				
+				if (x >= 0 && y >= 0 && w > 0 && h > 0) {
+					// void drawImage(HTMLVideoElement image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh);
+					fg.ctx.drawImage(bg.canvas, x, y, w, h, x, y, w, h);
+				}
 			}
 		}
 		else {
@@ -654,7 +673,7 @@ App = function() {
 
 		// Edit mode drawing
 		if (editMode) {
-			drawEditMode(fg.ctx);			
+			drawEditMode(fg.ctx);
 		}
 
 		// Draw contacts
@@ -670,7 +689,7 @@ App = function() {
 					dirtyBounds.addBounds2(mins, maxs);
 					renderer.drawBox(fg.ctx, mins, maxs, 1, "#F00");
 					//dirtyBounds.addBounds2();
-					//renderer.drawArrow(fg.ctx, con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), 1, "#F00");
+					//renderer.drawArrow(fg.ctx, con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), 1, 8, "#F00");
 				}
 			}
 		}		
@@ -765,29 +784,74 @@ App = function() {
 		ctx.restore();
 	}
 
+	function drawGizmo(ctx) {
+		ctx.save();
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+		var center = worldToCanvas(transformCenter);		
+
+		var extent = new vec2(GIZMO_RADIUS / view.scale, GIZMO_RADIUS / view.scale);
+		var mins = vec2.sub(transformCenter, extent);
+		var maxs = vec2.add(transformCenter, extent);
+		var bounds = new Bounds(mins, maxs);
+		bounds.expand(2, 2); // expand for outline
+
+		if (transformMode == TM_TRANSLATE) {
+			var p1 = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
+			var p2 = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
+
+			var x_color = transformAxis == TRANSFORM_AXIS_X ? "#FA0" : "#F00";
+			var y_color = transformAxis == TRANSFORM_AXIS_Y ? "#FA0" : "#0F0";
+
+			renderer.drawArrow(ctx, vec2.add(center, new vec2(GIZMO_INNER_OFFSET, 0)), p1, 2, 15, x_color);
+			renderer.drawArrow(ctx, vec2.add(center, new vec2(0, -GIZMO_INNER_OFFSET)), p2, 2, 15, y_color);			
+			
+			var mins = vec2.sub(center, new vec2(GIZMO_INNER_RADIUS, -GIZMO_INNER_RADIUS));
+			var maxs = vec2.add(center, new vec2(GIZMO_INNER_RADIUS, -GIZMO_INNER_RADIUS));
+			renderer.drawBox(ctx, mins, maxs, 0, "", transformAxis == TRANSFORM_AXIS_XY ? "#FA0" : "#FF0");
+		}
+		else if (transformMode == TM_SCALE) {
+			var p1 = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
+			var p2 = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
+			var boxsize = new vec2(GIZMO_SCALE_AXIS_BOX_EXTENT, GIZMO_SCALE_AXIS_BOX_EXTENT);
+
+			var x_color = transformAxis == TRANSFORM_AXIS_X ? "#FA0" : "#F00";
+			var y_color = transformAxis == TRANSFORM_AXIS_Y ? "#FA0" : "#0F0";
+
+			renderer.drawLine(ctx, vec2.add(center, new vec2(GIZMO_INNER_OFFSET, 0)), p1, 2, x_color);
+			renderer.drawLine(ctx, vec2.add(center, new vec2(0, -GIZMO_INNER_OFFSET)), p2, 2, y_color);
+
+			renderer.drawBox(ctx, vec2.sub(p1, boxsize), vec2.add(p1, boxsize), 0, x_color);
+			renderer.drawBox(ctx, vec2.sub(p2, boxsize), vec2.add(p2, boxsize), 0, y_color);
+
+			renderer.drawCircle(ctx, center, GIZMO_INNER_RADIUS, undefined, 2, "", transformAxis == TRANSFORM_AXIS_XY ? "#FA0" : "#FF0");
+
+			bounds.expand(GIZMO_SCALE_AXIS_BOX_EXTENT / view.scale, GIZMO_SCALE_AXIS_BOX_EXTENT / view.scale);
+		}
+		else if (transformMode == TM_ROTATE) {
+			//renderer.drawDashLine(ctx, vec2.sub(center, new vec2(15, 0)), vec2.add(center, new vec2(15, 0)), 1, 20, "#00F");
+			//renderer.drawDashLine(ctx, vec2.sub(center, new vec2(0, 15)), vec2.add(center, new vec2(0, 15)), 1, 20, "#00F");
+			var color = transformAxis & TRANSFORM_AXIS_Z ? "#FA0" : "#00F";
+
+			renderer.drawCircle(ctx, center, 2, undefined, 0, color);
+			renderer.drawCircle(ctx, center, GIZMO_RADIUS, undefined, 2, "", color);
+			
+			if (mouseDownMoving && transformAxis & TRANSFORM_AXIS_Z) {
+				var r = vec2.scale(vec2.normalize(vec2.sub(mousePosition, center)), GIZMO_RADIUS);
+				var p = vec2.add(center, r);
+				renderer.drawLine(ctx, center, p, 2, "#F8F");
+			}
+		}
+
+		dirtyBounds.addBounds(bounds);
+
+		ctx.restore();
+	}
+
 	function drawEditMode(ctx) {
 		// Draw joints
 		for (var i in space.jointHash) {
 			drawJoint(ctx, space.jointHash[i], "#F0F");
-		}
-
-		if (transformMode == TM_ROTATE) {
-			var radius = 5 / view.scale;
-
-			renderer.drawCircle(ctx, rotationCenter, radius, undefined, 1, "", "#F80");
-
-			var mins = vec2.sub(rotationCenter, new vec2(radius, radius));
-			var maxs = vec2.add(rotationCenter, new vec2(radius, radius));
-			var bounds = new Bounds(mins, maxs);
-			bounds.expand(2, 2); // for outline
-
-			if (mouseDownMoving && isValidFeature(clickedFeature)) {
-				var p = canvasToWorld(mousePosition);
-				renderer.drawDashLine(ctx, rotationCenter, p, 2, 10, "#F80");
-				bounds.addPoint(p);
-			}
-
-			dirtyBounds.addBounds(bounds);
 		}
 		
 		if (selectionMode == SM_VERTICES) {
@@ -916,6 +980,10 @@ App = function() {
 				}
 			}
 		}
+
+		if (transformMode != TM_SELECT && selectedFeatureArr.length > 0) {
+			drawGizmo(ctx);
+		}
 	}
 
 	function drawVertex(ctx, v, color) {
@@ -1007,10 +1075,10 @@ App = function() {
 
 	function getFeatureByPoint(p) {
 		if (selectionMode == SM_VERTICES) {
-			return space.findVertexByPoint(p, VERTEX_SELETABLE_RADIUS, selectedFeatureArr[0]);
+			return space.findVertexByPoint(p, SELECTABLE_POINT_DIST_THREHOLD, selectedFeatureArr[0]);
 		}
 		else if (selectionMode == SM_EDGES) {
-			return space.findEdgeByPoint(p, EDGE_SELECTABLE_RADIUS, selectedFeatureArr[0]);
+			return space.findEdgeByPoint(p, SELECTABLE_LINE_DIST_THREHOLD, selectedFeatureArr[0]);
 		}
 		else if (selectionMode == SM_SHAPES) {
 			return space.findShapeByPoint(p, selectedFeatureArr[0]);
@@ -1050,30 +1118,30 @@ App = function() {
 		var feature;
 
 		if (selectionMode == SM_VERTICES) {
-			var vertex = space.findVertexByPoint(p, VERTEX_SELETABLE_RADIUS, selectedFeatureArr[0]);
+			var vertex = space.findVertexByPoint(p, SELECTABLE_POINT_DIST_THREHOLD, selectedFeatureArr[0]);
 			if (vertex == -1) {
 				return false;
 			}
 
 			feature = vertex;
 
-			// Set rotationCenter
+			// Set transformCenter
 			var shape = space.shapeById((vertex >> 16) & 0xFFFF);
 			var body = shape.body;
-			rotationCenter.copy(body.localToWorld(shape.centroid()));
+			transformCenter.copy(body.localToWorld(shape.centroid()));
 		}
 		else if (selectionMode == SM_EDGES) {
-			var edge = space.findEdgeByPoint(p, EDGE_SELECTABLE_RADIUS, selectedFeatureArr[0]);
+			var edge = space.findEdgeByPoint(p, SELECTABLE_LINE_DIST_THREHOLD, selectedFeatureArr[0]);
 			if (edge == -1) {
 				return false;
 			}
 			
 			feature = edge;
 
-			// Set rotationCenter
+			// Set transformCenter
 			var shape = space.shapeById((edge >> 16) & 0xFFFF);
 			var body = shape.body;
-			rotationCenter.copy(body.localToWorld(shape.centroid()));
+			transformCenter.copy(body.localToWorld(shape.centroid()));
 		}
 		else if (selectionMode == SM_SHAPES) {
 			var shape = space.findShapeByPoint(p, selectedFeatureArr[0]);
@@ -1083,9 +1151,9 @@ App = function() {
 
 			feature = shape;
 
-			// Set rotationCenter
+			// Set transformCenter
 			var body = shape.body;
-			rotationCenter.copy(shape.body.localToWorld(shape.centroid()));
+			transformCenter.copy(shape.body.localToWorld(shape.centroid()));
 		}
 		else if (selectionMode == SM_BODIES) {
 			var shape = space.findShapeByPoint(p, selectedFeatureArr[0]);
@@ -1095,8 +1163,8 @@ App = function() {
 
 			feature = shape.body;
 
-			// Set rotationCenter
-			rotationCenter.copy(shape.body.p);
+			// Set transformCenter
+			transformCenter.copy(shape.body.p);
 		}
 		else if (selectionMode == SM_JOINTS) {	
 			return false;
@@ -1236,13 +1304,8 @@ App = function() {
 						selectedFeatureArr = [];
 					}
 				}
-				else if (transformMode == TM_TRANSLATE) {					
-					if (!doSelect(p, SF_REPLACE)) {
-						selectedFeatureArr = [];
-					}
-				}
-				else if (transformMode == TM_ROTATE) {
-					rotationCenter.copy(p);
+				else {
+					transformCenter.copy(p);
 				}
 			}
 		}
@@ -1266,6 +1329,66 @@ App = function() {
 		bg.outdated = true;
 	}
 
+	function checkHighlight(point) {
+		highlightFeatureArr = [];
+		transformAxis = 0;
+
+		if (transformMode == TM_SELECT) {
+			var feature = getFeatureByPoint(canvasToWorld(point));
+
+			if (isValidFeature(feature)) {
+				highlightFeatureArr[0] = feature;
+			}
+		}
+		else if (transformMode == TM_TRANSLATE) {
+			var center = worldToCanvas(transformCenter);
+
+			if (Math.abs(point.x - center.x) < GIZMO_INNER_RADIUS && Math.abs(point.y - center.y) < GIZMO_INNER_RADIUS) {
+				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
+			}
+			else {	
+				var dx = point.x - center.x;
+				var dy = -(point.y - center.y);
+
+				if (dx <= GIZMO_RADIUS && dx >= GIZMO_INNER_OFFSET && Math.abs(dy) < SELECTABLE_LINE_DIST_THREHOLD) {
+					transformAxis = TRANSFORM_AXIS_X;
+				}
+				else if (dy <= GIZMO_RADIUS && dy >= GIZMO_INNER_OFFSET && Math.abs(dx) < SELECTABLE_LINE_DIST_THREHOLD) {
+					transformAxis = TRANSFORM_AXIS_Y;					
+				}
+			}
+		}
+		else if (transformMode == TM_SCALE) {
+			var center = worldToCanvas(transformCenter);			
+			var dsq = vec2.distsq(point, center);
+
+			if (dsq < GIZMO_INNER_RADIUS * GIZMO_INNER_RADIUS) {
+				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
+			}
+			else {
+				var px = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
+
+				if (Math.abs(point.x - px.x) < GIZMO_SCALE_AXIS_BOX_EXTENT && Math.abs(point.y - px.y) < GIZMO_SCALE_AXIS_BOX_EXTENT) {
+					transformAxis = TRANSFORM_AXIS_X;
+				}
+				else {
+					var py = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
+					if (Math.abs(point.x - py.x) < GIZMO_SCALE_AXIS_BOX_EXTENT && Math.abs(point.y - py.y) < GIZMO_SCALE_AXIS_BOX_EXTENT) {
+						transformAxis = TRANSFORM_AXIS_Y;
+					}
+				}
+			}
+		}
+		else if (transformMode == TM_ROTATE) {
+			var dsq = vec2.distsq(point, worldToCanvas(transformCenter));
+
+			if (dsq > (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) &&
+				dsq < (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD)) {
+				transformAxis = TRANSFORM_AXIS_Z;
+			}
+		}
+	}
+
 	function onMouseMove(ev) {
 		mousePosition = getMousePosition(ev);
 
@@ -1277,15 +1400,12 @@ App = function() {
 				else {
 					scrollView(-(mousePosition.x - mousePositionOld.x), mousePosition.y - mousePositionOld.y);
 				}
-			}		
+			}
 		}
 		else {
 			highlightFeatureArr = [];
 
-			if (mouseDown) {
-				var dx = (mousePosition.x - mousePositionOld.x) / view.scale;
-				var dy = -(mousePosition.y - mousePositionOld.y) / view.scale;
-
+			if (mouseDown) {				
 				if (ev.altKey) {					
 					scrollView(-(mousePosition.x - mousePositionOld.x), mousePosition.y - mousePositionOld.y);
 				}
@@ -1296,10 +1416,18 @@ App = function() {
 
 					doSelect(canvasToWorld(mousePosition), ev.metaKey ? SF_XOR : SF_ADDITIVE);
 				}
-				else if ((transformMode == TM_TRANSLATE || transformMode == TM_ROTATE) && isValidFeature(clickedFeature)) {
-					if (selectedFeatureArr.indexOf(clickedFeature) == -1) {
-						selectedFeatureArr = []
-						selectedFeatureArr.push(clickedFeature);
+				else if ((transformMode == TM_TRANSLATE || transformMode == TM_SCALE || transformMode == TM_ROTATE) && transformAxis) {
+					var dx = (mousePosition.x - mousePositionOld.x) / view.scale;
+					var dy = -(mousePosition.y - mousePositionOld.y) / view.scale;
+
+					if (transformMode == TM_TRANSLATE) {
+						if (transformAxis & TRANSFORM_AXIS_X) {
+							transformCenter.x += dx;
+						}
+
+						if (transformAxis & TRANSFORM_AXIS_Y) {
+							transformCenter.y += dy;
+						}
 					}
 
 					if (selectionMode == SM_VERTICES) {
@@ -1312,15 +1440,45 @@ App = function() {
 
 							if (transformMode == TM_TRANSLATE) {
 								var delta = new vec2(dx, dy);
+								if (!(transformAxis & TRANSFORM_AXIS_X)) {
+									delta.x = 0;
+								}
+
+								if (!(transformAxis & TRANSFORM_AXIS_Y)) {
+									delta.y = 0;
+								}
+
 								setShapeVertex(shape, index, vec2.add(v, delta));
 							}
-							else if (transformMode == TM_ROTATE) {
-								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
-								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
-								var da = p2.toAngle() - p1.toAngle();
-								var wv = vec2.add(vec2.rotate(vec2.sub(v, rotationCenter), da), rotationCenter);
+							else if (transformMode == TM_SCALE) {
+								var p1 = vec2.sub(canvasToWorld(mousePositionOld), transformCenter);
+								if (Math.abs(p1.x) < 1) { if (p1.x >= 0) p1.x = 1; else p1.x = -1; }
+								if (Math.abs(p1.y) < 1) { if (p1.y >= 0) p1.y = 1; else p1.y = -1; }
+
+								var p2 = vec2.sub(canvasToWorld(mousePosition), transformCenter);
+								if (Math.abs(p2.x) < 1) { if (p2.x >= 0) p2.x = 1; else p2.x = -1; }
+								if (Math.abs(p2.y) < 1) { if (p2.y >= 0) p2.y = 1; else p2.y = -1; }
+								
+								var scale = new vec2(p2.x / p1.x, p2.y / p1.y);
+
+								if (!(transformAxis & TRANSFORM_AXIS_X)) {
+									scale.x = 1;
+								}
+
+								if (!(transformAxis & TRANSFORM_AXIS_Y)) {
+									scale.y = 1;
+								}
+								
+								var wv = vec2.add(vec2.scale2(vec2.sub(v, transformCenter), scale), transformCenter);
 								setShapeVertex(shape, index, wv);
 							}
+							else if (transformMode == TM_ROTATE) {
+								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), transformCenter));
+								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), transformCenter));
+								var da = p2.toAngle() - p1.toAngle();
+								var wv = vec2.add(vec2.rotate(vec2.sub(v, transformCenter), da), transformCenter);
+								setShapeVertex(shape, index, wv);
+							}							
 
 							shape.finishVerts();
 							shape.body.resetMassData();
@@ -1346,34 +1504,69 @@ App = function() {
 							if (transformMode == TM_TRANSLATE) {
 								var delta = new vec2(dx, dy);
 
+								if (!(transformAxis & TRANSFORM_AXIS_X)) {
+									delta.x = 0;
+								}
+
+								if (!(transformAxis & TRANSFORM_AXIS_Y)) {
+									delta.y = 0;
+								}
+
 								if (markedVertexArr.indexOf(vertex1) == -1) {
 									markedVertexArr.push(vertex1);
-
 									setShapeVertex(shape, index, vec2.add(v1, delta));
 								}
 
 								if (markedVertexArr.indexOf(vertex2) == -1) {
 									markedVertexArr.push(vertex2);
-
 									setShapeVertex(shape, index + 1, vec2.add(v2, delta));
 								}
 							}
+							else if (transformMode == TM_SCALE) {
+								var p1 = vec2.sub(canvasToWorld(mousePositionOld), transformCenter);
+								if (Math.abs(p1.x) < 1) { if (p1.x >= 0) p1.x = 1; else p1.x = -1; }
+								if (Math.abs(p1.y) < 1) { if (p1.y >= 0) p1.y = 1; else p1.y = -1; }
+
+								var p2 = vec2.sub(canvasToWorld(mousePosition), transformCenter);
+								if (Math.abs(p2.x) < 1) { if (p2.x >= 0) p2.x = 1; else p2.x = -1; }
+								if (Math.abs(p2.y) < 1) { if (p2.y >= 0) p2.y = 1; else p2.y = -1; }
+
+								var scale = new vec2(p2.x / p1.x, p2.y / p1.y);
+
+								if (!(transformAxis & TRANSFORM_AXIS_X)) {
+									scale.x = 1;
+								}
+
+								if (!(transformAxis & TRANSFORM_AXIS_Y)) {
+									scale.y = 1;
+								}
+																
+								if (markedVertexArr.indexOf(vertex1) == -1) {
+									markedVertexArr.push(vertex1);
+									var wv = vec2.add(vec2.scale2(vec2.sub(v1, transformCenter), scale), transformCenter);
+									setShapeVertex(shape, index, wv);	
+								}
+
+								if (markedVertexArr.indexOf(vertex2) == -1) {
+									markedVertexArr.push(vertex2);
+									var wv = vec2.add(vec2.scale2(vec2.sub(v2, transformCenter), scale), transformCenter);
+									setShapeVertex(shape, index + 1, wv);
+								}
+							}
 							else if (transformMode == TM_ROTATE) {
-								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
-								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
+								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), transformCenter));
+								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), transformCenter));
 								var da = p2.toAngle() - p1.toAngle();
 								
 								if (markedVertexArr.indexOf(vertex1) == -1) {
 									markedVertexArr.push(vertex1);
-
-									var wv = vec2.add(vec2.rotate(vec2.sub(v1, rotationCenter), da), rotationCenter);
+									var wv = vec2.add(vec2.rotate(vec2.sub(v1, transformCenter), da), transformCenter);
 									setShapeVertex(shape, index, wv);
 								}
 
 								if (markedVertexArr.indexOf(vertex2) == -1) {
 									markedVertexArr.push(vertex2);
-
-									var wv = vec2.add(vec2.rotate(vec2.sub(v2, rotationCenter), da), rotationCenter);
+									var wv = vec2.add(vec2.rotate(vec2.sub(v2, transformCenter), da), transformCenter);
 									setShapeVertex(shape, index + 1, wv);
 								}
 							}
@@ -1385,6 +1578,7 @@ App = function() {
 						}
 					}
 					else if (selectionMode == SM_SHAPES) {
+						// Copy shapes
 						if (!mouseDownMoving && ev.shiftKey) {
 							for (var i = 0; i < selectedFeatureArr.length; i++) {
 								var shape = selectedFeatureArr[i];
@@ -1404,6 +1598,14 @@ App = function() {
 							if (transformMode == TM_TRANSLATE) {
 								var delta = new vec2(dx, dy);
 
+								if (!(transformAxis & TRANSFORM_AXIS_X)) {
+									delta.x = 0;
+								}
+
+								if (!(transformAxis & TRANSFORM_AXIS_Y)) {
+									delta.y = 0;
+								}
+
 								switch (shape.type) {
 								case Shape.TYPE_CIRCLE:
 									var wc = vec2.add(shape.tc, delta);
@@ -1416,38 +1618,80 @@ App = function() {
 									shape.b.copy(body.worldToLocal(wb));
 									break;
 								case Shape.TYPE_POLY:
-									for (var j = 0; j < shape.tverts.length; j++){
+									for (var j = 0; j < shape.tverts.length; j++) {
 										var wv = vec2.add(shape.tverts[j], delta);
 										shape.verts[j].copy(body.worldToLocal(wv));
 									}
 									break;
 								}
 							}
-							else if (transformMode == TM_ROTATE) {
-								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
-								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
-								var da = p2.toAngle() - p1.toAngle();
+							else if (transformMode == TM_SCALE) {								
+								var p1 = vec2.sub(mousePositionOld, worldToCanvas(transformCenter));
+								var p2 = vec2.sub(mousePosition, worldToCanvas(transformCenter));
+
+								if (transformAxis == TRANSFORM_AXIS_XY) {
+									var offset = new vec2(GIZMO_RADIUS, -GIZMO_RADIUS);
+									
+									p1.addself(offset);
+									p2.addself(offset);
+								}
+								
+								var scale = new vec2(p2.x / p1.x, p2.y / p1.y);
+
+								if (!(transformAxis & TRANSFORM_AXIS_X)) {
+									scale.x = 1;
+								}
+
+								if (!(transformAxis & TRANSFORM_AXIS_Y)) {
+									scale.y = 1;
+								}
 
 								switch (shape.type) {
-								case Shape.TYPE_CIRCLE:									
-									var wc = vec2.add(vec2.rotate(vec2.sub(shape.tc, rotationCenter), da), rotationCenter);
-									shape.c.copy(body.worldToLocal(wc));
+								case Shape.TYPE_CIRCLE:
+									var wv = vec2.add(vec2.scale2(vec2.sub(shape.tc, transformCenter), scale), transformCenter);
+									shape.c.copy(body.worldToLocal(wv));
+									shape.r *= p2.length() / p1.length();
 									break;
 								case Shape.TYPE_SEGMENT:
-									var wa = vec2.add(vec2.rotate(vec2.sub(shape.ta, rotationCenter), da), rotationCenter);
+									var wa = vec2.add(vec2.scale2(vec2.sub(shape.ta, transformCenter), scale), transformCenter);
+									var wv = vec2.add(vec2.scale2(vec2.sub(shape.ta, transformCenter), scale), transformCenter);
 									shape.a.copy(body.worldToLocal(wa));
-
-									var wb = vec2.add(vec2.rotate(vec2.sub(shape.tb, rotationCenter), da), rotationCenter);
 									shape.b.copy(body.worldToLocal(wb));
+									shape.r *= p2.length() / p1.length();
 									break;
 								case Shape.TYPE_POLY:
-									for (var j = 0; j < shape.tverts.length; j++){
-										var wv = vec2.add(vec2.rotate(vec2.sub(shape.tverts[j], rotationCenter), da), rotationCenter);
+									for (var j = 0; j < shape.tverts.length; j++) {
+										var wv = vec2.add(vec2.scale2(vec2.sub(shape.tverts[j], transformCenter), scale), transformCenter);
 										shape.verts[j].copy(body.worldToLocal(wv));
 									}
 									break;
 								}
 							}
+							else if (transformMode == TM_ROTATE) {
+								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), transformCenter));
+								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), transformCenter));
+								var da = p2.toAngle() - p1.toAngle();
+
+								switch (shape.type) {
+								case Shape.TYPE_CIRCLE:									
+									var wc = vec2.add(vec2.rotate(vec2.sub(shape.tc, transformCenter), da), transformCenter);
+									shape.c.copy(body.worldToLocal(wc));
+									break;
+								case Shape.TYPE_SEGMENT:
+									var wa = vec2.add(vec2.rotate(vec2.sub(shape.ta, transformCenter), da), transformCenter);
+									shape.a.copy(body.worldToLocal(wa));
+
+									var wb = vec2.add(vec2.rotate(vec2.sub(shape.tb, transformCenter), da), transformCenter);
+									shape.b.copy(body.worldToLocal(wb));
+									break;
+								case Shape.TYPE_POLY:
+									for (var j = 0; j < shape.tverts.length; j++) {
+										var wv = vec2.add(vec2.rotate(vec2.sub(shape.tverts[j], transformCenter), da), transformCenter);
+										shape.verts[j].copy(body.worldToLocal(wv));
+									}
+									break;
+								}
+							}							
 
 							shape.finishVerts();
 							shape.body.resetMassData();
@@ -1475,15 +1719,23 @@ App = function() {
 							var a = body.a;
 
 							if (transformMode == TM_TRANSLATE) {
-								p.x += dx;
-								p.y += dy;
+								if (transformAxis & TRANSFORM_AXIS_X) {
+									p.x += dx;
+								}
+
+								if (transformAxis & TRANSFORM_AXIS_Y) {
+									p.y += dy;
+								}
+							}
+							else if (transformMode == TM_SCALE) {
+								// NOT AVAILABLE
 							}
 							else if (transformMode == TM_ROTATE) {
-								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), rotationCenter));
-								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), rotationCenter));
+								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), transformCenter));
+								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), transformCenter));
 								var da = p2.toAngle() - p1.toAngle();
 
-								p = vec2.add(vec2.rotate(vec2.sub(p, rotationCenter), da), rotationCenter);								
+								p = vec2.add(vec2.rotate(vec2.sub(p, transformCenter), da), transformCenter);								
 								a += da;
 							}
 
@@ -1493,20 +1745,6 @@ App = function() {
 					}
 					else if (selectionMode == SM_JOINTS) {
 						
-					}
-				}
-			}
-			else {
-				if (transformMode == TM_SELECT || transformMode == TM_TRANSLATE) {
-					var feature = getFeatureByPoint(canvasToWorld(mousePosition));
-					if (isValidFeature(feature)) {
-						highlightFeatureArr[0] = feature;
-					}
-				}
-				else if (transformMode == TM_ROTATE) {
-					var feature = getFeatureByPoint(canvasToWorld(mousePosition));
-					if (isValidFeature(feature) && selectedFeatureArr.indexOf(feature) != -1) {
-						highlightFeatureArr[0] = feature;
 					}
 				}
 			}
@@ -1651,9 +1889,13 @@ App = function() {
 			ev = event;
 		}
 
+		if (ev.metaKey) {
+			return;
+		}
+
 		switch (ev.keyCode) {
 		case 17: // Ctrl
-			ev.preventDefault();			
+			ev.preventDefault();
 			break;
 		case 8: // Delete
 			if (editMode) {
@@ -1678,6 +1920,16 @@ App = function() {
 			}			
 			break;
 		case 69: // 'e'
+			if (ev.ctrlKey) {
+				onClickedEdit();
+				ev.preventDefault();
+			}
+			else if (editMode) {
+				onClickedTransformMode("scale");
+				ev.preventDefault();
+			}
+			break;
+		case 82: // 'r'
 			if (editMode) {
 				onClickedTransformMode("rotate");
 				ev.preventDefault();
@@ -1689,8 +1941,7 @@ App = function() {
 		case 52: // '4'
 		case 53: // '5'
 			if (editMode) {
-				onClickedSelectMode(["vertices", "edges", "shapes", "bodies", "joints"][(ev.keyCode - 48) - 1]);
-				ev.preventDefault();
+				onClickedSelectMode(["vertices", "edges", "shapes", "bodies", "joints"][(ev.keyCode - 48) - 1]);				
 			}
 			break;
 		case 32: // 'space'
@@ -1812,7 +2063,7 @@ App = function() {
 	}
 
 	function onClickedTransformMode(value) {
-		transformMode = { select: TM_SELECT, translate: TM_TRANSLATE, rotate: TM_ROTATE, scale: TM_SCALE }[value];
+		transformMode = { select: TM_SELECT, translate: TM_TRANSLATE, scale: TM_SCALE, rotate: TM_ROTATE }[value];		
 
 		updateToolbar();		
 

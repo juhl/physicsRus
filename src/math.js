@@ -75,6 +75,13 @@ vec2.prototype.scale = function(s) {
 	return this;
 }
 
+vec2.prototype.scale2 = function(s) {
+	this.x *= s.x;
+	this.y *= s.y;
+
+	return this;
+}
+
 vec2.prototype.mad = function(v, s) {
 	this.x += v.x * s;
 	this.y += v.y * s;
@@ -83,6 +90,13 @@ vec2.prototype.mad = function(v, s) {
 vec2.prototype.neg = function() {
 	this.x *= -1;
 	this.y *= -1;
+
+	return this;
+}
+
+vec2.prototype.rcp = function() {
+	this.x = 1 / this.x;
+	this.y = 1 / this.y;
 
 	return this;
 }
@@ -144,12 +158,20 @@ vec2.scale = function(v, s) {
 	return new vec2(v.x * s, v.y * s);
 }
 
+vec2.scale2 = function(v, s) {
+	return new vec2(v.x * s.x, v.y * s.y);
+}
+
 vec2.mad = function(v1, v2, s) {
 	return new vec2(v1.x + v2.x * s, v1.y + v2.y * s);
 }
 
 vec2.neg = function(v) {
 	return new vec2(-v.x, -v.y);
+}
+
+vec2.rcp = function(v) {
+	return new vec2(1 / v.x, 1 / v.y);
 }
 
 vec2.normalize = function(v) {
@@ -305,6 +327,14 @@ vec3.prototype.neg = function() {
 	this.x *= -1;
 	this.y *= -1;
 	this.z *= -1;
+
+	return this;
+}
+
+vec3.prototype.rcp = function() {
+	this.x = 1 / this.x;
+	this.y = 1 / this.y;
+	this.z = 1 / this.z;
 
 	return this;
 }
