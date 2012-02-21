@@ -1372,16 +1372,20 @@ App = function() {
 				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
 			}
 			else {
+				var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + SELECTABLE_LINE_DIST_THREHOLD;
+				
 				var px = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
 				var dx = Math.abs(point.x - px.x);
-				var dy = Math.abs(point.y - px.y);
-				var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + SELECTABLE_LINE_DIST_THREHOLD;
+				var dy = Math.abs(point.y - px.y);				
 
 				if (dx < cd && dy < cd) {
 					transformAxis = TRANSFORM_AXIS_X;
 				}
-				else {
+				else {					
 					var py = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
+					var dx = Math.abs(point.x - py.x);
+					var dy = Math.abs(point.y - py.y);
+
 					if (dx < cd && dy < cd) {
 						transformAxis = TRANSFORM_AXIS_Y;
 					}
