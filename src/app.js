@@ -37,7 +37,7 @@ App = function() {
 	var gestureScale;
 
 	var VERTEX_SELETABLE_RADIUS = isAppleMobileDevice() ? 15 : 5;
-	var EDGE_SELECTABLE_RADIUS = isAppleMobileDevice() ? 12 : 4;
+	var EDGE_SELECTABLE_RADIUS = isAppleMobileDevice() ? 10 : 4;
 
 	// selection mode
 	var SM_VERTICES = 0;
@@ -94,6 +94,11 @@ App = function() {
 	var showBounds = false;
 	var showContacts = false;
 	var showStats = false;
+
+	function main() {
+		onReady();
+		onLoad();
+	}
 
 	function onReady() {
 		mainView = document.getElementById("main_view");
@@ -1199,7 +1204,7 @@ App = function() {
 			if (shape) {
 				mouseBody.p.copy(p);
 				mouseJoint = new MouseJoint(mouseBody, shape.body, p);
-				mouseJoint.maxForce = 8000000;
+				mouseJoint.maxForce = shape.body.m * 20000;
 				space.addJoint(mouseJoint);
 			}
 		}
@@ -1306,12 +1311,12 @@ App = function() {
 						for (var i = 0; i < selectedFeatureArr.length; i++) {
 							var vertex = selectedFeatureArr[i];
 							var shape = space.shapeById((vertex >> 16) & 0xFFFF);
-							var body = shape.body;
-							var delta = new vec2(dx, dy);
+							var body = shape.body;							
 							var index = vertex & 0xFFFF;
 							var v = getShapeVertex(shape, index);
 
 							if (transformMode == TM_TRANSLATE) {
+								var delta = new vec2(dx, dy);
 								setShapeVertex(shape, index, vec2.add(v, delta));
 							}
 							else if (transformMode == TM_ROTATE) {
@@ -1334,8 +1339,7 @@ App = function() {
 						for (var i = 0; i < selectedFeatureArr.length; i++) {
 							var edge = selectedFeatureArr[i];
 							var shape = space.shapeById((edge >> 16) & 0xFFFF);
-							var body = shape.body;
-							var delta = new vec2(dx, dy);
+							var body = shape.body;							
 							var index = edge & 0xFFFF;
 
 							var v1 = getShapeVertex(shape, index);
@@ -1345,6 +1349,8 @@ App = function() {
 							var vertex2 = (shape.id << 16) | ((index + 1) % shape.verts.length);
 
 							if (transformMode == TM_TRANSLATE) {
+								var delta = new vec2(dx, dy);
+
 								if (markedVertexArr.indexOf(vertex1) == -1) {
 									markedVertexArr.push(vertex1);
 
@@ -1398,10 +1404,11 @@ App = function() {
 
 						for (var i = 0; i < selectedFeatureArr.length; i++) {
 							var shape = selectedFeatureArr[i];
-							var body = shape.body;
-							var delta = new vec2(dx, dy);
+							var body = shape.body;							
 
-							if (transformMode == TM_TRANSLATE) {								
+							if (transformMode == TM_TRANSLATE) {
+								var delta = new vec2(dx, dy);
+
 								switch (shape.type) {
 								case Shape.TYPE_CIRCLE:
 									var wc = vec2.add(shape.tc, delta);
@@ -1439,7 +1446,7 @@ App = function() {
 									shape.b.copy(body.worldToLocal(wb));
 									break;
 								case Shape.TYPE_POLY:
-									for (var j = 0; j < shape.verts.length; j++){
+									for (var j = 0; j < shape.tverts.length; j++){
 										var wv = vec2.add(vec2.rotate(vec2.sub(shape.tverts[j], rotationCenter), da), rotationCenter);
 										shape.verts[j].copy(body.worldToLocal(wv));
 									}
@@ -1944,8 +1951,8 @@ App = function() {
 		return false;
 	}
 
-	return { onReady: onReady, onLoad: onLoad };
+	return { main: main, onReady: onReady, onLoad: onLoad };
 }();
 
-ready(App.onReady);
-addEvent(window, "load", App.onLoad);
+//ready(App.onReady);
+//addEvent(window, "load", App.onLoad);
