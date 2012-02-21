@@ -1529,14 +1529,14 @@ App = function() {
 
 	function onMouseWheel(ev) {
 		// Zoom in and out using vertical mouse wheel
-		var ds = -e.wheelDeltaY * 0.001;
+		var ds = -ev.wheelDeltaY * 0.001;
 		var oldViewScale = view.scale;
 		view.scale = Math.clamp(oldViewScale + ds, view.minScale, view.maxScale);
 		ds = view.scale - oldViewScale;
 
 		// Adjust view origin for focused zoom in and out
 		// p = (1 + ds) * p - ds * p
-		var p = canvasToWorld(getMousePosition(e));
+		var p = canvasToWorld(getMousePosition(ev));
 		view.origin.x += p.x * ds;
 		view.origin.y += p.y * ds;
 
@@ -1557,16 +1557,16 @@ App = function() {
 	function touchHandler(ev) {
 		if (ev.touches.length <= 1) {
 			var first = ev.changedTouches[0];
-			var type = {touchstart: "mousedown", touchmove: "mousemove", touchend: "mouseup"}[ev.type] || "";			
+			var type = {touchstart: "mousedown", touchmove: "mousemove", touchend: "mouseup"}[ev.type] || "";
 			//initMouseEvent(type, canBubble, cancelable, view, clickCount, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
-			var simulatedEvent = document.createEvent("MouseEvent");			
+			var simulatedEvent = document.createEvent("MouseEvent");
 			simulatedEvent.initMouseEvent(type, true, true, window, 1, first.screenX, first.screenY, first.clientX, first.clientY, false, false, false, false, 0, null);
 			first.target.dispatchEvent(simulatedEvent);
 		}
 		else {
 			var handler = {touchstart: onTouchStart, touchmove: onTouchMove, touchend: onTouchEnd}[ev.type];
 			if (handler) {
-				handler(e);
+				handler(ev);
 			}
 		}
 
