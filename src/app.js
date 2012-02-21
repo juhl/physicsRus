@@ -1456,13 +1456,15 @@ App = function() {
 								setShapeVertex(shape, index, vec2.add(v, delta));
 							}
 							else if (transformMode == TM_SCALE) {
-								var p1 = vec2.sub(canvasToWorld(mousePositionOld), transformCenter);
-								if (Math.abs(p1.x) < 1) { if (p1.x >= 0) p1.x = 1; else p1.x = -1; }
-								if (Math.abs(p1.y) < 1) { if (p1.y >= 0) p1.y = 1; else p1.y = -1; }
+								var p1 = vec2.sub(mousePositionOld, worldToCanvas(transformCenter));
+								var p2 = vec2.sub(mousePosition, worldToCanvas(transformCenter));
 
-								var p2 = vec2.sub(canvasToWorld(mousePosition), transformCenter);
-								if (Math.abs(p2.x) < 1) { if (p2.x >= 0) p2.x = 1; else p2.x = -1; }
-								if (Math.abs(p2.y) < 1) { if (p2.y >= 0) p2.y = 1; else p2.y = -1; }
+								if (transformAxis == TRANSFORM_AXIS_XY) {
+									var offset = new vec2(GIZMO_RADIUS, -GIZMO_RADIUS);
+									
+									p1.addself(offset);
+									p2.addself(offset);
+								}
 								
 								var scale = new vec2(p2.x / p1.x, p2.y / p1.y);
 
@@ -1528,14 +1530,16 @@ App = function() {
 								}
 							}
 							else if (transformMode == TM_SCALE) {
-								var p1 = vec2.sub(canvasToWorld(mousePositionOld), transformCenter);
-								if (Math.abs(p1.x) < 1) { if (p1.x >= 0) p1.x = 1; else p1.x = -1; }
-								if (Math.abs(p1.y) < 1) { if (p1.y >= 0) p1.y = 1; else p1.y = -1; }
+								var p1 = vec2.sub(mousePositionOld, worldToCanvas(transformCenter));
+								var p2 = vec2.sub(mousePosition, worldToCanvas(transformCenter));
 
-								var p2 = vec2.sub(canvasToWorld(mousePosition), transformCenter);
-								if (Math.abs(p2.x) < 1) { if (p2.x >= 0) p2.x = 1; else p2.x = -1; }
-								if (Math.abs(p2.y) < 1) { if (p2.y >= 0) p2.y = 1; else p2.y = -1; }
-
+								if (transformAxis == TRANSFORM_AXIS_XY) {
+									var offset = new vec2(GIZMO_RADIUS, -GIZMO_RADIUS);
+									
+									p1.addself(offset);
+									p2.addself(offset);
+								}
+								
 								var scale = new vec2(p2.x / p1.x, p2.y / p1.y);
 
 								if (!(transformAxis & TRANSFORM_AXIS_X)) {
