@@ -493,14 +493,16 @@ App = function() {
 		var frameTime = (time - lastTime) / 1000;
 		lastTime = time;
 
-		if (activeWindow) {
-			if (!mouseDown) {
-				if (!editMode) {
+		if (activeWindow) {			
+			if (!editMode) {
+				if (!mouseDown) {
 					var p = canvasToWorld(mousePosition);
 					var shape = space.findShapeByPoint(p);
 					mouseCursor = shape ? "pointer" : "default";
 				}
-				else {
+			}
+			else {
+				if (!mouseDownMoving) {
 					checkHighlight(mousePosition);
 
 					mouseCursor = "default";
@@ -1278,6 +1280,9 @@ App = function() {
 		// for the touch device
 		mousePositionOld.x = pos.x;
 		mousePositionOld.y = pos.y;
+
+		mousePosition.x = pos.x;
+		mousePosition.y = pos.y;
 
 		mouseDownPosition.x = pos.x;
 		mouseDownPosition.y = pos.x;
