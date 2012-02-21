@@ -95,11 +95,6 @@ App = function() {
 	var showContacts = false;
 	var showStats = false;
 
-	function main() {
-		onReady();
-		onLoad();
-	}
-
 	function onReady() {
 		mainView = document.getElementById("main_view");
 
@@ -242,7 +237,7 @@ App = function() {
 			window.oRequestAnimationFrame || 
 			window.msRequestAnimationFrame;
 
-		if (window.requestAnimationFrame) {
+		if (window.requestAnimFrame) {
 			window.requestAnimFrame(function() { window.requestAnimFrame(arguments.callee); runFrame(); });
 		}
 		else {
@@ -1951,8 +1946,8 @@ App = function() {
 		return false;
 	}
 
-	return { main: main, onReady: onReady, onLoad: onLoad };
+	return { onReady: onReady, onLoad: onLoad };
 }();
 
-//ready(App.onReady);
-//addEvent(window, "load", App.onLoad);
+ready(App.onReady);
+addEvent(window, "load", App.onLoad);
