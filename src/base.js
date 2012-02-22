@@ -1,6 +1,15 @@
-window.onerror = function(msg, url, line) {	
-	alert(["There was an error on this page.\n\n", url, " (", line, ") : ", msg].join(""));
-}
+(function() {
+	var errorOccurred = false;
+
+	window.onerror = function(msg, url, line) {
+		if (errorOccurred) {
+			return;
+		}
+
+		errorOccurred = true;
+		alert(["There was an error on this page.\n\n", url, " (", line, ") : ", msg].join(""));		
+	}
+})();
 
 function addEvent(obj, name, fn) {
 	if (obj.addEventListener) { // W3C DOM
@@ -54,4 +63,11 @@ var ready = (function () {
 
 function isAppleMobileDevice() {
 	return navigator.userAgent.match(/iPhone|iPod|iPad/gi) ? true : false;
+}
+
+function isEmptyObject(obj) {
+    for (var name in obj) {
+        return false;
+    }
+    return true;
 }

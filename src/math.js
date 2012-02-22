@@ -750,6 +750,14 @@ Bounds.prototype.addBounds2 = function(mins, maxs) {
 	return this;
 }
 
+Bounds.prototype.addCircle = function(center, radius) {
+	if (this.mins.x > center.x - radius) this.mins.x = center.x - radius;
+	if (this.maxs.x < center.x + radius) this.maxs.x = center.x + radius;
+	if (this.mins.y > center.y - radius) this.mins.y = center.y - radius;
+	if (this.maxs.y < center.y + radius) this.maxs.y = center.y + radius;
+	return this;
+}
+
 Bounds.prototype.expand = function(ax, ay) {
 	this.mins.x -= ax;
 	this.mins.y -= ay;

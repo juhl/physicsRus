@@ -23,7 +23,7 @@ App = function() {
 	var timeDelta;
 	var fps_frameCount = 0;
 	var fps_time = 0;
-	var fps = 0;		
+	var fps = 0;
 
 	// mouse & touch variables
 	var mouseDown = false;
@@ -45,7 +45,7 @@ App = function() {
 	var SM_EDGES = 1;
 	var SM_SHAPES = 2;
 	var SM_BODIES = 3;
-	var SM_JOINTS = 4;	
+	var SM_JOINTS = 4;
 
 	// selection flag
 	var SF_REPLACE = 0;
@@ -69,7 +69,15 @@ App = function() {
 	var GIZMO_RADIUS = 100;
 	var GIZMO_INNER_OFFSET = 32;
 	var GIZMO_INNER_RADIUS = 15;
-	var GIZMO_SCALE_AXIS_BOX_EXTENT = 6;
+	var GIZMO_SCALE_AXIS_BOX_EXTENT = 6;	
+
+	// edit mode drawing value
+	var HELPER_VERTEX_EXTENT = 3;
+	var HELPER_JOINT_ANCHOR_EXTENT = 2;
+	var HELPER_ANGLE_JOINT_RADIUS = 5;
+	var HELPER_REVOLUTE_JOINT_RADIUS = 24;
+	var HELPER_PRISMATIC_JOINT_ARROW_SIZE = 16;
+	var HELPER_LINE_JOINT_RADIUS = 5;
 
 	// editor variables
 	var editMode = false;
@@ -77,7 +85,7 @@ App = function() {
 	var transformMode = TM_SELECT;
 	var snap = true;
 	var selectedFeatureArr = [];
-	var markedFeatureArr = [];	
+	var markedFeatureArr = [];
 	var highlightFeatureArr = [];
 	var clickedFeature;
 	var transformCenter = new vec2(0, 0);
@@ -86,6 +94,9 @@ App = function() {
 	var highlightColor = "rgba(220, 255, 255, 0.75)";
 	var backgroundColor = "rgb(244, 244, 244)";
 	var vertexColor = "#444";
+	var jointAnchorColor = "#044";
+	var jointHelperColor = "#06D";
+	var jointHelperColor2 = "#098";	
 	var selectionPattern;
 	var highlightPattern;
 
@@ -106,6 +117,7 @@ App = function() {
 	var warmStarting = true;
 	var allowSleep = true;
 	var enableDirtyBounds = true;
+	var showJoints = false;
 	var showBounds = false;
 	var showContacts = false;
 	var showStats = false;
@@ -129,7 +141,7 @@ App = function() {
 		addEvent(window, "focus", function(ev) { activeWindow = true; });
 		addEvent(window, "blur", function(ev) { activeWindow = false; });
 		addEvent(window, "resize", onResize);
-		addEvent(canvas, "resize", onResize);
+		addEvent(canvas, "resize", onResize);		
 		addEvent(canvas, "mousedown", onMouseDown);
 		addEvent(canvas, "mousemove", onMouseMove);
 		addEvent(canvas, "mouseup", onMouseUp);
@@ -187,8 +199,9 @@ App = function() {
 		addEvent(settings.querySelector("#p_iters"), "change", function() { onChangedPositionIterations(this.value); });
 		addEvent(settings.querySelector("#warmStarting"), "click", onClickedWarmStarting);
 		addEvent(settings.querySelector("#allowSleep"), "click", onClickedAllowSleep);
-		addEvent(settings.querySelector("#enableDirtyRect"), "click", onClickedEnableDirtyRect);
+		addEvent(settings.querySelector("#enableDirtyRect"), "click", onClickedEnableDirtyRect);		
 		addEvent(settings.querySelector("#showBounds"), "click", onClickedShowBounds);
+		addEvent(settings.querySelector("#showJoints"), "click", onClickedShowJoints);
 		addEvent(settings.querySelector("#showContacts"), "click", onClickedShowContacts);
 		addEvent(settings.querySelector("#showStats"), "click", onClickedShowStats);
 		var elements = settings.querySelectorAll("select, input");
@@ -337,12 +350,11 @@ App = function() {
 		button.innerHTML = pause ? "<i class='icon-white icon-play'></i>" : "<i class='icon-white icon-pause'></i>";
 	}
 
-	function createCheckPattern(color) {
-		var digits = color.match(/rgba\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\)/);
-    
-    	var r = parseInt(digits[1]);
-    	var g = parseInt(digits[2]);
-    	var b = parseInt(digits[3]);
+	function createCheckPattern(color) {		
+		var c = Color.parse(color);
+    	var r = c.channels[0];
+    	var g = c.channels[1];
+    	var b = c.channels[2];
     	var a = 255;
 
 		var pattern = document.createElement("canvas");
@@ -672,6 +684,13 @@ App = function() {
 				dirtyBounds.addBounds(Bounds.expand(body.bounds, 2, 2));
 			}			
 		}
+		
+		// Draw joints
+		if (showJoints) {
+			for (var i in space.jointHash) {
+				drawJoint(fg.ctx, space.jointHash[i]);
+			}
+		}
 
 		// Edit mode drawing
 		if (editMode) {
@@ -687,11 +706,11 @@ App = function() {
 					var offset = new vec2(2, 2);					
 					var mins = vec2.sub(con.p, offset);
 					var maxs = vec2.add(con.p, offset);
-
-					dirtyBounds.addBounds2(mins, maxs);
+					
 					renderer.drawBox(fg.ctx, mins, maxs, 1, "#F00");
+					dirtyBounds.addBounds2(mins, maxs);					
+					//renderer.drawArrow(fg.ctx, con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), ARROW_TYPE_NONE, ARROW_TYPE_NORMAL, 8, 1, "#F00");
 					//dirtyBounds.addBounds2();
-					//renderer.drawArrow(fg.ctx, con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), 1, 8, "#F00");
 				}
 			}
 		}		
@@ -737,7 +756,7 @@ App = function() {
 
 			drawBodyShape(ctx, shape, lineWidth, fillColor, outlineColor);
 
-			if (showBounds || !body.isStatic()) {				
+			if (showBounds || !body.isStatic()) {
 				if (showBounds) {
 					var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
 					bounds.expand(1, 1);
@@ -796,17 +815,20 @@ App = function() {
 		var mins = vec2.sub(transformCenter, extent);
 		var maxs = vec2.add(transformCenter, extent);
 		var bounds = new Bounds(mins, maxs);
-		bounds.expand(2, 2); // expand for outline
+		bounds.expand(4, 4); // expand for outline
 
 		if (transformMode == TM_TRANSLATE) {
 			var p1 = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
 			var p2 = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
 
+			var s1 = vec2.add(center, new vec2(GIZMO_INNER_OFFSET, 0));
+			var s2 = vec2.add(center, new vec2(0, -GIZMO_INNER_OFFSET));
+
 			var x_color = transformAxis == TRANSFORM_AXIS_X ? "#FA0" : "#F00";
 			var y_color = transformAxis == TRANSFORM_AXIS_Y ? "#FA0" : "#0F0";
 
-			renderer.drawArrow(ctx, vec2.add(center, new vec2(GIZMO_INNER_OFFSET, 0)), p1, 2, 15, x_color);
-			renderer.drawArrow(ctx, vec2.add(center, new vec2(0, -GIZMO_INNER_OFFSET)), p2, 2, 15, y_color);			
+			renderer.drawArrow(ctx, s1, p1, ARROW_TYPE_NONE, ARROW_TYPE_NORMAL, 16, 2, x_color, x_color);
+			renderer.drawArrow(ctx, s2, p2, ARROW_TYPE_NONE, ARROW_TYPE_NORMAL, 16, 2, y_color, y_color);
 			
 			var mins = vec2.sub(center, new vec2(GIZMO_INNER_RADIUS, -GIZMO_INNER_RADIUS));
 			var maxs = vec2.add(center, new vec2(GIZMO_INNER_RADIUS, -GIZMO_INNER_RADIUS));
@@ -815,20 +837,17 @@ App = function() {
 		else if (transformMode == TM_SCALE) {
 			var p1 = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
 			var p2 = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
-			var boxsize = new vec2(GIZMO_SCALE_AXIS_BOX_EXTENT, GIZMO_SCALE_AXIS_BOX_EXTENT);
+
+			var s1 = vec2.add(center, new vec2(GIZMO_INNER_OFFSET, 0));
+			var s2 = vec2.add(center, new vec2(0, -GIZMO_INNER_OFFSET));			
 
 			var x_color = transformAxis == TRANSFORM_AXIS_X ? "#FA0" : "#F00";
 			var y_color = transformAxis == TRANSFORM_AXIS_Y ? "#FA0" : "#0F0";
 
-			renderer.drawLine(ctx, vec2.add(center, new vec2(GIZMO_INNER_OFFSET, 0)), p1, 2, x_color);
-			renderer.drawLine(ctx, vec2.add(center, new vec2(0, -GIZMO_INNER_OFFSET)), p2, 2, y_color);
+			renderer.drawArrow(ctx, s1, p1, ARROW_TYPE_NONE, ARROW_TYPE_BOX, GIZMO_SCALE_AXIS_BOX_EXTENT, 2, x_color, x_color);
+			renderer.drawArrow(ctx, s2, p2, ARROW_TYPE_NONE, ARROW_TYPE_BOX, GIZMO_SCALE_AXIS_BOX_EXTENT, 2, y_color, y_color);
 
-			renderer.drawBox(ctx, vec2.sub(p1, boxsize), vec2.add(p1, boxsize), 0, x_color);
-			renderer.drawBox(ctx, vec2.sub(p2, boxsize), vec2.add(p2, boxsize), 0, y_color);
-
-			renderer.drawCircle(ctx, center, GIZMO_INNER_RADIUS, undefined, 2, "", transformAxis == TRANSFORM_AXIS_XY ? "#FA0" : "#FF0");
-
-			bounds.expand(GIZMO_SCALE_AXIS_BOX_EXTENT / view.scale, GIZMO_SCALE_AXIS_BOX_EXTENT / view.scale);
+			renderer.drawCircle(ctx, center, GIZMO_INNER_RADIUS, undefined, 2, "", transformAxis == TRANSFORM_AXIS_XY ? "#FA0" : "#FF0");			
 		}
 		else if (transformMode == TM_ROTATE) {
 			//renderer.drawDashLine(ctx, vec2.sub(center, new vec2(15, 0)), vec2.add(center, new vec2(15, 0)), 1, 20, "#00F");
@@ -851,11 +870,6 @@ App = function() {
 	}
 
 	function drawEditMode(ctx) {
-		// Draw joints
-		for (var i in space.jointHash) {
-			drawJoint(ctx, space.jointHash[i], "#F0F");
-		}
-		
 		if (selectionMode == SM_VERTICES) {
 			// Draw vertices
 			for (var i in space.bodyHash) {
@@ -876,7 +890,7 @@ App = function() {
 							for (var k = 0; k < shape.tverts.length; k++) {
 								drawVertex(ctx, shape.tverts[k], vertexColor);
 							}
-							dirtyBounds.addBounds(Bounds.expand(shape.bounds, 3, 3));
+							dirtyBounds.addBounds(Bounds.expand(shape.bounds, HELPER_VERTEX_EXTENT, HELPER_VERTEX_EXTENT));
 							break;
 						}
 					}
@@ -982,6 +996,11 @@ App = function() {
 				}
 			}
 		}
+		else if (selectionMode == SM_JOINTS && !showJoints) {
+			for (var i in space.jointHash) {
+				drawJoint(ctx, space.jointHash[i]);
+			}
+		}
 
 		if (transformMode != TM_SELECT && selectedFeatureArr.length > 0) {
 			drawGizmo(ctx);
@@ -1017,35 +1036,95 @@ App = function() {
 		return b;		
 	}
 
-	function drawJoint(ctx, joint, strokeStyle) {
-		if (!joint.anchor1 || !joint.anchor2) {
-			return;
-		}
-
+	function drawJoint(ctx, joint) {
 		var body1 = joint.body1;
 		var body2 = joint.body2;
 
-		var p1 = body1.localToWorld(joint.anchor1);
-		var p2 = body2.localToWorld(joint.anchor2);
-
+		var extent = new vec2(HELPER_JOINT_ANCHOR_EXTENT, HELPER_JOINT_ANCHOR_EXTENT);
 		var bounds = new Bounds;
-		bounds.addPoint(p1);
-		bounds.addPoint(p2);
-		bounds.expand(2, 2);
-		
-		if (!view.bounds.intersectsBounds(bounds)) {
-			return;
+
+		if (joint instanceof AngleJoint) {
+			var color = Color.parse(jointHelperColor2);
+			color.channels[3] = 0.2;
+
+			renderer.drawCircle(ctx, body1.p, HELPER_ANGLE_JOINT_RADIUS, body1.a, 1, color.rgba(), jointHelperColor2);
+			renderer.drawCircle(ctx, body2.p, HELPER_ANGLE_JOINT_RADIUS, body2.a, 1, color.rgba(), jointHelperColor2);
+
+			renderer.drawBox(ctx, vec2.sub(body1.p, extent), vec2.add(body1.p, extent), 1, jointAnchorColor);
+			renderer.drawBox(ctx, vec2.sub(body2.p, extent), vec2.add(body2.p, extent), 1, jointAnchorColor);
+
+			bounds.addCircle(body1.p, HELPER_ANGLE_JOINT_RADIUS);
+			bounds.addCircle(body2.p, HELPER_ANGLE_JOINT_RADIUS);
 		}
+		else if (joint instanceof MouseJoint) {
+			var p2 = body2.localToWorld(joint.anchor2);
+			renderer.drawLine(ctx, mouseBody.p, p2, 1, "#F28");
+			
+			bounds.addPoint(mouseBody.p);
+			bounds.addPoint(p2);
+		}
+		else {
+			var p1 = body1.localToWorld(joint.anchor1);
+			var p2 = body2.localToWorld(joint.anchor2);		
 
-		renderer.drawLine(ctx, p1, p2, 1, strokeStyle);
+			if (!body1.isStatic()) {
+				renderer.drawLine(ctx, body1.xf.t, p1, 2, jointHelperColor);
+			}
 
-		var offset = new vec2(2, 2);
-		renderer.drawBox(ctx, vec2.sub(p1, offset), vec2.add(p1, offset), 1, "#808");
-		renderer.drawBox(ctx, vec2.sub(p2, offset), vec2.add(p2, offset), 1, "#808");
-		//renderer.drawCircle(ctx, p1, 2.5, 0, 1, "#808");
-		//renderer.drawCircle(ctx, p2, 2.5, 0, 1, "#808");
+			if (!body2.isStatic()) {
+				renderer.drawLine(ctx, body2.xf.t, p2, 2, jointHelperColor);
+			}
+
+			if (joint instanceof DistanceJoint) {
+				renderer.drawLine(ctx, p1, p2, 1, jointHelperColor2);
+			}
+			else if (joint instanceof RevoluteJoint) {
+				var color = Color.parse(jointHelperColor2);
+				color.channels[3] = 0.2;
+
+				if (joint.limitEnabled) {
+					var a1 = body1.a + joint.limitLowerAngle;
+					var a2 = body1.a + joint.limitUpperAngle;
+
+					renderer.drawArc(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, a1, a2, 1, color.rgba(), jointHelperColor2);					
+				}
+				else {
+					renderer.drawCircle(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, undefined, 1, color.rgba(), jointHelperColor2);
+				}
+
+				renderer.drawLine(ctx, p1, vec2.add(p2, vec2.scale(vec2.rotation(body2.a), HELPER_REVOLUTE_JOINT_RADIUS)), 2, "#F00");
+
+				bounds.addCircle(p1, HELPER_REVOLUTE_JOINT_RADIUS);				
+			}
+			else if (joint instanceof LineJoint) {
+				var color = Color.parse(jointHelperColor2);
+				color.channels[3] = 0.2;
+				renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_CIRCLE, ARROW_TYPE_CIRCLE, HELPER_LINE_JOINT_RADIUS, 1, jointHelperColor2, color.rgba());
+
+				bounds.addCircle(p1, HELPER_LINE_JOINT_RADIUS);
+				bounds.addCircle(p2, HELPER_LINE_JOINT_RADIUS);
+			}
+			else if (joint instanceof PrismaticJoint) {
+				renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_NORMAL, ARROW_TYPE_NORMAL, HELPER_PRISMATIC_JOINT_ARROW_SIZE, 1, jointHelperColor2, jointHelperColor2);
+
+				bounds.addCircle(p1, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
+				bounds.addCircle(p2, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
+			}
+			else if (joint instanceof WeldJoint) {
+				//renderer.drawCircle(ctx, p1, 20, undefined, 1, "", jointHelperColor2);
+
+				//bounds.addCircle(p1, HELPER_WELD_JOINT_RADIUS);
+			}
+
+			renderer.drawBox(ctx, vec2.sub(p1, extent), vec2.add(p1, extent), 1, jointAnchorColor);
+			renderer.drawBox(ctx, vec2.sub(p2, extent), vec2.add(p2, extent), 1, jointAnchorColor);
+
+			bounds.addCircle(p1, HELPER_JOINT_ANCHOR_EXTENT);
+			bounds.addCircle(p2, HELPER_JOINT_ANCHOR_EXTENT);
+		}		
 
 		if (!body1.isStatic() || !body2.isStatic()) {
+			bounds.expand(2, 2);
 			dirtyBounds.addBounds(bounds);
 		}
 	}
@@ -1091,8 +1170,25 @@ App = function() {
 				return shape.body;
 			}
 		}
-		else if (selectionMode == SM_JOINTS) {	
-			return null;
+		else if (selectionMode == SM_JOINTS) {
+			var shape = space.findShapeByPoint(p);
+			/*if (shape) {
+				shape.body.findJointByPoint(p);
+				for (var i in shape.body.jointHash)) {
+					var joint = shape.body.jointHash[i];					
+					if (refVertex == -1) {
+						return vertex;
+					}
+
+					if (firstVertex == -1) {
+						firstVertex = vertex;
+					}
+
+					if (vertex == refVertex) {
+						refVertex = -1;
+					}		
+				}
+			}*/
 		}
 
 		return null;
@@ -1109,7 +1205,7 @@ App = function() {
 		case SM_BODIES:
 			return feature ? true : false;
 		case SM_JOINTS:
-			return feature != -1 ? true : false;
+			return feature ? true : false;
 		}
 
 		console.log("invalid select mode");
@@ -1169,6 +1265,16 @@ App = function() {
 			transformCenter.copy(shape.body.p);
 		}
 		else if (selectionMode == SM_JOINTS) {	
+			/*var shape = space.findShapeByPoint(p);
+			if (!shape || isEmptyObject(shape.body.jointHash)) {
+				return false;
+			}
+
+			var joint = shape.body.jointHash[0];
+			feature = joint;
+			
+			// Set transformCenter
+			transformCenter.copy(vec2.scale(vec2.add(joint.body1.p, joint.body2.p), 0.5));*/
 			return false;
 		}
 
@@ -1373,7 +1479,7 @@ App = function() {
 			}
 			else {
 				var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + SELECTABLE_LINE_DIST_THREHOLD;
-				
+
 				var px = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
 				var dx = Math.abs(point.x - px.x);
 				var dy = Math.abs(point.y - px.y);				
@@ -2022,6 +2128,10 @@ App = function() {
 
 	function onClickedShowBounds() {
 		showBounds = !showBounds;
+	}
+
+	function onClickedShowJoints() {
+		showJoints = !showJoints;
 	}
 
 	function onClickedShowContacts() {
