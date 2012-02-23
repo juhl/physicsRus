@@ -101,7 +101,7 @@ DemoCar = function() {
 		space.addJoint(joint);
 
 		// Both wheels constrained to be same rotation        
-		space.addJoint(new AngleJoint(body2, body3));
+		//space.addJoint(new AngleJoint(body2, body3));
 	}
 
 	function runFrame() {

@@ -520,6 +520,7 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration, warmStarting, 
 	// Iterative position constraints solver
 	var positionSolved = this.positionSolver(pos_iteration);
 
+	// 
 	for (var i in this.bodyHash) {
 		var body = this.bodyHash[i];
 		body.syncTransform();

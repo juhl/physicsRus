@@ -11,9 +11,6 @@ DemoBounce = function() {
 		staticBody.resetMassData();
 		space.addBody(staticBody);
 
-		shape = new ShapeBox(400, 250, 10, 500);
-		staticBody.addShape(shape);
-
 		for (var i = 0; i <= 10; i++)  {            
 			var body = new Body(Body.DYNAMIC, -300 + i * 60, 400);
 			var shape = new ShapeCircle(0, 0, 20);

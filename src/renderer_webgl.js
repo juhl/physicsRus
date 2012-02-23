@@ -141,19 +141,19 @@ RendererWebGL = function() {
 		ctx.drawArrays(ctx.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}    
 
-	function drawBox(ctx, mins, maxs, fillStyle, strokeStyle) {
+	function drawBox(ctx, mins, maxs, strokeStyle, fillStyle) {
 		ctx.drawArrays(ctx.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}
 
-	function drawCircle(ctx, center, radius, angle, fillStyle, strokeStyle) {
+	function drawCircle(ctx, center, radius, angle, strokeStyle, fillStyle) {
 		ctx.drawArrays(ctx.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}
 
-	function drawSegment(ctx, a, b, radius, fillStyle, strokeStyle) {
+	function drawSegment(ctx, a, b, radius, strokeStyle, fillStyle) {
 		ctx.drawArrays(ctx.LINES, 0, triangleVertexPositionBuffer.numItems);
 	}
 
-	function drawPolygon(ctx, verts, fillStyle, strokeStyle) {
+	function drawPolygon(ctx, verts, strokeStyle, fillStyle) {
 		var buffer = ctx.createBuffer();
 		ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
 

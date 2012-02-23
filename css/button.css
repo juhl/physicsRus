@@ -100,9 +100,9 @@
   padding: 7px 0px 5px 0px;  
   
   background-position: 0 0;
-  box-shadow:         inset 1px 2px 4px rgb(0,0,0), 0 1px 0 #6B6967;
-  -moz-box-shadow:    inset 1px 2px 4px rgb(0,0,0), 0 1px 0 #6B6967; 
-  -webkit-box-shadow: inset 1px 2px 4px rgb(0,0,0), 0 1px 0 #6B6967;
+  box-shadow:         inset 1px 2px 3px rgb(0,0,0), 0 1px 0 #6B6967;
+  -moz-box-shadow:    inset 1px 2px 3px rgb(0,0,0), 0 1px 0 #6B6967; 
+  -webkit-box-shadow: inset 1px 2px 3px rgb(0,0,0), 0 1px 0 #6B6967;
   
   /* IE only stuff */
   border-bottom: 0\9;
@@ -116,9 +116,9 @@
 
   text-shadow: 0px 0px 0px;
 
-  -moz-box-shadow:    inset 1px 2px 4px rgb(0,0,0), 0 1px 0 #6B6967; 
-  -webkit-box-shadow: inset 1px 2px 4px rgb(0,0,0), 0 1px 0 #6B6967;
-  box-shadow:         inset 1px 2px 4px rgb(0,0,0), 0 1px 0 #6B6967;
+  -moz-box-shadow:    inset 1px 2px 3px rgb(0,0,0), 0 1px 0 #6B6967; 
+  -webkit-box-shadow: inset 1px 2px 3px rgb(0,0,0), 0 1px 0 #6B6967;
+  box-shadow:         inset 1px 2px 3px rgb(0,0,0), 0 1px 0 #6B6967;
   
   /* IE only stuff */
   border-bottom: 0\9;
@@ -129,7 +129,7 @@
   color: black;
 }
 
-.btn.grey   { background-color: #BBBBBB !important; } .btn.grey.pushed    { color: white; } .btn.grey.pushed:hover   { color: white; }
+.btn.grey   { background-color: #CCCCBB !important; } .btn.grey.pushed    { color: white; } .btn.grey.pushed:hover   { color: white; }
 .btn.blue   { background-color: #005AFF !important; } .btn.blue.pushed    { color: white; } .btn.blue.pushed:hover   { color: white; }
 .btn.red    { background-color: #E32100 !important; } .btn.red.pushed     { color: white; } .btn.red.pushed:hover    { color: white; }
 .btn.green  { background-color: #20A000 !important; } .btn.green.pushed   { color: white; } .btn.green.pushed:hover  { color: white; }

@@ -22,8 +22,8 @@
 WeldJoint = function(body1, body2, anchor) {
 	Joint.call(this, body1, body2, true);
 
-	this.anchor1 = body1.worldToLocal(anchor);
-	this.anchor2 = body2.worldToLocal(anchor);
+	this.anchor1 = body1.getLocalPoint(anchor);
+	this.anchor2 = body2.getLocalPoint(anchor);
 
 	// Accumulated lambda
 	this.lambda_acc = new vec3(0, 0, 0);
@@ -37,8 +37,8 @@ WeldJoint.prototype.serialize = function() {
 		"type": "weld",
 		"body1": this.body1.id, 
 		"body2": this.body2.id,
-		"anchor1": this.body1.localToWorld(this.anchor1),
-		"anchor2": this.body2.localToWorld(this.anchor2),
+		"anchor1": this.body1.getWorldPoint(this.anchor1),
+		"anchor2": this.body2.getWorldPoint(this.anchor2),
 		"collideConnected": this.collideConnected,
 		"maxForce": this.maxForce,
 		"breakable": this.breakable

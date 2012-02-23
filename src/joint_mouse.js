@@ -16,8 +16,8 @@ MouseJoint = function(mouseBody, body, anchor) {
 	Joint.call(this, mouseBody, body, true);
 
 	// Local anchor points
-	this.anchor1 = mouseBody.worldToLocal(anchor);
-	this.anchor2 = body.worldToLocal(anchor);
+	this.anchor1 = mouseBody.getLocalPoint(anchor);
+	this.anchor2 = body.getLocalPoint(anchor);
 	
 	// Spring stiffness
 	var frequencyHz = 6;

@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="css/add2home.css" />    
   <title>RigidDyn2D</title>  
 
-  <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>-->  
+  <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>-->   
   <script src="lib/json2.js"></script>
   <script src="lib/add2home.js"></script>  
   <script src="lib/color.js"></script>
@@ -91,12 +91,18 @@
 
     <span>
       <button type="button" class="btn grey" id="toggle_settings" style="width:32px;"><i class="icon-cog"></i></button>
+      <button type="button" class="btn grey" id="toggle_about" style="width:32px;"><i class="icon-info-sign"></i></button>
     </span>
   </div>
 
   <div id="main_view">
     <canvas id="canvas"></canvas>
     <div id="info"></div>
+
+    <div id="about">
+      <p>Rigid-Dyn2D</p>
+      programmed by Lee Ju Hyung
+    </div>
 
     <div id="settings">
       <div style="text-align:right">
@@ -109,8 +115,9 @@
         <input type="checkbox" id="warmStarting" checked="true" />Warm starting<br />        
         <input type="checkbox" id="allowSleep" checked="true" />Allow sleep<br />
         <input type="checkbox" id="enableDirtyRect" checked="true" />Enable dirty rect<br />        
-        <input type="checkbox" id="showBounds" />Show bounding boxes<br />
+        <input type="checkbox" id="showAxis" />Show axis<br />
         <input type="checkbox" id="showJoints" />Show joints<br />
+        <input type="checkbox" id="showBounds" />Show bounding boxes<br />        
         <input type="checkbox" id="showContacts" />Show contacts<br />
         <input type="checkbox" id="showStats" />Show statistics<br />      
       </div>

@@ -19,13 +19,13 @@ LineJoint = function(body1, body2, anchor1, anchor2) {
 	Joint.call(this, body1, body2, true);
 
 	// Local anchor points
-	this.anchor1 = body1.worldToLocal(anchor1);
-	this.anchor2 = body2.worldToLocal(anchor2);
+	this.anchor1 = body1.getLocalPoint(anchor1);
+	this.anchor2 = body2.getLocalPoint(anchor2);
 
 	var d = vec2.sub(anchor2, anchor1);
 
    	// Body1's local line normal
-   	this.n_local = vec2.normalize(vec2.rotate(vec2.perp(d), -body1.a));
+   	this.n_local = body1.getLocalVector(vec2.normalize(vec2.perp(d)));
 
    	// Accumulated impulse
 	this.lambda_acc = 0;
@@ -45,8 +45,8 @@ LineJoint.prototype.serialize = function() {
 		"type": "line",
 		"body1": this.body1.id, 
 		"body2": this.body2.id,
-		"anchor1": this.body1.localToWorld(this.anchor1),
-		"anchor2": this.body2.localToWorld(this.anchor2),
+		"anchor1": this.body1.getWorldPoint(this.anchor1),
+		"anchor2": this.body2.getWorldPoint(this.anchor2),
 		"collideConnected": this.collideConnected,
 		"maxForce": this.maxForce,
 		"breakable": this.breakable,
@@ -182,7 +182,7 @@ LineJoint.prototype.solvePositionConstraints = function() {
 	var r1_d = vec2.add(r1, d);
 
 	// World line normal
-	var n = vec2.rotate(this.n_local, body1.a);
+	var n = body1.getWorldVector(this.n_local);
 
 	// Position constraint
 	var c = vec2.dot(n, d);

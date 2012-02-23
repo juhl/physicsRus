@@ -72,12 +72,13 @@ App = function() {
 	var GIZMO_SCALE_AXIS_BOX_EXTENT = 6;	
 
 	// edit mode drawing value
-	var HELPER_VERTEX_EXTENT = 3;
-	var HELPER_JOINT_ANCHOR_EXTENT = 2;
+	var HELPER_VERTEX_EXTENT = 2;
+	var HELPER_JOINT_ANCHOR_EXTENT = 2.5;
 	var HELPER_ANGLE_JOINT_RADIUS = 5;
-	var HELPER_REVOLUTE_JOINT_RADIUS = 24;
+	var HELPER_REVOLUTE_JOINT_RADIUS = 14;
 	var HELPER_PRISMATIC_JOINT_ARROW_SIZE = 16;
 	var HELPER_LINE_JOINT_RADIUS = 5;
+	var HELPER_WELD_JOINT_EXTENT = 8;
 
 	// editor variables
 	var editMode = false;
@@ -94,8 +95,8 @@ App = function() {
 	var highlightColor = "rgba(220, 255, 255, 0.75)";
 	var backgroundColor = "rgb(244, 244, 244)";
 	var vertexColor = "#444";
-	var jointAnchorColor = "#044";
-	var jointHelperColor = "#06D";
+	var jointAnchorColor = "#408";
+	var jointHelperColor = "#80F";
 	var jointHelperColor2 = "#098";	
 	var selectionPattern;
 	var highlightPattern;
@@ -108,8 +109,10 @@ App = function() {
 	var mouseBody;
 	var mouseJoint;
 
+	var showAbout = false;
+	var showSettings = false;	
+
 	// settings variables	
-	var showSettings = false;
 	var gravity = new vec2(0, -627.2);	
 	var frameRateHz = 60;
 	var velocityIterations = 8;
@@ -117,6 +120,7 @@ App = function() {
 	var warmStarting = true;
 	var allowSleep = true;
 	var enableDirtyBounds = true;
+	var showAxis = false;
 	var showJoints = false;
 	var showBounds = false;
 	var showContacts = false;
@@ -141,7 +145,6 @@ App = function() {
 		addEvent(window, "focus", function(ev) { activeWindow = true; });
 		addEvent(window, "blur", function(ev) { activeWindow = false; });
 		addEvent(window, "resize", onResize);
-		addEvent(canvas, "resize", onResize);		
 		addEvent(canvas, "mousedown", onMouseDown);
 		addEvent(canvas, "mousemove", onMouseMove);
 		addEvent(canvas, "mouseup", onMouseUp);
@@ -190,6 +193,7 @@ App = function() {
 		}
 		addEvent(toolbar.querySelector("#toggle_snap"), "click", onClickedSnap);
 		addEvent(toolbar.querySelector("#toggle_settings"), "click", onClickedSettings);
+		addEvent(toolbar.querySelector("#toggle_about"), "click", onClickedAbout);
 
 		// Setting up settings events
 		settings = document.querySelector("#settings");
@@ -199,9 +203,10 @@ App = function() {
 		addEvent(settings.querySelector("#p_iters"), "change", function() { onChangedPositionIterations(this.value); });
 		addEvent(settings.querySelector("#warmStarting"), "click", onClickedWarmStarting);
 		addEvent(settings.querySelector("#allowSleep"), "click", onClickedAllowSleep);
-		addEvent(settings.querySelector("#enableDirtyRect"), "click", onClickedEnableDirtyRect);		
-		addEvent(settings.querySelector("#showBounds"), "click", onClickedShowBounds);
+		addEvent(settings.querySelector("#enableDirtyRect"), "click", onClickedEnableDirtyRect);				
+		addEvent(settings.querySelector("#showAxis"), "click", onClickedShowAxis);
 		addEvent(settings.querySelector("#showJoints"), "click", onClickedShowJoints);
+		addEvent(settings.querySelector("#showBounds"), "click", onClickedShowBounds);
 		addEvent(settings.querySelector("#showContacts"), "click", onClickedShowContacts);
 		addEvent(settings.querySelector("#showStats"), "click", onClickedShowStats);
 		var elements = settings.querySelectorAll("select, input");
@@ -224,7 +229,7 @@ App = function() {
 			sceneNameArr.push(name);
 		}
 /*
-		// Add scenes from list of JSON files in server
+		// Add scenes from list of JSON files from server
 		httpGetText("scene.rb?action=list", false, function(text) { 
 			text.replace(/\s*(.+?\.json)/g, function($0, filename) {
 				var option = document.createElement("option");
@@ -365,19 +370,6 @@ App = function() {
 
 		var imageData = ctx.getImageData(0, 0, 4, 2);
 
-		/*for (var y = 0; y < 2; y++) {
-		    for (var x = 0; x < 2; x++) {
-		        if (x == y) {
-		        	var index = (y * 2 + x) * 4;
-
-		            imageData.data[index] = r;
-		            imageData.data[index + 1] = g;
-		            imageData.data[index + 2] = b;
-		            imageData.data[index + 3] = a;
-		        }
-		    }
-		}*/
-		
 		imageData.data[0] = r;
 		imageData.data[1] = g;
 		imageData.data[2] = b;
@@ -603,11 +595,14 @@ App = function() {
 		for (var i in space.bodyHash) {
 			var body = space.bodyHash[i];
 
+			body.visible = false;
+
 			for (var j = 0; j < body.shapeArr.length; j++) {
 				var shape = body.shapeArr[j];
 				var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
 				if (view.bounds.intersectsBounds(bounds)) {
 					shape.visible = true;
+					body.visible = true;
 				}
 				else {
 					shape.visible = false;
@@ -632,7 +627,7 @@ App = function() {
 				for (var i in space.bodyHash) {
 					var body = space.bodyHash[i];
 					if (body.isStatic()) {
-						drawBody(bg.ctx, body, 1, bodyColor(body), "#000");						
+						drawBody(bg.ctx, body, 1, "#000", bodyColor(body));
 					}
 				}
 			}
@@ -672,7 +667,7 @@ App = function() {
 
 		fg.ctx.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
 
-		//renderer.drawBox(fg.ctx, dirtyBounds.mins, dirtyBounds.maxs, 1, "", "#00F");
+		//renderer.drawRect(fg.ctx, dirtyBounds.mins, dirtyBounds.maxs, 1, "#00F");
 
 		dirtyBounds.clear();
 
@@ -680,20 +675,26 @@ App = function() {
 		for (var i in space.bodyHash) {
 			var body = space.bodyHash[i];
 			if (editMode || (!editMode && !body.isStatic())) {
-				drawBody(fg.ctx, body, 1, bodyColor(body), "#000");
+				drawBody(fg.ctx, body, 1, "#000", bodyColor(body));
 				dirtyBounds.addBounds(Bounds.expand(body.bounds, 2, 2));
 			}			
 		}
 		
 		// Draw joints
-		if (showJoints) {
-			for (var i in space.jointHash) {
-				drawJoint(fg.ctx, space.jointHash[i]);
+		if (!editMode) {
+			if (showAxis) {
+				for (var i in space.bodyHash) {
+					drawBodyAxis(fg.ctx, body);
+				}
 			}
-		}
 
-		// Edit mode drawing
-		if (editMode) {
+			if (showJoints) {
+				for (var i in space.jointHash) {
+					drawJoint(fg.ctx, space.jointHash[i]);
+				}
+			}			
+		}		
+		else {
 			drawEditMode(fg.ctx);
 		}
 
@@ -707,7 +708,7 @@ App = function() {
 					var mins = vec2.sub(con.p, offset);
 					var maxs = vec2.add(con.p, offset);
 					
-					renderer.drawBox(fg.ctx, mins, maxs, 1, "#F00");
+					renderer.drawRect(fg.ctx, mins, maxs, 1, "", "#F00");
 					dirtyBounds.addBounds2(mins, maxs);					
 					//renderer.drawArrow(fg.ctx, con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), ARROW_TYPE_NONE, ARROW_TYPE_NORMAL, 8, 1, "#F00");
 					//dirtyBounds.addBounds2();
@@ -747,40 +748,48 @@ App = function() {
 		}
 	}
 
-	function drawBody(ctx, body, lineWidth, fillColor, outlineColor) {
+	function drawBodyAxis(ctx, body) {
+		if (body.visible) {
+			var rvec = body.xf.rotate(new vec2(12, 0));
+			renderer.drawLine(ctx, body.xf.t, vec2.add(body.xf.t, rvec), 1, "#F00");
+			renderer.drawLine(ctx, body.xf.t, vec2.add(body.xf.t, vec2.perp(rvec)), 1, "#0F0");
+		}
+	}
+
+	function drawBody(ctx, body, lineWidth, outlineColor, fillColor) {
 		for (var i = 0; i < body.shapeArr.length; i++) {
 			var shape = body.shapeArr[i];
 			if (!shape.visible) {
 				continue;
 			}			
 
-			drawBodyShape(ctx, shape, lineWidth, fillColor, outlineColor);
+			drawBodyShape(ctx, shape, lineWidth, outlineColor, fillColor);
 
 			if (showBounds || !body.isStatic()) {
 				if (showBounds) {
 					var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
 					bounds.expand(1, 1);
-					renderer.drawBox(ctx, shape.bounds.mins, bounds.maxs, lineWidth, null, "#0A0");
+					renderer.drawRect(ctx, shape.bounds.mins, bounds.maxs, lineWidth, "#0A0");
 				}				
 			}
 		}
 	}
 
-	function drawBodyShape(ctx, shape, lineWidth, fillColor, outlineColor) {
+	function drawBodyShape(ctx, shape, lineWidth, outlineColor, fillColor) {
 		switch (shape.type) {
 		case Shape.TYPE_CIRCLE:
-			renderer.drawCircle(ctx, shape.tc, shape.r, shape.body.a, lineWidth, fillColor, outlineColor);
+			renderer.drawCircle(ctx, shape.tc, shape.r, shape.body.a, lineWidth, outlineColor, fillColor);
 			break;
 		case Shape.TYPE_SEGMENT:
-			renderer.drawSegment(ctx, shape.ta, shape.tb, shape.r, lineWidth, fillColor, outlineColor);
+			renderer.drawSegment(ctx, shape.ta, shape.tb, shape.r, lineWidth, outlineColor, fillColor);
 			break;
 		case Shape.TYPE_POLY:
-			renderer.drawPolygon(ctx, shape.tverts, lineWidth, fillColor, !shape.convexity ? "#F00" : outlineColor);
+			renderer.drawPolygon(ctx, shape.tverts, lineWidth, !shape.convexity ? "#F00" : outlineColor, fillColor);
 			break;
 		}
 	}
 
-	function drawBodyShapeViewTransformed(ctx, shape, lineWidth, fillColor, outlineColor) {
+	function drawBodyShapeViewTransformed(ctx, shape, lineWidth, outlineColor, fillColor) {
 		ctx.save();
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 
@@ -788,17 +797,17 @@ App = function() {
 
 		switch (shape.type) {
 		case Shape.TYPE_CIRCLE:
-			renderer.drawCircle(ctx, worldToCanvas(shape.tc), shape.r * view.scale, -shape.body.a, lineWidth, fillColor, outlineColor);
+			renderer.drawCircle(ctx, worldToCanvas(shape.tc), shape.r * view.scale, -shape.body.a, lineWidth, outlineColor, fillColor);
 			break;
 		case Shape.TYPE_SEGMENT:
-			renderer.drawSegment(ctx, worldToCanvas(shape.ta), worldToCanvas(shape.tb), shape.r * view.scale, lineWidth, fillColor, outlineColor);
+			renderer.drawSegment(ctx, worldToCanvas(shape.ta), worldToCanvas(shape.tb), shape.r * view.scale, lineWidth, outlineColor, fillColor);
 			break;
 		case Shape.TYPE_POLY:
 			var ctverts = new Array(shape.tverts.length);
 			for (var i = 0; i < ctverts.length; i++) {
 			 	ctverts[i] = worldToCanvas(shape.tverts[i]);
 			}
-			renderer.drawPolygon(ctx, ctverts, lineWidth, fillColor, outlineColor);
+			renderer.drawPolygon(ctx, ctverts, lineWidth, outlineColor, fillColor);
 			break;
 		}		
 
@@ -832,7 +841,11 @@ App = function() {
 			
 			var mins = vec2.sub(center, new vec2(GIZMO_INNER_RADIUS, -GIZMO_INNER_RADIUS));
 			var maxs = vec2.add(center, new vec2(GIZMO_INNER_RADIUS, -GIZMO_INNER_RADIUS));
-			renderer.drawBox(ctx, mins, maxs, 0, "", transformAxis == TRANSFORM_AXIS_XY ? "#FA0" : "#FF0");
+
+			var color1 = transformAxis == TRANSFORM_AXIS_XY ? "#FA0" : "#FF0";
+			var color2 = Color.parse(color1); color2.channels[3] = 0.4;
+
+			renderer.drawRect(ctx, mins, maxs, 0, color1, color2.rgba());
 		}
 		else if (transformMode == TM_SCALE) {
 			var p1 = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
@@ -847,30 +860,42 @@ App = function() {
 			renderer.drawArrow(ctx, s1, p1, ARROW_TYPE_NONE, ARROW_TYPE_BOX, GIZMO_SCALE_AXIS_BOX_EXTENT, 2, x_color, x_color);
 			renderer.drawArrow(ctx, s2, p2, ARROW_TYPE_NONE, ARROW_TYPE_BOX, GIZMO_SCALE_AXIS_BOX_EXTENT, 2, y_color, y_color);
 
-			renderer.drawCircle(ctx, center, GIZMO_INNER_RADIUS, undefined, 2, "", transformAxis == TRANSFORM_AXIS_XY ? "#FA0" : "#FF0");			
+			var color1 = transformAxis == TRANSFORM_AXIS_XY ? "#FA0" : "#FF0";
+			var color2 = Color.parse(color1); color2.channels[3] = 0.4;
+			
+			renderer.drawCircle(ctx, center, GIZMO_INNER_RADIUS, undefined, 2, color1, color2.rgba());
+
+			var extent = (GIZMO_SCALE_AXIS_BOX_EXTENT + 2) / view.scale;
+			bounds.addExtents(canvasToWorld(p1), extent, extent);
+			bounds.addExtents(canvasToWorld(p2), extent, extent);
 		}
 		else if (transformMode == TM_ROTATE) {
-			//renderer.drawDashLine(ctx, vec2.sub(center, new vec2(15, 0)), vec2.add(center, new vec2(15, 0)), 1, 20, "#00F");
-			//renderer.drawDashLine(ctx, vec2.sub(center, new vec2(0, 15)), vec2.add(center, new vec2(0, 15)), 1, 20, "#00F");
 			var color = transformAxis & TRANSFORM_AXIS_Z ? "#FA0" : "#00F";
 
-			renderer.drawCircle(ctx, center, 2, undefined, 0, color);
-			renderer.drawCircle(ctx, center, GIZMO_RADIUS, undefined, 2, "", color);
+			renderer.drawCircle(ctx, center, 2, undefined, 0, "", color);
+			renderer.drawCircle(ctx, center, GIZMO_RADIUS, undefined, 2, color);
 			
 			if (mouseDownMoving && transformAxis & TRANSFORM_AXIS_Z) {
 				var r = vec2.scale(vec2.normalize(vec2.sub(mousePosition, center)), GIZMO_RADIUS);
 				var p = vec2.add(center, r);
-				renderer.drawLine(ctx, center, p, 2, "#F8F");
-			}
+				renderer.drawLine(ctx, center, p, 2, "#F55");
+			}			
 		}
+
+		//renderer.drawDashLine(ctx, vec2.sub(center, new vec2(15, 0)), vec2.add(center, new vec2(15, 0)), 1, 20, "#00F");
+		//renderer.drawDashLine(ctx, vec2.sub(center, new vec2(0, 15)), vec2.add(center, new vec2(0, 15)), 1, 20, "#00F");			
 
 		dirtyBounds.addBounds(bounds);
 
 		ctx.restore();
-	}
+	}	
 
 	function drawEditMode(ctx) {
-		if (selectionMode == SM_VERTICES) {
+		for (var i in space.bodyHash) {
+			drawBodyAxis(ctx, space.bodyHash[i]);
+		}
+
+		if (selectionMode == SM_VERTICES || selectionMode == SM_EDGES) {
 			// Draw vertices
 			for (var i in space.bodyHash) {
 				var body = space.bodyHash[i];
@@ -880,11 +905,14 @@ App = function() {
 					if (shape.visible) {
 						switch (shape.type) {
 						case Shape.TYPE_CIRCLE:
-							dirtyBounds.addBounds(drawVertex(ctx, shape.tc, vertexColor));
+							drawVertex(ctx, shape.tc, vertexColor);
+							dirtyBounds.addExtents(shape.tc, HELPER_VERTEX_EXTENT, HELPER_VERTEX_EXTENT);
 							break;
 						case Shape.TYPE_SEGMENT:
-							dirtyBounds.addBounds(drawVertex(ctx, shape.ta, vertexColor));
-							dirtyBounds.addBounds(drawVertex(ctx, shape.tb, vertexColor));
+							drawVertex(ctx, shape.ta, vertexColor);
+							drawVertex(ctx, shape.tb, vertexColor);
+							dirtyBounds.addExtents(shape.ta, HELPER_VERTEX_EXTENT, HELPER_VERTEX_EXTENT);
+							dirtyBounds.addExtents(shape.ta, HELPER_VERTEX_EXTENT, HELPER_VERTEX_EXTENT);
 							break;
 						case Shape.TYPE_POLY:
 							for (var k = 0; k < shape.tverts.length; k++) {
@@ -896,15 +924,17 @@ App = function() {
 					}
 				}
 			}
+		}
 
+		if (selectionMode == SM_VERTICES) {			
 			// Draw selected vertices
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
 				var vertex = selectedFeatureArr[i];
 				var shape = space.shapeById((vertex >> 16) & 0xFFFF);
 				if (shape && shape.visible) {
 					var index = vertex & 0xFFFF;
-					var b = drawShapeVertex(ctx, shape, index, selectionColor);
-					dirtyBounds.addBounds(b);
+					var p = drawShapeVertex(ctx, shape, index, selectionColor);
+					dirtyBounds.addExtents(p, HELPER_VERTEX_EXTENT, HELPER_VERTEX_EXTENT);
 				}
 			}
 
@@ -914,8 +944,8 @@ App = function() {
 				var shape = space.shapeById((vertex >> 16) & 0xFFFF);
 				if (shape && shape.visible) {
 					var index = vertex & 0xFFFF;
-					var b = drawShapeVertex(ctx, shape, index, highlightColor);
-					dirtyBounds.addBounds(b);
+					var p = drawShapeVertex(ctx, shape, index, highlightColor);
+					dirtyBounds.addExtents(p, HELPER_VERTEX_EXTENT, HELPER_VERTEX_EXTENT);
 				}				
 			}
 		}
@@ -925,11 +955,14 @@ App = function() {
 				var edge = selectedFeatureArr[i];
 				var shape = space.shapeById((edge >> 16) & 0xFFFF);
 				if (shape && shape.visible) {
-					var index = edge & 0xFFFF;
-					var v1 = shape.tverts[index];
-					var v2 = shape.tverts[(index + 1) % shape.tverts.length];
+					var index1 = edge & 0xFFFF;
+					var index2 = (index1 + 1) % shape.tverts.length;
+					var v1 = shape.tverts[index1];
+					var v2 = shape.tverts[index2];
 
-			 		renderer.drawLine(ctx, v1, v2, 1.5, selectionColor);			 		
+			 		renderer.drawLine(ctx, v1, v2, 1.5, selectionColor);
+			 		drawShapeVertex(ctx, shape, index1, selectionColor);
+			 		drawShapeVertex(ctx, shape, index2, selectionColor);
 
 					dirtyBounds.addPoint(v1);
 					dirtyBounds.addPoint(v2);
@@ -941,12 +974,15 @@ App = function() {
 				var edge = highlightFeatureArr[i];
 				var shape = space.shapeById((edge >> 16) & 0xFFFF);
 				if (shape && shape.visible) {
-					var index = edge & 0xFFFF;
-					var v1 = shape.tverts[index];
-					var v2 = shape.tverts[(index + 1) % shape.tverts.length];
+					var index1 = edge & 0xFFFF;
+					var index2 = (index1 + 1) % shape.tverts.length;
+					var v1 = shape.tverts[index1];
+					var v2 = shape.tverts[index2];
 
 			 		renderer.drawLine(ctx, v1, v2, 1.5, highlightColor);
-
+			 		drawShapeVertex(ctx, shape, index1, highlightColor);
+			 		drawShapeVertex(ctx, shape, index2, highlightColor);
+					
 					dirtyBounds.addPoint(v1);
 					dirtyBounds.addPoint(v2);
 				}
@@ -957,7 +993,7 @@ App = function() {
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
 				var shape = selectedFeatureArr[i];
 				if (shape.visible) {
-					drawBodyShapeViewTransformed(ctx, shape, 1, selectionPattern, selectionColor);
+					drawBodyShapeViewTransformed(ctx, shape, 1, selectionColor, selectionPattern);
 					dirtyBounds.addBounds(Bounds.expand(shape.bounds, 2, 2));
 				}
 			}
@@ -966,19 +1002,19 @@ App = function() {
 			for (var i = 0; i < highlightFeatureArr.length; i++) {
 				var shape = highlightFeatureArr[i];
 				if (shape.visible) {
-					drawBodyShapeViewTransformed(ctx, shape, 1, highlightPattern);
+					drawBodyShapeViewTransformed(ctx, shape, 1, "", highlightPattern);
 					dirtyBounds.addBounds(shape.bounds);
 				}
 			}
 		}
-		else if (selectionMode == SM_BODIES) {
+		else if (selectionMode == SM_BODIES) {		
 			// Draw selected bodies
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
 				var body = selectedFeatureArr[i];
 				for (var j = 0; j < body.shapeArr.length; j++) {
 					var shape = body.shapeArr[j];
 					if (shape.visible) {
-						drawBodyShapeViewTransformed(ctx, shape, 1, selectionPattern, selectionColor);
+						drawBodyShapeViewTransformed(ctx, shape, 1, selectionColor, selectionPattern);
 						dirtyBounds.addBounds(Bounds.expand(shape.bounds, 2, 2));
 					}
 				}
@@ -990,13 +1026,13 @@ App = function() {
 				for (var j = 0; j < body.shapeArr.length; j++) {
 					var shape = body.shapeArr[j];
 					if (shape.visible) {
-						drawBodyShapeViewTransformed(ctx, shape, 1, highlightPattern);
+						drawBodyShapeViewTransformed(ctx, shape, 1, "", highlightPattern);
 						dirtyBounds.addBounds(shape.bounds);
 					}
 				}
 			}
 		}
-		else if (selectionMode == SM_JOINTS && !showJoints) {
+		else if (selectionMode == SM_JOINTS) {
 			for (var i in space.jointHash) {
 				drawJoint(ctx, space.jointHash[i]);
 			}
@@ -1007,65 +1043,62 @@ App = function() {
 		}
 	}
 
-	function drawVertex(ctx, v, color) {
-		var vertex_offset = new vec2(2, 2);
+	function drawVertex(ctx, p, color) {
+		var extent = new vec2(HELPER_VERTEX_EXTENT, HELPER_VERTEX_EXTENT);
+		var mins = vec2.sub(p, extent);
+		var maxs = vec2.add(p, extent);
 
-		var mins = vec2.sub(v, vertex_offset);
-		var maxs = vec2.add(v, vertex_offset);
-
-		renderer.drawBox(ctx, mins, maxs, 1, color);
-
-		return new Bounds(mins, maxs);		
+		renderer.drawRect(ctx, mins, maxs, 1, "", color);
 	}
 
 	function drawShapeVertex(ctx, shape, index, color) {
-		var b;
-		
+		var p;
+
 		switch (shape.type) {
 		case Shape.TYPE_CIRCLE:
-			b = drawVertex(ctx, shape.tc, color, false);
+			p = shape.tc;
 			break;
 		case Shape.TYPE_SEGMENT:
-			b = drawVertex(ctx, index == 0 ? shape.ta : shape.tb, color, false);
-			break;
+			p = index == 0 ? shape.ta : shape.tb;
+			return 
 		case Shape.TYPE_POLY:
-			b = drawVertex(ctx, shape.tverts[index], color, false);
+			p = shape.tverts[index];
 			break;
 		}
 
-		return b;		
+		drawVertex(ctx, p, color, false);
+		return p;
 	}
 
 	function drawJoint(ctx, joint) {
 		var body1 = joint.body1;
 		var body2 = joint.body2;
 
-		var extent = new vec2(HELPER_JOINT_ANCHOR_EXTENT, HELPER_JOINT_ANCHOR_EXTENT);
 		var bounds = new Bounds;
 
 		if (joint instanceof AngleJoint) {
 			var color = Color.parse(jointHelperColor2);
 			color.channels[3] = 0.2;
 
-			renderer.drawCircle(ctx, body1.p, HELPER_ANGLE_JOINT_RADIUS, body1.a, 1, color.rgba(), jointHelperColor2);
-			renderer.drawCircle(ctx, body2.p, HELPER_ANGLE_JOINT_RADIUS, body2.a, 1, color.rgba(), jointHelperColor2);
+			renderer.drawCircle(ctx, body1.p, HELPER_ANGLE_JOINT_RADIUS, body1.a, 1, jointHelperColor2, color.rgba());
+			renderer.drawCircle(ctx, body2.p, HELPER_ANGLE_JOINT_RADIUS, body2.a, 1, jointHelperColor2, color.rgba());
 
-			renderer.drawBox(ctx, vec2.sub(body1.p, extent), vec2.add(body1.p, extent), 1, jointAnchorColor);
-			renderer.drawBox(ctx, vec2.sub(body2.p, extent), vec2.add(body2.p, extent), 1, jointAnchorColor);
+			renderer.drawCircle(ctx, body1.p, HELPER_JOINT_ANCHOR_EXTENT, undefined, 1, "", jointAnchorColor);
+			renderer.drawCircle(ctx, body2.p, HELPER_JOINT_ANCHOR_EXTENT, undefined, 1, "", jointAnchorColor);
 
-			bounds.addCircle(body1.p, HELPER_ANGLE_JOINT_RADIUS);
-			bounds.addCircle(body2.p, HELPER_ANGLE_JOINT_RADIUS);
+			bounds.addExtents(body1.p, HELPER_ANGLE_JOINT_RADIUS, HELPER_ANGLE_JOINT_RADIUS);
+			bounds.addExtents(body2.p, HELPER_ANGLE_JOINT_RADIUS, HELPER_ANGLE_JOINT_RADIUS);
 		}
 		else if (joint instanceof MouseJoint) {
-			var p2 = body2.localToWorld(joint.anchor2);
+			var p2 = body2.getWorldPoint(joint.anchor2);
 			renderer.drawLine(ctx, mouseBody.p, p2, 1, "#F28");
 			
 			bounds.addPoint(mouseBody.p);
 			bounds.addPoint(p2);
 		}
 		else {
-			var p1 = body1.localToWorld(joint.anchor1);
-			var p2 = body2.localToWorld(joint.anchor2);		
+			var p1 = body1.getWorldPoint(joint.anchor1);
+			var p2 = body2.getWorldPoint(joint.anchor2);		
 
 			if (!body1.isStatic()) {
 				renderer.drawLine(ctx, body1.xf.t, p1, 2, jointHelperColor);
@@ -1086,41 +1119,47 @@ App = function() {
 					var a1 = body1.a + joint.limitLowerAngle;
 					var a2 = body1.a + joint.limitUpperAngle;
 
-					renderer.drawArc(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, a1, a2, 1, color.rgba(), jointHelperColor2);					
+					renderer.drawArc(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, a1, a2, 1, jointHelperColor2, color.rgba());
 				}
 				else {
-					renderer.drawCircle(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, undefined, 1, color.rgba(), jointHelperColor2);
+					renderer.drawCircle(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, undefined, 1, jointHelperColor2, color.rgba());
 				}
 
-				renderer.drawLine(ctx, p1, vec2.add(p2, vec2.scale(vec2.rotation(body2.a), HELPER_REVOLUTE_JOINT_RADIUS)), 2, "#F00");
+				renderer.drawLine(ctx, p1, vec2.add(p2, vec2.scale(vec2.rotation(body2.a), HELPER_REVOLUTE_JOINT_RADIUS)), 2, "#F08");
 
-				bounds.addCircle(p1, HELPER_REVOLUTE_JOINT_RADIUS);				
+				bounds.addExtents(p1, HELPER_REVOLUTE_JOINT_RADIUS, HELPER_REVOLUTE_JOINT_RADIUS);
 			}
 			else if (joint instanceof LineJoint) {
 				var color = Color.parse(jointHelperColor2);
 				color.channels[3] = 0.2;
 				renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_CIRCLE, ARROW_TYPE_CIRCLE, HELPER_LINE_JOINT_RADIUS, 1, jointHelperColor2, color.rgba());
 
-				bounds.addCircle(p1, HELPER_LINE_JOINT_RADIUS);
-				bounds.addCircle(p2, HELPER_LINE_JOINT_RADIUS);
+				bounds.addExtents(p1, HELPER_LINE_JOINT_RADIUS, HELPER_LINE_JOINT_RADIUS);
+				bounds.addExtents(p2, HELPER_LINE_JOINT_RADIUS, HELPER_LINE_JOINT_RADIUS);
 			}
 			else if (joint instanceof PrismaticJoint) {
 				renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_NORMAL, ARROW_TYPE_NORMAL, HELPER_PRISMATIC_JOINT_ARROW_SIZE, 1, jointHelperColor2, jointHelperColor2);
 
-				bounds.addCircle(p1, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
-				bounds.addCircle(p2, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
+				bounds.addExtents(p1, HELPER_PRISMATIC_JOINT_ARROW_SIZE, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
+				bounds.addExtents(p2, HELPER_PRISMATIC_JOINT_ARROW_SIZE, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
 			}
 			else if (joint instanceof WeldJoint) {
-				//renderer.drawCircle(ctx, p1, 20, undefined, 1, "", jointHelperColor2);
+				var color = Color.parse(jointHelperColor2);
+				color.channels[3] = 0.2;
 
-				//bounds.addCircle(p1, HELPER_WELD_JOINT_RADIUS);
+				var rvec = vec2.rotate(new vec2(HELPER_WELD_JOINT_EXTENT, 0), body1.a);
+				var uvec = vec2.rotate(new vec2(0, HELPER_WELD_JOINT_EXTENT), body1.a);
+
+				renderer.drawBox(ctx, p1, rvec, uvec, 1, jointHelperColor2, color.rgba());
+
+				bounds.addExtents(p1, HELPER_WELD_JOINT_EXTENT, HELPER_WELD_JOINT_EXTENT);
 			}
 
-			renderer.drawBox(ctx, vec2.sub(p1, extent), vec2.add(p1, extent), 1, jointAnchorColor);
-			renderer.drawBox(ctx, vec2.sub(p2, extent), vec2.add(p2, extent), 1, jointAnchorColor);
+			renderer.drawCircle(ctx, p1, HELPER_JOINT_ANCHOR_EXTENT, undefined, 1, "", jointAnchorColor);
+			renderer.drawCircle(ctx, p2, HELPER_JOINT_ANCHOR_EXTENT, undefined, 1, "", jointAnchorColor);
 
-			bounds.addCircle(p1, HELPER_JOINT_ANCHOR_EXTENT);
-			bounds.addCircle(p2, HELPER_JOINT_ANCHOR_EXTENT);
+			bounds.addExtents(p1, HELPER_JOINT_ANCHOR_EXTENT, HELPER_JOINT_ANCHOR_EXTENT);
+			bounds.addExtents(p2, HELPER_JOINT_ANCHOR_EXTENT, HELPER_JOINT_ANCHOR_EXTENT);
 		}		
 
 		if (!body1.isStatic() || !body2.isStatic()) {
@@ -1221,12 +1260,7 @@ App = function() {
 				return false;
 			}
 
-			feature = vertex;
-
-			// Set transformCenter
-			var shape = space.shapeById((vertex >> 16) & 0xFFFF);
-			var body = shape.body;
-			transformCenter.copy(body.localToWorld(shape.centroid()));
+			feature = vertex;		
 		}
 		else if (selectionMode == SM_EDGES) {
 			var edge = space.findEdgeByPoint(p, SELECTABLE_LINE_DIST_THREHOLD, selectedFeatureArr[0]);
@@ -1234,12 +1268,7 @@ App = function() {
 				return false;
 			}
 			
-			feature = edge;
-
-			// Set transformCenter
-			var shape = space.shapeById((edge >> 16) & 0xFFFF);
-			var body = shape.body;
-			transformCenter.copy(body.localToWorld(shape.centroid()));
+			feature = edge;			
 		}
 		else if (selectionMode == SM_SHAPES) {
 			var shape = space.findShapeByPoint(p, selectedFeatureArr[0]);
@@ -1247,11 +1276,7 @@ App = function() {
 				return false;
 			}
 
-			feature = shape;
-
-			// Set transformCenter
-			var body = shape.body;
-			transformCenter.copy(shape.body.localToWorld(shape.centroid()));
+			feature = shape;		
 		}
 		else if (selectionMode == SM_BODIES) {
 			var shape = space.findShapeByPoint(p, selectedFeatureArr[0]);
@@ -1259,10 +1284,7 @@ App = function() {
 				return false;
 			}
 
-			feature = shape.body;
-
-			// Set transformCenter
-			transformCenter.copy(shape.body.p);
+			feature = shape.body;		
 		}
 		else if (selectionMode == SM_JOINTS) {	
 			/*var shape = space.findShapeByPoint(p);
@@ -1271,10 +1293,7 @@ App = function() {
 			}
 
 			var joint = shape.body.jointHash[0];
-			feature = joint;
-			
-			// Set transformCenter
-			transformCenter.copy(vec2.scale(vec2.add(joint.body1.p, joint.body2.p), 0.5));*/
+			feature = joint;*/		
 			return false;
 		}
 
@@ -1299,9 +1318,69 @@ App = function() {
 		else {
 			selectedFeatureArr = [];
 			selectedFeatureArr.push(feature);
-		}
+		}		
 
 		return true;
+	}
+
+	function resetTransformCenter() {
+		if (selectionMode == SM_VERTICES) {
+			var center = new vec2(0, 0);
+
+			for (var i = 0; i < selectedFeatureArr.length; i++) {
+				var vertex = selectedFeatureArr[i];
+				var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+				var index = vertex & 0xFFFF;
+				var v = shape.tverts[index];
+
+				center.addself(v);
+			}
+
+			center.scale(1 / selectedFeatureArr.length);
+			transformCenter.copy(center);
+		}
+		else if (selectionMode == SM_EDGES) {
+			var center = new vec2(0, 0);
+
+			for (var i = 0; i < selectedFeatureArr.length; i++) {
+				var edge = selectedFeatureArr[i];
+				var shape = space.shapeById((edge >> 16) & 0xFFFF);
+				var index1 = edge & 0xFFFF;
+				var index2 = (index1 + 1) % shape.tverts.length;
+				var v1 = shape.tverts[index1];
+				var v2 = shape.tverts[index2];
+
+				center.addself(vec2.lerp(v1, v2, 0.5));
+			}
+			
+			center.scale(1 / selectedFeatureArr.length);
+			transformCenter.copy(center);
+		}
+		else if (selectionMode == SM_SHAPES) {
+			var center = new vec2(0, 0);
+
+			for (var i = 0; i < selectedFeatureArr.length; i++) {
+				var shape = selectedFeatureArr[i];
+				var c = shape.body.getWorldPoint(shape.centroid());
+
+				center.addself(c);
+			}
+
+			center.scale(1 / selectedFeatureArr.length);
+			transformCenter.copy(center);
+		}
+		else if (selectionMode == SM_BODIES) {		
+			var center = new vec2(0, 0);
+
+			for (var i = 0; i < selectedFeatureArr.length; i++) {
+				var shape = selectedFeatureArr[i];
+
+				center.addself(shape.body.xf.t);
+			}
+
+			center.scale(1 / selectedFeatureArr.length);
+			transformCenter.copy(center);
+		}
 	}
 
 	function getShapeVertex(shape, index) {
@@ -1331,16 +1410,16 @@ App = function() {
 		var body = shape.body;
 
 		if (shape.type == Shape.TYPE_CIRCLE && index == 0) {
-			shape.c.copy(body.worldToLocal(v));
+			shape.c.copy(body.getLocalPoint(v));
 			return;
 		}
 		
 		if (shape.type == Shape.TYPE_SEGMENT && (index == 0 || index == 1)) {
 			if (index == 0) {
-				shape.a.copy(body.worldToLocal(v));
+				shape.a.copy(body.getLocalPoint(v));
 				return;
 			}
-			shape.b.copy(body.worldToLocal(v));
+			shape.b.copy(body.getLocalPoint(v));
 			return;
 		}
 		
@@ -1349,7 +1428,7 @@ App = function() {
 			if (index < 0) {
 				index += shape.tverts.length;
 			}
-			shape.verts[index].copy(body.worldToLocal(v));
+			shape.verts[index].copy(body.getLocalPoint(v));
 			return;
 		}
 
@@ -1413,6 +1492,9 @@ App = function() {
 
 					if (!doSelect(p, flag) && flag == SF_REPLACE) {
 						selectedFeatureArr = [];
+					}
+					else {
+						resetTransformCenter();
 					}
 				}
 				else {
@@ -1732,18 +1814,18 @@ App = function() {
 								switch (shape.type) {
 								case Shape.TYPE_CIRCLE:
 									var wc = vec2.add(shape.tc, delta);
-									shape.c.copy(body.worldToLocal(wc));
+									shape.c.copy(body.getLocalPoint(wc));
 									break;
 								case Shape.TYPE_SEGMENT:
 									var wa = vec2.add(shape.ta, delta);
 									var wb = vec2.add(shape.ta, delta);
-									shape.a.copy(body.worldToLocal(wa));
-									shape.b.copy(body.worldToLocal(wb));
+									shape.a.copy(body.getLocalPoint(wa));
+									shape.b.copy(body.getLocalPoint(wb));
 									break;
 								case Shape.TYPE_POLY:
 									for (var j = 0; j < shape.tverts.length; j++) {
 										var wv = vec2.add(shape.tverts[j], delta);
-										shape.verts[j].copy(body.worldToLocal(wv));
+										shape.verts[j].copy(body.getLocalPoint(wv));
 									}
 									break;
 								}
@@ -1772,20 +1854,20 @@ App = function() {
 								switch (shape.type) {
 								case Shape.TYPE_CIRCLE:
 									var wv = vec2.add(vec2.scale2(vec2.sub(shape.tc, transformCenter), scale), transformCenter);
-									shape.c.copy(body.worldToLocal(wv));
+									shape.c.copy(body.getLocalPoint(wv));
 									shape.r *= p2.length() / p1.length();
 									break;
 								case Shape.TYPE_SEGMENT:
 									var wa = vec2.add(vec2.scale2(vec2.sub(shape.ta, transformCenter), scale), transformCenter);
 									var wv = vec2.add(vec2.scale2(vec2.sub(shape.ta, transformCenter), scale), transformCenter);
-									shape.a.copy(body.worldToLocal(wa));
-									shape.b.copy(body.worldToLocal(wb));
+									shape.a.copy(body.getLocalPoint(wa));
+									shape.b.copy(body.getLocalPoint(wb));
 									shape.r *= p2.length() / p1.length();
 									break;
 								case Shape.TYPE_POLY:
 									for (var j = 0; j < shape.tverts.length; j++) {
 										var wv = vec2.add(vec2.scale2(vec2.sub(shape.tverts[j], transformCenter), scale), transformCenter);
-										shape.verts[j].copy(body.worldToLocal(wv));
+										shape.verts[j].copy(body.getLocalPoint(wv));
 									}
 									break;
 								}
@@ -1798,19 +1880,19 @@ App = function() {
 								switch (shape.type) {
 								case Shape.TYPE_CIRCLE:									
 									var wc = vec2.add(vec2.rotate(vec2.sub(shape.tc, transformCenter), da), transformCenter);
-									shape.c.copy(body.worldToLocal(wc));
+									shape.c.copy(body.getLocalPoint(wc));
 									break;
 								case Shape.TYPE_SEGMENT:
 									var wa = vec2.add(vec2.rotate(vec2.sub(shape.ta, transformCenter), da), transformCenter);
-									shape.a.copy(body.worldToLocal(wa));
+									shape.a.copy(body.getLocalPoint(wa));
 
 									var wb = vec2.add(vec2.rotate(vec2.sub(shape.tb, transformCenter), da), transformCenter);
-									shape.b.copy(body.worldToLocal(wb));
+									shape.b.copy(body.getLocalPoint(wb));
 									break;
 								case Shape.TYPE_POLY:
 									for (var j = 0; j < shape.tverts.length; j++) {
 										var wv = vec2.add(vec2.rotate(vec2.sub(shape.tverts[j], transformCenter), da), transformCenter);
-										shape.verts[j].copy(body.worldToLocal(wv));
+										shape.verts[j].copy(body.getLocalPoint(wv));
 									}
 									break;
 								}
@@ -2029,6 +2111,12 @@ App = function() {
 		case 74: // 'j'
 			break;
 		case 83: // 's'
+			if (editMode) {
+				if (ev.ctrlKey) {
+					sliceEdges();
+					ev.preventDefault();
+				}
+			}
 			break;
 		case 81: // 'q'
 			if (editMode) {
@@ -2125,13 +2213,17 @@ App = function() {
 	function onClickedEnableDirtyRect() {
 		enableDirtyBounds = !enableDirtyBounds;
 	}
-
-	function onClickedShowBounds() {
-		showBounds = !showBounds;
+	
+	function onClickedShowAxis() {
+		showAxis = !showAxis;
 	}
 
 	function onClickedShowJoints() {
 		showJoints = !showJoints;
+	}
+
+	function onClickedShowBounds() {
+		showBounds = !showBounds;
 	}
 
 	function onClickedShowContacts() {
@@ -2213,6 +2305,7 @@ App = function() {
 
 	function onDelete() {
 		if (selectionMode == SM_VERTICES) {
+			// Sort by decremental order
 			selectedFeatureArr.sort(function(a, b) { return (b & 0xFFFF) - (a & 0xFFFF); });
 
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
@@ -2236,14 +2329,16 @@ App = function() {
 			}
 		}
 		else if (selectionMode == SM_EDGES) {
+			// Sort by decremental order
 			selectedFeatureArr.sort(function(a, b) { return (b & 0xFFFF) - (a & 0xFFFF); });
 
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
 				var edge = selectedFeatureArr[i];
-				var shape = space.shapeById((edge >> 16) & 0xFFFF);
-				var index = edge & 0xFFFF;
+				var shape = space.shapeById((edge >> 16) & 0xFFFF);				
 
 				if (shape.type == Shape.TYPE_POLY) {
+					var index = edge & 0xFFFF;
+
 					shape.verts.splice(index, 1);
 
 					shape.finishVerts();
@@ -2280,6 +2375,51 @@ App = function() {
 		highlightFeatureArr = [];
 	}
 
+	function sliceEdges() {
+		if (selectionMode == SM_EDGES) {
+			// Sort by incremental order
+			selectedFeatureArr.sort(function(a, b) { return (a & 0xFFFF) - (b & 0xFFFF); });
+
+			var new_selectedFeatureArr = [];
+			var prev_shape_id = -1;
+			var addedCount = 0;
+
+			for (var i = 0; i < selectedFeatureArr.length; i++) {
+				var edge = selectedFeatureArr[i];
+				var shape_id = (edge >> 16) & 0xFFFF;
+				var shape = space.shapeById(shape_id);
+
+				if (shape_id != prev_shape_id) {
+					addedCount = 0;
+				}
+
+				if (shape.type == Shape.TYPE_POLY) {
+					var index1 = (edge & 0xFFFF) + addedCount;
+					var index2 = index1 + 1;
+
+					var new_vert = vec2.lerp(shape.verts[index1], shape.verts[index2 % shape.verts.length], 0.5);
+
+					shape.verts.splice(index2, 0, new_vert);
+
+					shape.finishVerts();
+					shape.body.cacheData();
+
+					var new_edge1 = (shape.id << 16) | index1;
+					var new_edge2 = (shape.id << 16) | index2;
+
+					new_selectedFeatureArr.push(new_edge1);
+					new_selectedFeatureArr.push(new_edge2);
+
+					addedCount++;
+				}		
+
+				prev_shape_id = shape_id;		
+			}
+
+			selectedFeatureArr = new_selectedFeatureArr;
+		}
+	}
+
 	function onClickedSnap() {
 		snap = !snap;
 
@@ -2310,6 +2450,28 @@ App = function() {
 			layout.style.display = "block";
 			layout.style.left = (canvas.width - layout.clientWidth) - 4 + "px";
 			layout.style.top = "4px";				
+
+			if (button.className.indexOf(" pushed") == -1) {
+				button.className += " pushed";
+			}
+		}
+		else {
+			layout.style.display = "none";
+
+			button.className = button.className.replace(" pushed", "");
+		}
+
+		return false;
+	}
+
+	function onClickedAbout() {
+		showAbout = !showAbout;	
+
+		var layout = document.getElementById("about");
+		var button = document.getElementById("toggle_about");
+
+		if (showAbout) {
+			layout.style.display = "block";
 
 			if (button.className.indexOf(" pushed") == -1) {
 				button.className += " pushed";

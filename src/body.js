@@ -132,12 +132,20 @@ Body.prototype.syncTransform = function() {
 	this.xf.setPosition(vec2.sub(this.p, this.xf.rotate(this.centroid)));
 }
 
-Body.prototype.localToWorld = function(v) {
-	return this.xf.transform(v);
+Body.prototype.getWorldPoint = function(p) {
+	return this.xf.transform(p);
 }
 
-Body.prototype.worldToLocal = function(v) {
-	return this.xf.untransform(v);	
+Body.prototype.getWorldVector = function(v) {
+	return this.xf.rotate(v);
+}
+
+Body.prototype.getLocalPoint = function(p) {
+	return this.xf.untransform(p);
+}
+
+Body.prototype.getLocalVector = function(v) {
+	return this.xf.unrotate(v);
 }
 
 Body.prototype.resetMassData = function() {

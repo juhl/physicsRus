@@ -51,23 +51,14 @@ ShapePoly.prototype.finishVerts = function() {
 
 		this.tplanes[i] = {};
 		this.tplanes[i].n = vec2.zero;
-		this.tplanes[i].d = 0;
-
-		if (i > 0 && this.convexity) {
-			var a = this.verts[i - 1];
-			var b = this.verts[i];
-
-			if (vec2.sub(b, a).dot(this.planes[i].n) < 0) {
-				this.convexity = false;
-			}
-		}
+		this.tplanes[i].d = 0;		
 	}
 
-	if (this.convexity) {
-		var a = this.verts[this.verts.length - 1];
-		var b = this.verts[0];
+	for (var i = 0; i < this.planes.length; i++) {
+		var p1 = this.planes[i];
+		var p2 = this.planes[(i + 1) % this.planes.length];
 
-		if (vec2.sub(b, a).dot(this.planes[0].n) < 0) {
+		if (vec2.cross(p1.n, p2.n) < 0) {
 			this.convexity = false;
 		}
 	}

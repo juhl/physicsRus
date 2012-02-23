@@ -16,8 +16,8 @@ DistanceJoint = function(body1, body2, anchor1, anchor2) {
 	Joint.call(this, body1, body2, true);
 
 	// Local anchor points
-	this.anchor1 = body1.worldToLocal(anchor1);
-	this.anchor2 = body2.worldToLocal(anchor2);
+	this.anchor1 = body1.getLocalPoint(anchor1);
+	this.anchor2 = body2.getLocalPoint(anchor2);
 
 	// Rest distance
 	this.restLength = vec2.dist(anchor1, anchor2);	
@@ -38,8 +38,8 @@ DistanceJoint.prototype.serialize = function() {
 		"type": "distance",
 		"body1": this.body1.id,
 		"body2": this.body2.id,
-		"anchor1": this.body1.localToWorld(this.anchor1),
-		"anchor2": this.body2.localToWorld(this.anchor2),
+		"anchor1": this.body1.getWorldPoint(this.anchor1),
+		"anchor2": this.body2.getWorldPoint(this.anchor2),
 		"collideConnected": this.collideConnected,
 		"maxForce": this.maxForce,
 		"breakable": this.breakable,
@@ -212,8 +212,8 @@ MaxDistanceJoint = function(body1, body2, anchor1, anchor2, minDist, maxDist) {
 	Joint.call(this, body1, body2, true);
 
 	// Local anchor points
-	this.anchor1 = body1.worldToLocal(anchor1);
-	this.anchor2 = body2.worldToLocal(anchor2);
+	this.anchor1 = body1.getLocalPoint(anchor1);
+	this.anchor2 = body2.getLocalPoint(anchor2);
 
 	this.minDist = minDist || 0;
 	this.maxDist = maxDist;

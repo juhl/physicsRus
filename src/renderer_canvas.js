@@ -75,18 +75,19 @@ RendererCanvas = function() {
 				ctx.lineTo(pl.x, pl.y);
 			}
 			else if (type1 == ARROW_TYPE_CIRCLE) {
+				ctx.moveTo(p1.x, p1.y);
 				ctx.arc(p1.x, p1.y, headSize, 0, Math.PI*2, true);
 			}
 			else if (type1 == ARROW_TYPE_BOX) {
-				var axis_x = vec2.scale(vec2.normalize(vec2.sub(p1, p2)), headSize);
-				var axis_y = vec2.perp(axis_x);
+				var rvec = vec2.scale(vec2.normalize(vec2.sub(p1, p2)), headSize);
+				var uvec = vec2.perp(rvec);
 
-				var l = vec2.sub(p1, axis_x);
-				var r = vec2.add(p1, axis_x);
-				var lb = vec2.sub(l, axis_y);
-				var lt = vec2.add(l, axis_y);
-				var rb = vec2.sub(r, axis_y);
-				var rt = vec2.add(r, axis_y);
+				var l = vec2.sub(p1, rvec);
+				var r = vec2.add(p1, rvec);
+				var lb = vec2.sub(l, uvec);
+				var lt = vec2.add(l, uvec);
+				var rb = vec2.sub(r, uvec);
+				var rt = vec2.add(r, uvec);
 
 				ctx.moveTo(lb.x, lb.y);
 				ctx.lineTo(rb.x, rb.y);
@@ -107,18 +108,19 @@ RendererCanvas = function() {
 				ctx.lineTo(pl.x, pl.y);
 			}
 			else if (type2 == ARROW_TYPE_CIRCLE) {
+				ctx.moveTo(p2.x, p2.y);
 				ctx.arc(p2.x, p2.y, headSize, 0, Math.PI*2, true);
 			}
 			else if (type2 == ARROW_TYPE_BOX) {
-				var axis_x = vec2.scale(vec2.normalize(vec2.sub(p2, p1)), headSize);
-				var axis_y = vec2.perp(axis_x);
+				var rvec = vec2.scale(vec2.normalize(vec2.sub(p2, p1)), headSize);
+				var uvec = vec2.perp(rvec);
 
-				var l = vec2.sub(p2, axis_x);
-				var r = vec2.add(p2, axis_x);
-				var lb = vec2.sub(l, axis_y);
-				var lt = vec2.add(l, axis_y);
-				var rb = vec2.sub(r, axis_y);
-				var rt = vec2.add(r, axis_y);
+				var l = vec2.sub(p2, rvec);
+				var r = vec2.add(p2, rvec);
+				var lb = vec2.sub(l, uvec);
+				var lt = vec2.add(l, uvec);
+				var rb = vec2.sub(r, uvec);
+				var rt = vec2.add(r, uvec);
 
 				ctx.moveTo(lb.x, lb.y);
 				ctx.lineTo(rb.x, rb.y);
@@ -141,12 +143,41 @@ RendererCanvas = function() {
 			ctx.strokeStyle = strokeStyle;
 			ctx.stroke();
 		}
-	}    
+	}
 
-	function drawBox(ctx, mins, maxs, lineWidth, fillStyle, strokeStyle) {		
+	function drawRect(ctx, mins, maxs, lineWidth, strokeStyle, fillStyle) {
 		ctx.beginPath();
 
 		ctx.rect(mins.x, mins.y, maxs.x - mins.x, maxs.y - mins.y);
+
+		if (fillStyle) {
+			ctx.closePath();
+			ctx.fillStyle = fillStyle;
+			ctx.fill();
+		}
+
+		if (strokeStyle) {
+			ctx.lineWidth = lineWidth;	
+			ctx.strokeStyle = strokeStyle;
+			ctx.stroke();			
+		}
+	}
+
+	function drawBox(ctx, center, rvec, uvec, lineWidth, strokeStyle, fillStyle) {
+		ctx.beginPath();
+
+		var l = vec2.sub(center, rvec);
+		var r = vec2.add(center, rvec);
+		var lb = vec2.sub(l, uvec);
+		var lt = vec2.add(l, uvec);
+		var rb = vec2.sub(r, uvec);
+		var rt = vec2.add(r, uvec);
+
+		ctx.moveTo(lb.x, lb.y);
+		ctx.lineTo(rb.x, rb.y);
+		ctx.lineTo(rt.x, rt.y);
+		ctx.lineTo(lt.x, lt.y);
+		ctx.lineTo(lb.x, lb.y);
 
 		if (fillStyle) {
 			ctx.closePath();
@@ -161,7 +192,7 @@ RendererCanvas = function() {
 		}
 	}
 
-	function drawCircle(ctx, center, radius, angle, lineWidth, fillStyle, strokeStyle) {		
+	function drawCircle(ctx, center, radius, angle, lineWidth, strokeStyle, fillStyle) {
 		ctx.beginPath();
 
 		ctx.arc(center.x, center.y, radius, 0, Math.PI*2, false);
@@ -185,7 +216,7 @@ RendererCanvas = function() {
 		}	
 	}
 
-	function drawArc(ctx, center, radius, startAngle, endAngle, lineWidth, fillStyle, strokeStyle) {
+	function drawArc(ctx, center, radius, startAngle, endAngle, lineWidth, strokeStyle, fillStyle) {
 		ctx.beginPath();
 
 		ctx.moveTo(center.x, center.y);
@@ -207,7 +238,7 @@ RendererCanvas = function() {
 		}	
 	}
 
-	function drawSegment(ctx, a, b, radius, lineWidth, fillStyle, strokeStyle) {
+	function drawSegment(ctx, a, b, radius, lineWidth, strokeStyle, fillStyle) {
 		ctx.beginPath();
 
 		var dn = vec2.normalize(vec2.perp(vec2.sub(b, a)));
@@ -238,7 +269,7 @@ RendererCanvas = function() {
 		}
 	}
 
-	function drawPolygon(ctx, verts, lineWidth, fillStyle, strokeStyle) {		
+	function drawPolygon(ctx, verts, lineWidth, strokeStyle, fillStyle) {
 		ctx.beginPath();
 		ctx.moveTo(verts[0].x, verts[0].y);
 
@@ -246,7 +277,7 @@ RendererCanvas = function() {
 			ctx.lineTo(verts[i].x, verts[i].y);
 		}
 
-		ctx.lineTo(verts[verts.length - 1].x, verts[verts.length - 1].y);		
+		ctx.lineTo(verts[verts.length - 1].x, verts[verts.length - 1].y);
 
 		if (fillStyle) {
 			ctx.closePath();
@@ -266,6 +297,7 @@ RendererCanvas = function() {
 		drawLine: drawLine,
 		drawDashLine: drawDashLine,
 		drawArrow: drawArrow,
+		drawRect: drawRect,
 		drawBox: drawBox,
 		drawCircle: drawCircle,
 		drawArc: drawArc,
