@@ -2,9 +2,9 @@
 // ShapeCircle
 //------------------------------------------
 
-ShapeCircle = function(offset_x, offset_y, radius) {
+ShapeCircle = function(local_x, local_y, radius) {
 	Shape.call(this, Shape.TYPE_CIRCLE);
-	this.c = new vec2(offset_x || 0, offset_y || 0);
+	this.c = new vec2(local_x || 0, local_y || 0);
 	this.r = radius;
 
 	this.tc = vec2.zero;

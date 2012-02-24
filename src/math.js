@@ -630,14 +630,14 @@ mat3.mul = function(m1, m2) {
 // 2D Transform
 //-----------------------------------
 
-Transform = function(x, y, angle) {
-	this.t = new vec2(x, y);
+Transform = function(pos, angle) {
+	this.t = pos.duplicate();
 	this.c = Math.cos(angle);
 	this.s = Math.sin(angle);
 }
 
-Transform.prototype.set = function(x, y, angle) {
-	this.t = new vec2(x, y);
+Transform.prototype.set = function(pos, angle) {
+	this.t.copy(pos);
 	this.c = Math.cos(angle);
 	this.s = Math.sin(angle);
 	return this;

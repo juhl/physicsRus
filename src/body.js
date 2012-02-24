@@ -1,4 +1,4 @@
-Body = function(type, x, y, angle) {
+Body = function(type, pos, angle) {
 	if (Body.id_counter == undefined) {
 		Body.id_counter = 0;
 	}
@@ -12,18 +12,17 @@ Body = function(type, x, y, angle) {
 	this.type = type;
 
 	// Default values
-	x = x || 0;
-	y = y || 0;
+	pos = pos || new vec2(0, 0);
 	angle = angle || 0;
 
 	// Local to world transform
-	this.xf = new Transform(x, y, angle);
+	this.xf = new Transform(pos, angle);
 
 	// Local center of mass
 	this.centroid = new vec2(0, 0);
 
 	// World position of centroid
-	this.p = new vec2(x, y);
+	this.p = new vec2(pos.x, pos.y);
 	
 	// Velocity
 	this.v = new vec2(0, 0);
@@ -63,7 +62,7 @@ Body.KINETIC = 2;
 Body.DYNAMIC = 3;
 
 Body.prototype.duplicate = function() {
-	var body = new Body(this.type, this.xf.t.x, this.xf.t.y, this.a);
+	var body = new Body(this.type, this.xf.t, this.a);
 	for (var i = 0; i < this.shapeArr.length; i++) {
 		body.addShape(this.shapeArr[i].duplicate());
 	}
@@ -121,8 +120,8 @@ Body.prototype.setInertia = function(inertia) {
 	this.i_inv = 1 / inertia; // 0 = 1 / Infinity
 }
 
-Body.prototype.setTransform = function(x, y, angle) {
-	this.xf.set(x, y, angle);
+Body.prototype.setTransform = function(pos, angle) {
+	this.xf.set(pos, angle);
 	this.p = this.xf.transform(this.centroid);
 	this.a = angle;	
 }

@@ -11,7 +11,7 @@ DemoRagDoll = function() {
 		space.addBody(staticBody);
 
 		// Head       
-		var bodyHead = new Body(Body.DYNAMIC, 0, 367);
+		var bodyHead = new Body(Body.DYNAMIC, new vec2(0, 367));
 		var shape = new ShapeCircle(0, 0, 23);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -21,7 +21,7 @@ DemoRagDoll = function() {
 		space.addBody(bodyHead);
 
 		// Spine1        
-		var bodySpine1 = new Body(Body.DYNAMIC, 0, 320);
+		var bodySpine1 = new Body(Body.DYNAMIC, new vec2(0, 320));
 		var shape = new ShapeBox(0, 0, 70, 20);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -31,7 +31,7 @@ DemoRagDoll = function() {
 		space.addBody(bodySpine1);
 
 		// Spine2        
-		var bodySpine2 = new Body(Body.DYNAMIC, 0, 290);
+		var bodySpine2 = new Body(Body.DYNAMIC, new vec2(0, 290));
 		var shape = new ShapeBox(0, 0, 65, 25);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -41,7 +41,7 @@ DemoRagDoll = function() {
 		space.addBody(bodySpine2);
 
 		// Spine3       
-		var bodySpine3 = new Body(Body.DYNAMIC, 0, 260);
+		var bodySpine3 = new Body(Body.DYNAMIC, new vec2(0, 260));
 		var shape = new ShapeBox(0, 0, 60, 25);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -51,7 +51,7 @@ DemoRagDoll = function() {
 		space.addBody(bodySpine3);
 
 		// Pelvis        
-		var bodyPelvis = new Body(Body.DYNAMIC, 0, 225);
+		var bodyPelvis = new Body(Body.DYNAMIC, new vec2(0, 225));
 		var shape = new ShapePoly([new vec2(-30, 10), new vec2(-32, -15), new vec2(32, -15), new vec2(30, 10)]);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -61,7 +61,7 @@ DemoRagDoll = function() {
 		space.addBody(bodyPelvis);
 
 		// Left Arm1        
-		var bodyLArm1 = new Body(Body.DYNAMIC, -75, 320);
+		var bodyLArm1 = new Body(Body.DYNAMIC, new vec2(-75, 320));
 		var shape = new ShapeBox(0, 0, 55, 15);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -71,7 +71,7 @@ DemoRagDoll = function() {
 		space.addBody(bodyLArm1);
 
 		// Left Arm2        
-		var bodyLArm2 = new Body(Body.DYNAMIC, -135, 320);
+		var bodyLArm2 = new Body(Body.DYNAMIC, new vec2(-135, 320));
 		var shape = new ShapeBox(0, 0, 55, 15);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -81,7 +81,7 @@ DemoRagDoll = function() {
 		space.addBody(bodyLArm2);
 
 		// Right Arm1        
-		var bodyRArm1 = new Body(Body.DYNAMIC, 75, 320);
+		var bodyRArm1 = new Body(Body.DYNAMIC, new vec2(75, 320));
 		var shape = new ShapeBox(0, 0, 55, 15);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -91,7 +91,7 @@ DemoRagDoll = function() {
 		space.addBody(bodyRArm1);
 
 		// Right Arm2       
-		var bodyRArm2 = new Body(Body.DYNAMIC, 135, 320);
+		var bodyRArm2 = new Body(Body.DYNAMIC, new vec2(135, 320));
 		var shape = new ShapeBox(0, 0, 55, 15);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -101,7 +101,7 @@ DemoRagDoll = function() {
 		space.addBody(bodyRArm2);
 
 		// Left Leg1       
-		var bodyLLeg1 = new Body(Body.DYNAMIC, -20, 160);
+		var bodyLLeg1 = new Body(Body.DYNAMIC, new vec2(-20, 160));
 		var shape = new ShapeBox(0, 0, 20, 85);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -111,7 +111,7 @@ DemoRagDoll = function() {
 		space.addBody(bodyLLeg1);
 
 		// Left Leg2        
-		var bodyLLeg2 = new Body(Body.DYNAMIC, -20, 70);
+		var bodyLLeg2 = new Body(Body.DYNAMIC, new vec2(-20, 70));
 		var shape = new ShapeBox(0, 0, 20, 85);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -121,7 +121,7 @@ DemoRagDoll = function() {
 		space.addBody(bodyLLeg2);
 
 		// Right Leg1        
-		var bodyRLeg1 = new Body(Body.DYNAMIC, 20, 160);
+		var bodyRLeg1 = new Body(Body.DYNAMIC, new vec2(20, 160));
 		var shape = new ShapeBox(0, 0, 20, 85);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -131,7 +131,7 @@ DemoRagDoll = function() {
 		space.addBody(bodyRLeg1);
 
 		// Right Leg2        
-		var bodyRLeg2 = new Body(Body.DYNAMIC, 20, 70);
+		var bodyRLeg2 = new Body(Body.DYNAMIC, new vec2(20, 70));
 		var shape = new ShapeBox(0, 0, 20, 85);
 		shape.e = 0.4;
 		shape.u = 1.0;

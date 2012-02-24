@@ -12,7 +12,7 @@ DemoPyramid = function() {
 
 		for (var i = 0; i < 9; i++) {
 			for (var j = 0; j <= i; j++) {
-				var body = new Body(Body.DYNAMIC, (j - i * 0.5) * 42, 500 - i * 42);
+				var body = new Body(Body.DYNAMIC, new vec2((j - i * 0.5) * 42, 500 - i * 42));
 				var shape = new ShapeBox(0, 0, 36, 36);
 				shape.e = 0.1;
 				shape.u = 1.0;
@@ -23,7 +23,7 @@ DemoPyramid = function() {
 			}
 		}
 		/*
-		body = new Body(Body.DYNAMIC, 0, 50);
+		body = new Body(Body.DYNAMIC, new vec2(0, 50));
 		var shape = new ShapeCircle(0, 0, 19);
 		shape.e = 0.1;
 		shape.u = 1.0;

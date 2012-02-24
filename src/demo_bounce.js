@@ -12,7 +12,7 @@ DemoBounce = function() {
 		space.addBody(staticBody);
 
 		for (var i = 0; i <= 10; i++)  {            
-			var body = new Body(Body.DYNAMIC, -300 + i * 60, 400);
+			var body = new Body(Body.DYNAMIC, new vec2(-300 + i * 60, 400));
 			var shape = new ShapeCircle(0, 0, 20);
 			shape.e = i / 10;
 			shape.u = 1.0;

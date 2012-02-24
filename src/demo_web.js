@@ -6,7 +6,7 @@ DemoWeb = function() {
 		staticBody.resetMassData();
 		space.addBody(staticBody);
 
-		var body1 = new Body(Body.DYNAMIC, -70, 450);
+		var body1 = new Body(Body.DYNAMIC, new vec2(-70, 450));
 		var shape = new ShapeBox(0, 0, 20, 20);
 		shape.e = 0.0;
 		shape.u = 1.0;
@@ -15,7 +15,7 @@ DemoWeb = function() {
 		body1.resetMassData();
 		space.addBody(body1);
 
-		var body2 = new Body(Body.DYNAMIC, -70, 310);
+		var body2 = new Body(Body.DYNAMIC, new vec2(-70, 310));
 		var shape = new ShapeBox(0, 0, 20, 20);
 		shape.e = 0.0;
 		shape.u = 1.0;
@@ -24,7 +24,7 @@ DemoWeb = function() {
 		body2.resetMassData();
 		space.addBody(body2);
 
-		var body3 = new Body(Body.DYNAMIC, 70, 450);
+		var body3 = new Body(Body.DYNAMIC, new vec2(70, 450));
 		var shape = new ShapeBox(0, 0, 20, 20);
 		shape.e = 0.0;
 		shape.u = 1.0;
@@ -33,7 +33,7 @@ DemoWeb = function() {
 		body3.resetMassData();
 		space.addBody(body3);
 
-		var body4 = new Body(Body.DYNAMIC, 70, 310);
+		var body4 = new Body(Body.DYNAMIC, new vec2(70, 310));
 		var shape = new ShapeBox(0, 0, 20, 20);
 		shape.e = 0.0;
 		shape.u = 1.0;

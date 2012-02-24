@@ -10,7 +10,7 @@ DemoCrank = function() {
 		staticBody.resetMassData();
 		space.addBody(staticBody);
 
-		var body1 = new Body(Body.DYNAMIC, 0, 100);
+		var body1 = new Body(Body.DYNAMIC, new vec2(0, 100));
 		var shape = new ShapeBox(0, 0, 20, 50);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -19,7 +19,7 @@ DemoCrank = function() {
 		body1.resetMassData();        
 		space.addBody(body1);
 
-		var body2 = new Body(Body.DYNAMIC, 0, 175);
+		var body2 = new Body(Body.DYNAMIC, new vec2(0, 175));
 		var shape = new ShapeBox(0, 0, 20, 100);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -28,7 +28,7 @@ DemoCrank = function() {
 		body2.resetMassData();
 		space.addBody(body2);
 
-		var body3 = new Body(Body.DYNAMIC, 0, 225);
+		var body3 = new Body(Body.DYNAMIC, new vec2(0, 225));
 		var shape = new ShapeBox(0, 0, 200, 10);
 		shape.e = 0.4;
 		shape.u = 1.0;
@@ -56,7 +56,7 @@ DemoCrank = function() {
 		joint.collideConnected = false;
 		space.addJoint(joint);      
 
-		var body = new Body(Body.DYNAMIC, -32, 300);
+		var body = new Body(Body.DYNAMIC, new vec2(-32, 300));
 		var shape = new ShapeBox(0, 0, 30, 30);
 		shape.e = 0.0;
 		shape.u = 1.0;
@@ -65,7 +65,7 @@ DemoCrank = function() {
 		body.resetMassData();
 		space.addBody(body);
 
-		var body = new Body(Body.DYNAMIC, 0, 300);
+		var body = new Body(Body.DYNAMIC, new vec2(0, 300));
 		var shape = new ShapeBox(0, 0, 30, 30);
 		shape.e = 0.0;
 		shape.u = 1.0;
@@ -74,7 +74,7 @@ DemoCrank = function() {
 		body.resetMassData();
 		space.addBody(body);
 
-		var body = new Body(Body.DYNAMIC, 32, 300);
+		var body = new Body(Body.DYNAMIC, new vec2(32, 300));
 		var shape = new ShapeBox(0, 0, 30, 30);
 		shape.e = 0.0;
 		shape.u = 1.0;

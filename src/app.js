@@ -55,6 +55,11 @@ App = function() {
 	const SELECTABLE_LINE_DIST_THREHOLD = isAppleMobileDevice() ? 8 : 4;
 	const SELECTABLE_CIRCLE_DIST_THREHOLD = isAppleMobileDevice() ? 10 : 5;	
 
+	// default values for creating shape
+	const DEFAULT_DENSITY = 0.1;
+	const DEFAULT_RESTITUTION = 0.7;
+	const DEFAULT_FRICTION = 0.7;
+
 	// DOM objects
 	var domView;
 	var domCanvas;
@@ -91,7 +96,8 @@ App = function() {
 	var sceneIndex;	
 	var randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"]; // Random colors for drawing bodies
 	var mouseBody;
-	var mouseJoint;	
+	var mouseJoint;
+	var creatingBody;
 
 	// editor variables
 	var editorEnabled = false;
@@ -1555,7 +1561,7 @@ App = function() {
 		mousePositionOld.y = mousePosition.y;
 
 		mouseDownPosition.x = mousePosition.x;
-		mouseDownPosition.y = mousePosition.x;
+		mouseDownPosition.y = mousePosition.y;
 
 		ev.preventDefault();
 	}
@@ -1642,340 +1648,405 @@ App = function() {
 
 					doSelect(canvasToWorld(mousePosition), ev.metaKey ? SF_XOR : SF_ADDITIVE);
 				}
-				else if ((editMode == EM_TRANSLATE || editMode == EM_ROTATE || editMode == EM_SCALE) && transformAxis) {
-					var wmp_new = canvasToWorld(mousePosition);
-					var wmp_old = canvasToWorld(mousePositionOld);
+				else if (editMode == EM_TRANSLATE || editMode == EM_ROTATE || editMode == EM_SCALE) {
+					if (transformAxis) {
+						var wmp_new = canvasToWorld(mousePosition);
+						var wmp_old = canvasToWorld(mousePositionOld);
 
-					if (snapEnabled && (editMode == EM_TRANSLATE || editMode == EM_SCALE)) {
-						if (!mouseDownMoving) {
-							snapCenterOffset = vec2.sub(transformCenter, wmp_old);
-							snapOffset.set(0, 0);
+						if (snapEnabled && (editMode == EM_TRANSLATE || editMode == EM_SCALE)) {
+							if (!mouseDownMoving) {
+								snapCenterOffset = vec2.sub(transformCenter, wmp_old);
+								snapOffset.set(0, 0);
+							}
+
+							wmp_new.addself(snapCenterOffset);
+							var wmp_new_old = wmp_new;
+							wmp_new = snapPointByGrid(wmp_new);
+							
+							wmp_old.addself(snapCenterOffset);
+							wmp_old.addself(snapOffset);
+
+							snapOffset = vec2.sub(wmp_new, wmp_new_old);
 						}
 
-						wmp_new.addself(snapCenterOffset);
-						var wmp_new_old = wmp_new;
-						wmp_new = snapPointByGrid(wmp_new);
-						
-						wmp_old.addself(snapCenterOffset);
-						wmp_old.addself(snapOffset);
+						var wdx = wmp_new.x - wmp_old.x;
+						var wdy = wmp_new.y - wmp_old.y;
 
-						snapOffset = vec2.sub(wmp_new, wmp_new_old);
+						if (editMode == EM_TRANSLATE) {
+							if (transformAxis & TRANSFORM_AXIS_X) {
+								transformCenter.x += wdx;
+							}
+
+							if (transformAxis & TRANSFORM_AXIS_Y) {
+								transformCenter.y += wdy;
+							}
+						}
+
+						if (selectionMode == SM_VERTICES) {
+							for (var i = 0; i < selectedFeatureArr.length; i++) {
+								var vertex = selectedFeatureArr[i];
+								var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+								var body = shape.body;							
+								var index = vertex & 0xFFFF;
+								var v = getShapeVertex(shape, index);
+
+								if (editMode == EM_TRANSLATE) {
+									var delta = new vec2(wdx, wdy);
+									if (!(transformAxis & TRANSFORM_AXIS_X)) {
+										delta.x = 0;
+									}
+
+									if (!(transformAxis & TRANSFORM_AXIS_Y)) {
+										delta.y = 0;
+									}
+
+									setShapeVertex(shape, index, vec2.add(v, delta));
+								}							
+								else if (editMode == EM_ROTATE) {
+									var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
+									var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
+									var da = p2.toAngle() - p1.toAngle();
+									var wv = vec2.add(vec2.rotate(vec2.sub(v, transformCenter), da), transformCenter);
+									setShapeVertex(shape, index, wv);
+								}		
+								else if (editMode == EM_SCALE) {							
+									var scale_old = transformScale.duplicate();
+
+									transformScale.x += wdx * 0.01;
+									transformScale.y += wdy * 0.01;
+									
+									var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);
+
+									if (!(transformAxis & TRANSFORM_AXIS_X)) {
+										scale.x = 1;
+									}
+
+									if (!(transformAxis & TRANSFORM_AXIS_Y)) {
+										scale.y = 1;
+									}
+									
+									var wv = vec2.add(vec2.scale2(vec2.sub(v, transformCenter), scale), transformCenter);
+									setShapeVertex(shape, index, wv);
+								}					
+
+								shape.finishVerts();
+								shape.body.resetMassData();
+								shape.body.syncTransform();
+								shape.body.cacheData();
+							}
+						}
+						else if (selectionMode == SM_EDGES) {
+							var markedVertexArr = [];
+
+							for (var i = 0; i < selectedFeatureArr.length; i++) {
+								var edge = selectedFeatureArr[i];
+								var shape = space.shapeById((edge >> 16) & 0xFFFF);
+								var body = shape.body;							
+								var index = edge & 0xFFFF;
+
+								var v1 = getShapeVertex(shape, index);
+								var v2 = getShapeVertex(shape, index + 1);
+
+								var vertex1 = (shape.id << 16) | index;
+								var vertex2 = (shape.id << 16) | ((index + 1) % shape.verts.length);
+
+								if (editMode == EM_TRANSLATE) {
+									var delta = new vec2(wdx, wdy);
+
+									if (!(transformAxis & TRANSFORM_AXIS_X)) {
+										delta.x = 0;
+									}
+
+									if (!(transformAxis & TRANSFORM_AXIS_Y)) {
+										delta.y = 0;
+									}
+
+									if (markedVertexArr.indexOf(vertex1) == -1) {
+										markedVertexArr.push(vertex1);
+										setShapeVertex(shape, index, vec2.add(v1, delta));
+									}
+
+									if (markedVertexArr.indexOf(vertex2) == -1) {
+										markedVertexArr.push(vertex2);
+										setShapeVertex(shape, index + 1, vec2.add(v2, delta));
+									}
+								}							
+								else if (editMode == EM_ROTATE) {
+									var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
+									var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
+									var da = p2.toAngle() - p1.toAngle();
+									
+									if (markedVertexArr.indexOf(vertex1) == -1) {
+										markedVertexArr.push(vertex1);
+										var wv = vec2.add(vec2.rotate(vec2.sub(v1, transformCenter), da), transformCenter);
+										setShapeVertex(shape, index, wv);
+									}
+
+									if (markedVertexArr.indexOf(vertex2) == -1) {
+										markedVertexArr.push(vertex2);
+										var wv = vec2.add(vec2.rotate(vec2.sub(v2, transformCenter), da), transformCenter);
+										setShapeVertex(shape, index + 1, wv);
+									}
+								}
+								else if (editMode == EM_SCALE) {								
+									var scale_old = transformScale.duplicate();
+
+									transformScale.x += wdx * 0.01;
+									transformScale.y += wdy * 0.01;
+									
+									var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);							
+
+									if (!(transformAxis & TRANSFORM_AXIS_X)) {
+										scale.x = 1;
+									}
+
+									if (!(transformAxis & TRANSFORM_AXIS_Y)) {
+										scale.y = 1;
+									}
+																	
+									if (markedVertexArr.indexOf(vertex1) == -1) {
+										markedVertexArr.push(vertex1);
+										var wv = vec2.add(vec2.scale2(vec2.sub(v1, transformCenter), scale), transformCenter);
+										setShapeVertex(shape, index, wv);	
+									}
+
+									if (markedVertexArr.indexOf(vertex2) == -1) {
+										markedVertexArr.push(vertex2);
+										var wv = vec2.add(vec2.scale2(vec2.sub(v2, transformCenter), scale), transformCenter);
+										setShapeVertex(shape, index + 1, wv);
+									}
+								}
+
+								shape.finishVerts();
+								shape.body.resetMassData();
+								shape.body.syncTransform();
+								shape.body.cacheData();
+							}
+						}
+						else if (selectionMode == SM_SHAPES) {
+							// Copy shapes
+							if (!mouseDownMoving && ev.shiftKey) {
+								for (var i = 0; i < selectedFeatureArr.length; i++) {
+									var shape = selectedFeatureArr[i];
+									var dup = shape.duplicate();
+
+									shape.body.addShape(dup);
+									selectedFeatureArr[i] = dup;
+								}
+							}
+
+							for (var i = 0; i < selectedFeatureArr.length; i++) {
+								var shape = selectedFeatureArr[i];
+								var body = shape.body;							
+
+								if (editMode == EM_TRANSLATE) {
+									var delta = new vec2(wdx, wdy);
+
+									if (!(transformAxis & TRANSFORM_AXIS_X)) {
+										delta.x = 0;
+									}
+
+									if (!(transformAxis & TRANSFORM_AXIS_Y)) {
+										delta.y = 0;
+									}
+
+									switch (shape.type) {
+									case Shape.TYPE_CIRCLE:
+										var wc = vec2.add(shape.tc, delta);
+										shape.c.copy(body.getLocalPoint(wc));
+										break;
+									case Shape.TYPE_SEGMENT:
+										var wa = vec2.add(shape.ta, delta);
+										var wb = vec2.add(shape.ta, delta);
+										shape.a.copy(body.getLocalPoint(wa));
+										shape.b.copy(body.getLocalPoint(wb));
+										break;
+									case Shape.TYPE_POLY:
+										for (var j = 0; j < shape.tverts.length; j++) {
+											var wv = vec2.add(shape.tverts[j], delta);
+											shape.verts[j].copy(body.getLocalPoint(wv));
+										}
+										break;
+									}
+								}
+								else if (editMode == EM_ROTATE) {
+									var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
+									var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
+									var da = p2.toAngle() - p1.toAngle();
+
+									switch (shape.type) {
+									case Shape.TYPE_CIRCLE:									
+										var wc = vec2.add(vec2.rotate(vec2.sub(shape.tc, transformCenter), da), transformCenter);
+										shape.c.copy(body.getLocalPoint(wc));
+										break;
+									case Shape.TYPE_SEGMENT:
+										var wa = vec2.add(vec2.rotate(vec2.sub(shape.ta, transformCenter), da), transformCenter);
+										shape.a.copy(body.getLocalPoint(wa));
+
+										var wb = vec2.add(vec2.rotate(vec2.sub(shape.tb, transformCenter), da), transformCenter);
+										shape.b.copy(body.getLocalPoint(wb));
+										break;
+									case Shape.TYPE_POLY:
+										for (var j = 0; j < shape.tverts.length; j++) {
+											var wv = vec2.add(vec2.rotate(vec2.sub(shape.tverts[j], transformCenter), da), transformCenter);
+											shape.verts[j].copy(body.getLocalPoint(wv));
+										}
+										break;
+									}
+								}
+								else if (editMode == EM_SCALE) {								
+									var scale_old = transformScale.duplicate();
+
+									transformScale.x += wdx * 0.01;
+									transformScale.y += wdy * 0.01;
+
+									var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);
+
+									if (!(transformAxis & TRANSFORM_AXIS_X)) {
+										scale.x = 1;
+									}
+
+									if (!(transformAxis & TRANSFORM_AXIS_Y)) {
+										scale.y = 1;
+									}
+
+									switch (shape.type) {
+									case Shape.TYPE_CIRCLE:
+										var wv = vec2.add(vec2.scale2(vec2.sub(shape.tc, transformCenter), scale), transformCenter);
+										shape.c.copy(body.getLocalPoint(wv));
+										shape.r *= scale.x; // FIXME
+										break;
+									case Shape.TYPE_SEGMENT:
+										var wa = vec2.add(vec2.scale2(vec2.sub(shape.ta, transformCenter), scale), transformCenter);
+										var wv = vec2.add(vec2.scale2(vec2.sub(shape.ta, transformCenter), scale), transformCenter);
+										shape.a.copy(body.getLocalPoint(wa));
+										shape.b.copy(body.getLocalPoint(wb));
+										shape.r *= scale.x; // FIXME
+										break;
+									case Shape.TYPE_POLY:
+										for (var j = 0; j < shape.tverts.length; j++) {
+											var wv = vec2.add(vec2.scale2(vec2.sub(shape.tverts[j], transformCenter), scale), transformCenter);
+											shape.verts[j].copy(body.getLocalPoint(wv));
+										}
+										break;
+									}
+								}							
+
+								shape.finishVerts();
+								shape.body.resetMassData();
+								shape.body.syncTransform();
+								shape.body.cacheData();
+							}
+						}
+						else if (selectionMode == SM_BODIES) {
+							if (!mouseDownMoving && ev.shiftKey) {
+								for (var i = 0; i < selectedFeatureArr.length; i++) {
+									var body = selectedFeatureArr[i];
+									var dup = body.duplicate();
+
+									space.addBody(dup);
+									selectedFeatureArr[i] = dup;
+								}
+							}
+
+							for (var i = 0; i < selectedFeatureArr.length; i++) {
+								var body = selectedFeatureArr[i];
+
+								var p = body.xf.t.duplicate();
+								var a = body.a;
+
+								if (editMode == EM_TRANSLATE) {
+									if (transformAxis & TRANSFORM_AXIS_X) {
+										p.x += wdx;
+									}
+
+									if (transformAxis & TRANSFORM_AXIS_Y) {
+										p.y += wdy;
+									}
+								}							
+								else if (editMode == EM_ROTATE) {
+									var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
+									var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
+									var da = p2.toAngle() - p1.toAngle();
+
+									p = vec2.add(vec2.rotate(vec2.sub(p, transformCenter), da), transformCenter);								
+									a += da;
+								}
+								else if (editMode == EM_SCALE) {
+									// NOT AVAILABLE
+								}
+
+								body.setTransform(p, a);
+								body.cacheData();
+							}
+						}
+						else if (selectionMode == SM_JOINTS) {
+							
+						}
 					}
+				}
+				else if (editMode == EM_CREATE_CIRCLE) {
+					var wmp_new = canvasToWorld(mousePosition);
+					var wmp_old = canvasToWorld(mousePositionOld);
 
 					var wdx = wmp_new.x - wmp_old.x;
 					var wdy = wmp_new.y - wmp_old.y;
 
-					if (editMode == EM_TRANSLATE) {
-						if (transformAxis & TRANSFORM_AXIS_X) {
-							transformCenter.x += wdx;
-						}
-
-						if (transformAxis & TRANSFORM_AXIS_Y) {
-							transformCenter.y += wdy;
-						}
+					if (!mouseDownMoving) {
+						creatingBody = new Body(Body.DYNAMIC, wmp_old);						
+						var shape = new ShapeCircle(0, 0, 0);
+						shape.density = DEFAULT_DENSITY;
+						shape.e = DEFAULT_RESTITUTION;
+						shape.u = DEFAULT_FRICTION;
+						creatingBody.addShape(shape);
+						space.addBody(creatingBody);
 					}
 
-					if (selectionMode == SM_VERTICES) {
-						for (var i = 0; i < selectedFeatureArr.length; i++) {
-							var vertex = selectedFeatureArr[i];
-							var shape = space.shapeById((vertex >> 16) & 0xFFFF);
-							var body = shape.body;							
-							var index = vertex & 0xFFFF;
-							var v = getShapeVertex(shape, index);
-
-							if (editMode == EM_TRANSLATE) {
-								var delta = new vec2(wdx, wdy);
-								if (!(transformAxis & TRANSFORM_AXIS_X)) {
-									delta.x = 0;
-								}
-
-								if (!(transformAxis & TRANSFORM_AXIS_Y)) {
-									delta.y = 0;
-								}
-
-								setShapeVertex(shape, index, vec2.add(v, delta));
-							}							
-							else if (editMode == EM_ROTATE) {
-								var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
-								var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
-								var da = p2.toAngle() - p1.toAngle();
-								var wv = vec2.add(vec2.rotate(vec2.sub(v, transformCenter), da), transformCenter);
-								setShapeVertex(shape, index, wv);
-							}		
-							else if (editMode == EM_SCALE) {							
-								var scale_old = transformScale.duplicate();
-
-								transformScale.x += wdx * 0.01;
-								transformScale.y += wdy * 0.01;
-								
-								var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);
-
-								if (!(transformAxis & TRANSFORM_AXIS_X)) {
-									scale.x = 1;
-								}
-
-								if (!(transformAxis & TRANSFORM_AXIS_Y)) {
-									scale.y = 1;
-								}
-								
-								var wv = vec2.add(vec2.scale2(vec2.sub(v, transformCenter), scale), transformCenter);
-								setShapeVertex(shape, index, wv);
-							}					
-
-							shape.finishVerts();
-							shape.body.resetMassData();
-							shape.body.syncTransform();
-							shape.body.cacheData();
-						}
+					var shape = creatingBody.shapeArr[0];
+					shape.r = vec2.dist(wmp_new, creatingBody.shapeArr[0].tc);
+					shape.body.resetMassData();
+					//shape.body.syncTransform();
+					shape.body.cacheData();
+				}
+				else if (editMode == EM_CREATE_BOX) {
+					if (!mouseDownMoving) {
+						creatingBody = new Body(Body.DYNAMIC, canvasToWorld(mousePositionOld));						
+						var shape = new ShapeBox(0, 0, 0, 0);
+						shape.density = DEFAULT_DENSITY;
+						shape.e = DEFAULT_RESTITUTION;
+						shape.u = DEFAULT_FRICTION;
+						creatingBody.addShape(shape);
+						space.addBody(creatingBody);
 					}
-					else if (selectionMode == SM_EDGES) {
-						var markedVertexArr = [];
 
-						for (var i = 0; i < selectedFeatureArr.length; i++) {
-							var edge = selectedFeatureArr[i];
-							var shape = space.shapeById((edge >> 16) & 0xFFFF);
-							var body = shape.body;							
-							var index = edge & 0xFFFF;
+					var p1 = canvasToWorld(mouseDownPosition);
+					var p2 = canvasToWorld(mousePosition);
 
-							var v1 = getShapeVertex(shape, index);
-							var v2 = getShapeVertex(shape, index + 1);
+					var mins = new vec2(p1.x, p1.y);
+					var maxs = new vec2(p2.x, p2.y);
 
-							var vertex1 = (shape.id << 16) | index;
-							var vertex2 = (shape.id << 16) | ((index + 1) % shape.verts.length);
+					if (p1.x > p2.x) { mins.x = p2.x; maxs.x = p1.x; }
+					if (p1.y > p2.y) { mins.y = p2.y; maxs.y = p1.y; }
 
-							if (editMode == EM_TRANSLATE) {
-								var delta = new vec2(wdx, wdy);
+					var center = vec2.lerp(mins, maxs, 0.5);
+					creatingBody.setTransform(center, 0);
 
-								if (!(transformAxis & TRANSFORM_AXIS_X)) {
-									delta.x = 0;
-								}
+					var wv = new Array(4);
+					wv[0] = new vec2(mins.x, mins.y);
+					wv[1] = new vec2(maxs.x, mins.y);
+					wv[2] = new vec2(maxs.x, maxs.y);
+					wv[3] = new vec2(mins.x, maxs.y);					
 
-								if (!(transformAxis & TRANSFORM_AXIS_Y)) {
-									delta.y = 0;
-								}
+					var shape = creatingBody.shapeArr[0];
 
-								if (markedVertexArr.indexOf(vertex1) == -1) {
-									markedVertexArr.push(vertex1);
-									setShapeVertex(shape, index, vec2.add(v1, delta));
-								}
-
-								if (markedVertexArr.indexOf(vertex2) == -1) {
-									markedVertexArr.push(vertex2);
-									setShapeVertex(shape, index + 1, vec2.add(v2, delta));
-								}
-							}							
-							else if (editMode == EM_ROTATE) {
-								var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
-								var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
-								var da = p2.toAngle() - p1.toAngle();
-								
-								if (markedVertexArr.indexOf(vertex1) == -1) {
-									markedVertexArr.push(vertex1);
-									var wv = vec2.add(vec2.rotate(vec2.sub(v1, transformCenter), da), transformCenter);
-									setShapeVertex(shape, index, wv);
-								}
-
-								if (markedVertexArr.indexOf(vertex2) == -1) {
-									markedVertexArr.push(vertex2);
-									var wv = vec2.add(vec2.rotate(vec2.sub(v2, transformCenter), da), transformCenter);
-									setShapeVertex(shape, index + 1, wv);
-								}
-							}
-							else if (editMode == EM_SCALE) {								
-								var scale_old = transformScale.duplicate();
-
-								transformScale.x += wdx * 0.01;
-								transformScale.y += wdy * 0.01;
-								
-								var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);							
-
-								if (!(transformAxis & TRANSFORM_AXIS_X)) {
-									scale.x = 1;
-								}
-
-								if (!(transformAxis & TRANSFORM_AXIS_Y)) {
-									scale.y = 1;
-								}
-																
-								if (markedVertexArr.indexOf(vertex1) == -1) {
-									markedVertexArr.push(vertex1);
-									var wv = vec2.add(vec2.scale2(vec2.sub(v1, transformCenter), scale), transformCenter);
-									setShapeVertex(shape, index, wv);	
-								}
-
-								if (markedVertexArr.indexOf(vertex2) == -1) {
-									markedVertexArr.push(vertex2);
-									var wv = vec2.add(vec2.scale2(vec2.sub(v2, transformCenter), scale), transformCenter);
-									setShapeVertex(shape, index + 1, wv);
-								}
-							}
-
-							shape.finishVerts();
-							shape.body.resetMassData();
-							shape.body.syncTransform();
-							shape.body.cacheData();
-						}
+					for (var i = 0; i < 4; i++) {
+						shape.verts[i].copy(creatingBody.getLocalPoint(wv[i]));
 					}
-					else if (selectionMode == SM_SHAPES) {
-						// Copy shapes
-						if (!mouseDownMoving && ev.shiftKey) {
-							for (var i = 0; i < selectedFeatureArr.length; i++) {
-								var shape = selectedFeatureArr[i];
-								var dup = shape.duplicate();
 
-								shape.body.addShape(dup);
-								selectedFeatureArr[i] = dup;
-							}
-						}
-
-						for (var i = 0; i < selectedFeatureArr.length; i++) {
-							var shape = selectedFeatureArr[i];
-							var body = shape.body;							
-
-							if (editMode == EM_TRANSLATE) {
-								var delta = new vec2(wdx, wdy);
-
-								if (!(transformAxis & TRANSFORM_AXIS_X)) {
-									delta.x = 0;
-								}
-
-								if (!(transformAxis & TRANSFORM_AXIS_Y)) {
-									delta.y = 0;
-								}
-
-								switch (shape.type) {
-								case Shape.TYPE_CIRCLE:
-									var wc = vec2.add(shape.tc, delta);
-									shape.c.copy(body.getLocalPoint(wc));
-									break;
-								case Shape.TYPE_SEGMENT:
-									var wa = vec2.add(shape.ta, delta);
-									var wb = vec2.add(shape.ta, delta);
-									shape.a.copy(body.getLocalPoint(wa));
-									shape.b.copy(body.getLocalPoint(wb));
-									break;
-								case Shape.TYPE_POLY:
-									for (var j = 0; j < shape.tverts.length; j++) {
-										var wv = vec2.add(shape.tverts[j], delta);
-										shape.verts[j].copy(body.getLocalPoint(wv));
-									}
-									break;
-								}
-							}
-							else if (editMode == EM_ROTATE) {
-								var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
-								var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
-								var da = p2.toAngle() - p1.toAngle();
-
-								switch (shape.type) {
-								case Shape.TYPE_CIRCLE:									
-									var wc = vec2.add(vec2.rotate(vec2.sub(shape.tc, transformCenter), da), transformCenter);
-									shape.c.copy(body.getLocalPoint(wc));
-									break;
-								case Shape.TYPE_SEGMENT:
-									var wa = vec2.add(vec2.rotate(vec2.sub(shape.ta, transformCenter), da), transformCenter);
-									shape.a.copy(body.getLocalPoint(wa));
-
-									var wb = vec2.add(vec2.rotate(vec2.sub(shape.tb, transformCenter), da), transformCenter);
-									shape.b.copy(body.getLocalPoint(wb));
-									break;
-								case Shape.TYPE_POLY:
-									for (var j = 0; j < shape.tverts.length; j++) {
-										var wv = vec2.add(vec2.rotate(vec2.sub(shape.tverts[j], transformCenter), da), transformCenter);
-										shape.verts[j].copy(body.getLocalPoint(wv));
-									}
-									break;
-								}
-							}
-							else if (editMode == EM_SCALE) {								
-								var scale_old = transformScale.duplicate();
-
-								transformScale.x += wdx * 0.01;
-								transformScale.y += wdy * 0.01;
-
-								var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);
-
-								if (!(transformAxis & TRANSFORM_AXIS_X)) {
-									scale.x = 1;
-								}
-
-								if (!(transformAxis & TRANSFORM_AXIS_Y)) {
-									scale.y = 1;
-								}
-
-								switch (shape.type) {
-								case Shape.TYPE_CIRCLE:
-									var wv = vec2.add(vec2.scale2(vec2.sub(shape.tc, transformCenter), scale), transformCenter);
-									shape.c.copy(body.getLocalPoint(wv));
-									shape.r *= p2.length() / p1.length();
-									break;
-								case Shape.TYPE_SEGMENT:
-									var wa = vec2.add(vec2.scale2(vec2.sub(shape.ta, transformCenter), scale), transformCenter);
-									var wv = vec2.add(vec2.scale2(vec2.sub(shape.ta, transformCenter), scale), transformCenter);
-									shape.a.copy(body.getLocalPoint(wa));
-									shape.b.copy(body.getLocalPoint(wb));
-									shape.r *= p2.length() / p1.length();
-									break;
-								case Shape.TYPE_POLY:
-									for (var j = 0; j < shape.tverts.length; j++) {
-										var wv = vec2.add(vec2.scale2(vec2.sub(shape.tverts[j], transformCenter), scale), transformCenter);
-										shape.verts[j].copy(body.getLocalPoint(wv));
-									}
-									break;
-								}
-							}							
-
-							shape.finishVerts();
-							shape.body.resetMassData();
-							shape.body.syncTransform();
-							shape.body.cacheData();
-						}
-					}
-					else if (selectionMode == SM_BODIES) {
-						if (!mouseDownMoving && ev.shiftKey) {
-							for (var i = 0; i < selectedFeatureArr.length; i++) {
-								var body = selectedFeatureArr[i];
-								var dup = body.duplicate();
-
-								space.addBody(dup);
-								selectedFeatureArr[i] = dup;
-							}
-						}
-
-						for (var i = 0; i < selectedFeatureArr.length; i++) {
-							var body = selectedFeatureArr[i];
-
-							var p = body.xf.t.duplicate();
-							var a = body.a;
-
-							if (editMode == EM_TRANSLATE) {
-								if (transformAxis & TRANSFORM_AXIS_X) {
-									p.x += wdx;
-								}
-
-								if (transformAxis & TRANSFORM_AXIS_Y) {
-									p.y += wdy;
-								}
-							}							
-							else if (editMode == EM_ROTATE) {
-								var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
-								var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
-								var da = p2.toAngle() - p1.toAngle();
-
-								p = vec2.add(vec2.rotate(vec2.sub(p, transformCenter), da), transformCenter);								
-								a += da;
-							}
-							else if (editMode == EM_SCALE) {
-								// NOT AVAILABLE
-							}
-
-							body.setTransform(p.x, p.y, a);
-							body.cacheData();
-						}
-					}
-					else if (selectionMode == SM_JOINTS) {
-						
-					}
+					shape.finishVerts();
+					shape.body.resetMassData();
+					shape.body.syncTransform();
+					shape.body.cacheData();
 				}
 			}
 		}
@@ -2222,6 +2293,16 @@ App = function() {
 					ev.preventDefault();
 				}
 			}
+			break;
+		case 66: // 'b'
+			editMode = EM_CREATE_BOX;
+			updateToolbar();
+			ev.preventDefault();
+			break;
+		case 67: // 'c'
+			editMode = EM_CREATE_CIRCLE;
+			updateToolbar();
+			ev.preventDefault();
 			break;
 		case 74: // 'j'
 			break;

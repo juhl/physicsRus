@@ -13,7 +13,7 @@ DemoCar = function() {
 		// Bridge
 		var body_prev;
 		for (var i = 0; i < 10; i++) {
-			var body = new Body(Body.DYNAMIC, -90 + i * 20, 45);
+			var body = new Body(Body.DYNAMIC, new vec2(-90 + i * 20, 45));
 			var shape = new ShapeBox(0, 0, 22, 10);
 			shape.e = 0.1;
 			shape.u = 0.8;
@@ -41,7 +41,7 @@ DemoCar = function() {
 		space.addJoint(joint);
 
 		// Car body        
-		var body1 = new Body(Body.DYNAMIC, -400, 250);
+		var body1 = new Body(Body.DYNAMIC, new vec2(-400, 250));
 		//var shape = new ShapeBox(0, 10, 75, 20);
 		var shape = new ShapePoly([new vec2(-40, 24), new vec2(-40, 0), new vec2(40, 0), new vec2(40, 16), new vec2(0, 42), new vec2(-28, 42)]);
 		shape.e = 0.5;
@@ -57,7 +57,7 @@ DemoCar = function() {
 		space.addBody(body1);
 
 		// Wheel 1        
-		var body2 = new Body(Body.DYNAMIC, -425, 245);
+		var body2 = new Body(Body.DYNAMIC, new vec2(-425, 245));
 		var shape = new ShapeCircle(0, 0, 13);
 		shape.e = 0.1;
 		shape.u = 0.97;
@@ -79,7 +79,7 @@ DemoCar = function() {
 		space.addJoint(joint);
 
 		// Wheel 2        
-		var body3 = new Body(Body.DYNAMIC, -375, 245);
+		var body3 = new Body(Body.DYNAMIC, new vec2(-375, 245));
 		var shape = new ShapeCircle(0, 0, 13);
 		shape.e = 0.1;
 		shape.u = 0.97;
