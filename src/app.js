@@ -57,9 +57,9 @@ App = function() {
 
 	// DOM objects
 	var domView;
+	var domCanvas;
 	var domToolbar;
 	var domSettings;
-	var domCanvas;
 
 	// canvas rendering stuffs	
 	var fg = {};
@@ -81,9 +81,9 @@ App = function() {
 	var fps_frameCount = 0;
 	var fps_time = 0;
 	var fps = 0;
-
-	var showAbout = false;
+	
 	var showSettings = false;
+	var showAbout = false;
 
 	var space;
 	var demoArr = [DemoCar, DemoRagDoll, DemoSeeSaw, DemoPyramid, DemoCrank, DemoRope, DemoWeb, DemoBounce];
@@ -256,7 +256,7 @@ App = function() {
 			sceneNameArr.push(name);
 		}
 /*
-		// Add scenes from list of JSON files from server
+		// Add scenes by loading JSON files from server
 		httpGetText("scene.rb?action=list", false, function(text) { 
 			text.replace(/\s*(.+?\.json)/g, function($0, filename) {
 				var option = document.createElement("option");
@@ -802,7 +802,7 @@ App = function() {
 			}			
 
 			/*if (editorEnabled) {
-				drawBodyShapeViewTransformed(ctx, shape, lineWidth, outlineColor, fillColor);
+				drawCanvasTransformedBodyShape(ctx, shape, lineWidth, outlineColor, fillColor);
 			}
 			else {*/
 				drawBodyShape(ctx, shape, lineWidth, outlineColor, fillColor);
@@ -838,7 +838,7 @@ App = function() {
 		}
 	}
 
-	function drawBodyShapeViewTransformed(ctx, shape, lineWidth, outlineColor, fillColor) {
+	function drawCanvasTransformedBodyShape(ctx, shape, lineWidth, outlineColor, fillColor) {
 		ctx.save();
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 
@@ -1013,7 +1013,7 @@ App = function() {
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
 				var shape = selectedFeatureArr[i];
 				if (shape.visible) {
-					drawBodyShapeViewTransformed(ctx, shape, 1, selectionColor, selectionPattern);
+					drawCanvasTransformedBodyShape(ctx, shape, 1, selectionColor, selectionPattern);
 					dirtyBounds.addBounds(Bounds.expand(shape.bounds, 2, 2));
 				}
 			}
@@ -1022,7 +1022,7 @@ App = function() {
 			for (var i = 0; i < highlightFeatureArr.length; i++) {
 				var shape = highlightFeatureArr[i];
 				if (shape.visible) {
-					drawBodyShapeViewTransformed(ctx, shape, 1, "", highlightPattern);
+					drawCanvasTransformedBodyShape(ctx, shape, 1, "", highlightPattern);
 					dirtyBounds.addBounds(shape.bounds);
 				}
 			}
@@ -1034,7 +1034,7 @@ App = function() {
 				for (var j = 0; j < body.shapeArr.length; j++) {
 					var shape = body.shapeArr[j];
 					if (shape.visible) {
-						drawBodyShapeViewTransformed(ctx, shape, 1, selectionColor, selectionPattern);
+						drawCanvasTransformedBodyShape(ctx, shape, 1, selectionColor, selectionPattern);
 						dirtyBounds.addBounds(Bounds.expand(shape.bounds, 2, 2));
 					}
 				}
@@ -1046,7 +1046,7 @@ App = function() {
 				for (var j = 0; j < body.shapeArr.length; j++) {
 					var shape = body.shapeArr[j];
 					if (shape.visible) {
-						drawBodyShapeViewTransformed(ctx, shape, 1, "", highlightPattern);
+						drawCanvasTransformedBodyShape(ctx, shape, 1, "", highlightPattern);
 						dirtyBounds.addBounds(shape.bounds);
 					}
 				}
