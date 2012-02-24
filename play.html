@@ -81,8 +81,8 @@
     <span id="transformmode">
       <button type="button" class="btn segment" name="transformmode" value="select" style="width:60px">Select</button>
       <button type="button" class="btn segment" name="transformmode" value="translate" style="width:60px">Translate</button>      
-      <button type="button" class="btn segment" name="transformmode" value="scale" style="width:60px">Scale</button>
       <button type="button" class="btn segment" name="transformmode" value="rotate" style="width:60px">Rotate</button>
+      <button type="button" class="btn segment" name="transformmode" value="scale" style="width:60px">Scale</button>      
     </span>
 
     <span> 
@@ -90,7 +90,7 @@
     </span>
 
     <span>
-      <button type="button" class="btn grey" id="toggle_settings" style="width:32px;"><i class="icon-cog"></i></button>
+      <button type="button" class="btn" id="toggle_settings" style="width:32px;"><i class="icon-white icon-cog"></i></button>
       <button type="button" class="btn grey" id="toggle_about" style="width:32px;"><i class="icon-info-sign"></i></button>
     </span>
   </div>
@@ -100,8 +100,9 @@
     <div id="info"></div>
 
     <div id="about">
-      <p>Rigid-Dyn2D</p>
-      programmed by Lee Ju Hyung
+      <h3>Nori2D.js</h3>
+      <p>Nori2D.js is 2D physics simulation engine and intergrated editor.</p>
+      Programmed by Lee Ju Hyung (<a href="http://twitter.com/juhlnet">twitter.com/juhlnet</a>)
     </div>
 
     <div id="settings">
@@ -112,9 +113,10 @@
         <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" /><br />
       </div>
       <div>
-        <input type="checkbox" id="warmStarting" checked="true" />Warm starting<br />        
+        <input type="checkbox" id="warmStarting" checked="true" />Warm starting<br />
         <input type="checkbox" id="allowSleep" checked="true" />Allow sleep<br />
-        <input type="checkbox" id="enableDirtyRect" checked="true" />Enable dirty rect<br />        
+        <input type="checkbox" id="enableDirtyRect" checked="true" />Enable dirty rect<br />
+        <input type="checkbox" id="showDirtyRect" />Show dirty rect<br />
         <input type="checkbox" id="showAxis" />Show axis<br />
         <input type="checkbox" id="showJoints" />Show joints<br />
         <input type="checkbox" id="showBounds" />Show bounding boxes<br />        

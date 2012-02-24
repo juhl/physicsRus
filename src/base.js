@@ -71,3 +71,35 @@ function isEmptyObject(obj) {
     }
     return true;
 }
+
+function httpGetText(uri, async, callback) {
+	var request = new XMLHttpRequest();
+	request.onreadystatechange = function () {
+		if (request.readyState == 4 && request.status == 200) {
+			var text = request.responseText;
+			callback(text);
+		}
+	}
+
+	request.open("GET", uri, async);
+	//request.overrideMimeType("text/plain");
+	request.setRequestHeader("Content-Type", "text/plain");
+	request.send();
+}
+
+function httpPostText(uri, async, text, callback) {
+	var request = new XMLHttpRequest();
+	request.onreadystatechange = function () {
+		if (request.readyState == 4 && request.status == 200) {
+			var text = request.responseText;
+			callback(text);
+		}
+	}
+
+	request.open("POST", uri, async);
+	//request.overrideMimeType("text/plain");
+	request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+	request.setRequestHeader("Content-length", text.length);
+	request.setRequestHeader("Connection", "close");
+	request.send(text);
+}

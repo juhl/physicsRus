@@ -16,7 +16,7 @@ Body = function(type, x, y, angle) {
 	y = y || 0;
 	angle = angle || 0;
 
-	// Transform
+	// Local to world transform
 	this.xf = new Transform(x, y, angle);
 
 	// Local center of mass
@@ -185,7 +185,6 @@ Body.prototype.resetMassData = function() {
 	this.v.mad(vec2.perp(vec2.sub(this.p, old_p)), this.w);	
 }
 
-// Internal function
 Body.prototype.cacheData = function() {	
 	this.bounds.clear();
 	

@@ -128,8 +128,6 @@ RendererCanvas = function() {
 				ctx.lineTo(lt.x, lt.y);
 				ctx.lineTo(lb.x, lb.y);
 			}
-			
-			ctx.lineJoint = "miter";			
 		}
 
 		if (fillStyle) {
@@ -289,7 +287,7 @@ RendererCanvas = function() {
 			ctx.lineWidth = lineWidth;
 			ctx.strokeStyle = strokeStyle;
 			ctx.stroke();
-		}		
+		}
 	}
 
 	return {

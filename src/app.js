@@ -1,21 +1,70 @@
 var stats = {};
 
 App = function() {
-	var mainView;
-	var toolbar;
-	var settings;
-	var canvas;
+	// selection mode
+	const SM_VERTICES = 0;
+	const SM_EDGES = 1;
+	const SM_SHAPES = 2;
+	const SM_BODIES = 3;
+	const SM_JOINTS = 4;
+
+	// selection flag
+	const SF_REPLACE = 0;
+	const SF_ADDITIVE = 1;
+	const SF_XOR = 2;
+
+	// transform mode
+	const TM_SELECT = 0;
+	const TM_TRANSLATE = 1;
+	const TM_ROTATE = 2;
+	const TM_SCALE = 3;
+
+	// transform axis
+	const TRANSFORM_AXIS_X = 1;
+	const TRANSFORM_AXIS_Y = 2;
+	const TRANSFORM_AXIS_Z = 4;
+	const TRANSFORM_AXIS_XY = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
+	const TRANSFORM_AXIS_XYZ = TRANSFORM_AXIS_XY | TRANSFORM_AXIS_Z;
+
+	// gizmo value
+	const GIZMO_RADIUS = 120;
+	const GIZMO_INNER_OFFSET = 32;
+	const GIZMO_INNER_RADIUS = 15;
+	const GIZMO_SCALE_AXIS_BOX_EXTENT = 6;	
+
+	// edit mode drawing value
+	const HELPER_BODY_AXIS_SIZE = 12;
+	const HELPER_VERTEX_EXTENT = 2;
+	const HELPER_JOINT_ANCHOR_EXTENT = 2.5;
+	const HELPER_ANGLE_JOINT_RADIUS = 5;
+	const HELPER_REVOLUTE_JOINT_RADIUS = 16;
+	const HELPER_PRISMATIC_JOINT_ARROW_SIZE = 12;
+	const HELPER_LINE_JOINT_RADIUS = 5;
+	const HELPER_WELD_JOINT_EXTENT = 8;
+
+	// selectable feature threholds
+	const SELECTABLE_POINT_DIST_THREHOLD = isAppleMobileDevice() ? 15 : 5;
+	const SELECTABLE_LINE_DIST_THREHOLD = isAppleMobileDevice() ? 8 : 4;
+	const SELECTABLE_CIRCLE_DIST_THREHOLD = isAppleMobileDevice() ? 10 : 5;	
+
+	// DOM objects
+	var domView;
+	var domToolbar;
+	var domSettings;
+	var domCanvas;
+
+	// canvas rendering stuffs	
 	var fg = {};
 	var bg = {};
 	var renderer;
 	var activeWindow = true;
-
-	var view = { origin: new vec2(0, 0), 
+	var camera = { origin: new vec2(0, 0), 
 		scale: 1, minScale: 0.5, maxScale: 4.0, 
 		bounds: new Bounds, 
 		scroll: new vec2(0, 0) 
 	};
-	var dirtyBounds = new Bounds; // dirty bounds in world space	
+	var dirtyBounds = new Bounds; // dirty bounds in world space
+
 	var pause = false;
 	var step = false;
 	var frameCount;
@@ -24,6 +73,47 @@ App = function() {
 	var fps_frameCount = 0;
 	var fps_time = 0;
 	var fps = 0;
+
+	var showAbout = false;
+	var showSettings = false;
+
+	var space;
+	var demoArr = [DemoCar, DemoRagDoll, DemoSeeSaw, DemoPyramid, DemoCrank, DemoRope, DemoWeb, DemoBounce];
+	var sceneNameArr = [];
+	var sceneIndex;	
+	var randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"]; // Random colors for drawing bodies
+	var mouseBody;
+	var mouseJoint;	
+
+	// editor variables
+	var editMode = false;
+	var selectionMode = SM_SHAPES;
+	var transformMode = TM_SELECT;
+	var snapEnabled = true;
+	var selectedFeatureArr = [];
+	var markedFeatureArr = [];
+	var highlightFeatureArr = [];
+	var clickedFeature;
+	var transformCenter = new vec2(0, 0);
+	var transformAxis = 0;
+	var transformScale = new vec2;
+	var gridFrameSize = 256;
+	var gridSize = 32;
+	var scaledGridSize;
+	var snapCenterOffset = new vec2;
+	var snapOffset = new vec2;
+	var backgroundColor = "rgb(222, 222, 222)";
+	//var backgroundColor = "rgb(95, 105, 118)";
+	var gridFrameColor = "#888";
+	var gridColor = "#BBB";
+	var selectionColor = "rgba(255, 160, 0, 1.0)";
+	var highlightColor = "rgba(128, 255, 255, 1.0)";	
+	var vertexColor = "#444";
+	var jointAnchorColor = "#408";
+	var jointHelperColor = "#80F";
+	var jointHelperColor2 = "#098";
+	var selectionPattern;
+	var highlightPattern;
 
 	// mouse & touch variables
 	var mouseDown = false;
@@ -36,82 +126,6 @@ App = function() {
 	var gestureStartScale;
 	var gestureScale;
 
-	var SELECTABLE_POINT_DIST_THREHOLD = isAppleMobileDevice() ? 15 : 5;
-	var SELECTABLE_LINE_DIST_THREHOLD = isAppleMobileDevice() ? 8 : 4;
-	var SELECTABLE_CIRCLE_DIST_THREHOLD = isAppleMobileDevice() ? 10 : 5;	
-
-	// selection mode
-	var SM_VERTICES = 0;
-	var SM_EDGES = 1;
-	var SM_SHAPES = 2;
-	var SM_BODIES = 3;
-	var SM_JOINTS = 4;
-
-	// selection flag
-	var SF_REPLACE = 0;
-	var SF_ADDITIVE = 1;
-	var SF_XOR = 2;
-
-	// transform mode
-	var TM_SELECT = 0;
-	var TM_TRANSLATE = 1;
-	var TM_SCALE = 2;
-	var TM_ROTATE = 3;
-
-	// transform axis
-	var TRANSFORM_AXIS_X = 1;
-	var TRANSFORM_AXIS_Y = 2;
-	var TRANSFORM_AXIS_Z = 4;
-	var TRANSFORM_AXIS_XY = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
-	var TRANSFORM_AXIS_XYZ = TRANSFORM_AXIS_XY | TRANSFORM_AXIS_Z;
-
-	// gizmo value
-	var GIZMO_RADIUS = 100;
-	var GIZMO_INNER_OFFSET = 32;
-	var GIZMO_INNER_RADIUS = 15;
-	var GIZMO_SCALE_AXIS_BOX_EXTENT = 6;	
-
-	// edit mode drawing value
-	var HELPER_VERTEX_EXTENT = 2;
-	var HELPER_JOINT_ANCHOR_EXTENT = 2.5;
-	var HELPER_ANGLE_JOINT_RADIUS = 5;
-	var HELPER_REVOLUTE_JOINT_RADIUS = 14;
-	var HELPER_PRISMATIC_JOINT_ARROW_SIZE = 16;
-	var HELPER_LINE_JOINT_RADIUS = 5;
-	var HELPER_WELD_JOINT_EXTENT = 8;
-
-	// editor variables
-	var editMode = false;
-	var selectionMode = SM_SHAPES;
-	var transformMode = TM_SELECT;
-	var snap = true;
-	var selectedFeatureArr = [];
-	var markedFeatureArr = [];
-	var highlightFeatureArr = [];
-	var clickedFeature;
-	var transformCenter = new vec2(0, 0);
-	var transformAxis = 0;
-	var selectionColor = "rgba(255, 160, 0, 1.0)";
-	var highlightColor = "rgba(220, 255, 255, 0.75)";
-	var backgroundColor = "rgb(244, 244, 244)";
-	var vertexColor = "#444";
-	var jointAnchorColor = "#408";
-	var jointHelperColor = "#80F";
-	var jointHelperColor2 = "#098";	
-	var selectionPattern;
-	var highlightPattern;
-
-	var space;
-	var demoArr = [DemoCar, DemoRagDoll, DemoSeeSaw, DemoPyramid, DemoCrank, DemoRope, DemoWeb, DemoBounce];
-	var sceneNameArr = [];
-	var sceneIndex;
-	var randomColor;
-	var mouseBody;
-	var mouseJoint;
-
-	var showAbout = false;
-	var showSettings = false;	
-
 	// settings variables	
 	var gravity = new vec2(0, -627.2);	
 	var frameRateHz = 60;
@@ -120,47 +134,49 @@ App = function() {
 	var warmStarting = true;
 	var allowSleep = true;
 	var enableDirtyBounds = true;
+	var showDirtyBounds = false;
 	var showAxis = false;
-	var showJoints = false;
+	var showJoints = false;	
 	var showBounds = false;
 	var showContacts = false;
 	var showStats = false;
 
 	function onReady() {
-		mainView = document.getElementById("main_view");
+		domView = document.getElementById("main_view");
 
 		// Initialize canvas context
-		canvas = document.getElementById("canvas");
-		if (!canvas.getContext) {
+		domCanvas = document.getElementById("canvas");
+		if (!domCanvas.getContext) {
 			alert("Your browser doesn't support canvas.");
 			return;
 		}
 
-		fg.canvas = canvas;
+		fg.canvas = domCanvas;
 		fg.ctx = fg.canvas.getContext("2d");
 
 		bg.canvas = document.createElement("canvas");
 		bg.ctx = bg.canvas.getContext("2d");
 		
-		addEvent(window, "focus", function(ev) { activeWindow = true; });
-		addEvent(window, "blur", function(ev) { activeWindow = false; });
+		//addEvent(window, "focus", function(ev) { activeWindow = true; });
+		//addEvent(window, "blur", function(ev) { activeWindow = false; });
 		addEvent(window, "resize", onResize);
-		addEvent(canvas, "mousedown", onMouseDown);
-		addEvent(canvas, "mousemove", onMouseMove);
-		addEvent(canvas, "mouseup", onMouseUp);
-		addEvent(canvas, "mouseleave", onMouseLeave);
+		addEvent(domCanvas, "mousedown", onMouseDown);
+		addEvent(domCanvas, "mousemove", onMouseMove);
+		addEvent(domCanvas, "mouseup", onMouseUp);
+		addEvent(domCanvas, "mouseleave", onMouseLeave);
+		addEvent(domCanvas, "dblclick", onMouseDoubleClick);
 
 		var eventname = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
-		addEvent(canvas, eventname, onMouseWheel);
+		addEvent(domCanvas, eventname, onMouseWheel);
 
-		addEvent(canvas, "touchstart", touchHandler);
-		addEvent(canvas, "touchmove", touchHandler);
-		addEvent(canvas, "touchend", touchHandler);
-		addEvent(canvas, "touchcancel", touchHandler);
+		addEvent(domCanvas, "touchstart", touchHandler);
+		addEvent(domCanvas, "touchmove", touchHandler);
+		addEvent(domCanvas, "touchend", touchHandler);
+		addEvent(domCanvas, "touchcancel", touchHandler);
 
-		addEvent(canvas, "gesturestart", onGestureStart);
-		addEvent(canvas, "gesturechange", onGestureChange);
-		addEvent(canvas, "gestureend", onGestureEnd);
+		addEvent(domCanvas, "gesturestart", onGestureStart);
+		addEvent(domCanvas, "gesturechange", onGestureChange);
+		addEvent(domCanvas, "gestureend", onGestureEnd);
 		addEvent(window, "orientationchange", onResize);
 
 		// Prevent elastic scrolling on iOS
@@ -176,40 +192,41 @@ App = function() {
 		document.body.scroll = "no"; // ie only		
 
 		// Setting up toolbar events
-		toolbar = document.querySelector("#toolbar");
-		addEvent(toolbar.querySelector("#scene"), "change", function() { onChangedScene(this.selectedIndex); });
-		addEvent(toolbar.querySelector("#edit"), "click", onClickedEdit);
-		var elements = toolbar.querySelectorAll("[name=player]");
+		domToolbar = document.querySelector("#toolbar");
+		addEvent(domToolbar.querySelector("#scene"), "change", function() { onChangedScene(this.selectedIndex); });
+		addEvent(domToolbar.querySelector("#edit"), "click", onClickedEdit);
+		var elements = domToolbar.querySelectorAll("[name=player]");
 		for (var i in elements) {
 			addEvent(elements[i], "click", function() { return onClickedPlayer(this.value); });
 		}
-		var elements = toolbar.querySelectorAll("[name=selectionmode]");
+		var elements = domToolbar.querySelectorAll("[name=selectionmode]");
 		for (var i in elements) {
 			addEvent(elements[i], "click", function() { return onClickedSelectMode(this.value); });
 		}
-		var elements = toolbar.querySelectorAll("[name=transformmode]");
+		var elements = domToolbar.querySelectorAll("[name=transformmode]");
 		for (var i in elements) {
 			addEvent(elements[i], "click", function() { return onClickedTransformMode(this.value); });
 		}
-		addEvent(toolbar.querySelector("#toggle_snap"), "click", onClickedSnap);
-		addEvent(toolbar.querySelector("#toggle_settings"), "click", onClickedSettings);
-		addEvent(toolbar.querySelector("#toggle_about"), "click", onClickedAbout);
+		addEvent(domToolbar.querySelector("#toggle_snap"), "click", onClickedSnap);
+		addEvent(domToolbar.querySelector("#toggle_settings"), "click", onClickedSettings);
+		addEvent(domToolbar.querySelector("#toggle_about"), "click", onClickedAbout);
 
 		// Setting up settings events
-		settings = document.querySelector("#settings");
-		addEvent(settings.querySelector("#gravity"), "change", function() { onChangedGravity(this.value); });
-		addEvent(settings.querySelector("#frameRateHz"), "change", function() { onChangedFrameRateHz(this.value); });
-		addEvent(settings.querySelector("#v_iters"), "change", function() { onChangedVelocityIterations(this.value); });
-		addEvent(settings.querySelector("#p_iters"), "change", function() { onChangedPositionIterations(this.value); });
-		addEvent(settings.querySelector("#warmStarting"), "click", onClickedWarmStarting);
-		addEvent(settings.querySelector("#allowSleep"), "click", onClickedAllowSleep);
-		addEvent(settings.querySelector("#enableDirtyRect"), "click", onClickedEnableDirtyRect);				
-		addEvent(settings.querySelector("#showAxis"), "click", onClickedShowAxis);
-		addEvent(settings.querySelector("#showJoints"), "click", onClickedShowJoints);
-		addEvent(settings.querySelector("#showBounds"), "click", onClickedShowBounds);
-		addEvent(settings.querySelector("#showContacts"), "click", onClickedShowContacts);
-		addEvent(settings.querySelector("#showStats"), "click", onClickedShowStats);
-		var elements = settings.querySelectorAll("select, input");
+		domSettings = document.querySelector("#settings");
+		addEvent(domSettings.querySelector("#gravity"), "change", function() { onChangedGravity(this.value); });
+		addEvent(domSettings.querySelector("#frameRateHz"), "change", function() { onChangedFrameRateHz(this.value); });
+		addEvent(domSettings.querySelector("#v_iters"), "change", function() { onChangedVelocityIterations(this.value); });
+		addEvent(domSettings.querySelector("#p_iters"), "change", function() { onChangedPositionIterations(this.value); });
+		addEvent(domSettings.querySelector("#warmStarting"), "click", onClickedWarmStarting);
+		addEvent(domSettings.querySelector("#allowSleep"), "click", onClickedAllowSleep);
+		addEvent(domSettings.querySelector("#enableDirtyRect"), "click", onClickedEnableDirtyRect);
+		addEvent(domSettings.querySelector("#showDirtyRect"), "click", onClickedShowDirtyRect);
+		addEvent(domSettings.querySelector("#showAxis"), "click", onClickedShowAxis);
+		addEvent(domSettings.querySelector("#showJoints"), "click", onClickedShowJoints);
+		addEvent(domSettings.querySelector("#showBounds"), "click", onClickedShowBounds);
+		addEvent(domSettings.querySelector("#showContacts"), "click", onClickedShowContacts);
+		addEvent(domSettings.querySelector("#showStats"), "click", onClickedShowStats);
+		var elements = domSettings.querySelectorAll("select, input");
 		for (var i in elements) {
 			addEvent(elements[i], "blur", function() { window.scrollTo(0, 0); });
 		}
@@ -218,8 +235,11 @@ App = function() {
 	}	
 
 	function onLoad() {
+		// HACK
+		onResize();
+
 		// Add scenes from demos
-		var combobox = toolbar.querySelector("#scene");
+		var combobox = domToolbar.querySelector("#scene");
 		for (var i = 0; i < demoArr.length; i++) {
 			var option = document.createElement("option");
 			var name = demoArr[i].name();
@@ -241,18 +261,13 @@ App = function() {
 		});*/
 
 		sceneIndex = 0;
-		combobox.selectedIndex = sceneIndex;
-
-		// HACK
-		onResize();
+		combobox.selectedIndex = sceneIndex;		
 
 		renderer = RendererCanvas;
 
 		selectionPattern = createCheckPattern(selectionColor);
 		highlightPattern = createCheckPattern(highlightColor);
-
-		// Random color for bodies
-		randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"];
+		//testImage = createImage("img/glyphicons-halflings-white.png");
 
 		collision.init();
 
@@ -262,7 +277,7 @@ App = function() {
 		mouseBody.resetMassData();
 		space.addBody(mouseBody);
 
-		initScene();
+		resetScene();
 
 		window.requestAnimFrame = window.requestAnimationFrame || 
 			window.webkitRequestAnimationFrame || 
@@ -279,13 +294,13 @@ App = function() {
 	}
 
 	function updateToolbar() {
-		var editButton = toolbar.querySelector("#edit");
-		var snapButton = toolbar.querySelector("#toggle_snap");
-		var playerSpan = toolbar.querySelector("#player");
-		var selectionModeSpan = toolbar.querySelector("#selectionmode");
-		var transformModeSpan = toolbar.querySelector("#transformmode");
-		var selectionModeButtons = toolbar.querySelectorAll("#selectionmode > [name=selectionmode]");
-		var transformModeButtons = toolbar.querySelectorAll("#transformmode > [name=transformmode]");		
+		var editButton = domToolbar.querySelector("#edit");
+		var snapButton = domToolbar.querySelector("#toggle_snap");
+		var playerSpan = domToolbar.querySelector("#player");
+		var selectionModeSpan = domToolbar.querySelector("#selectionmode");
+		var transformModeSpan = domToolbar.querySelector("#transformmode");
+		var selectionModeButtons = domToolbar.querySelectorAll("#selectionmode > [name=selectionmode]");
+		var transformModeButtons = domToolbar.querySelectorAll("#transformmode > [name=transformmode]");		
 
 		if (editMode) {
 			// show / hide
@@ -313,7 +328,7 @@ App = function() {
 			}
 
 			// transform mode buttons
-			var value = ["select", "translate", "scale", "rotate"][transformMode];
+			var value = ["select", "translate", "rotate", "scale"][transformMode];
 			for (var i = 0; i < transformModeButtons.length; i++) {
 				var e = transformModeButtons[i];
 				
@@ -327,7 +342,7 @@ App = function() {
 				}
 			}
 			
-			if (snap) {
+			if (snapEnabled) {
 				if (snapButton.className.indexOf(" pushed") == -1) {
 					snapButton.className += " pushed";
 				}
@@ -351,7 +366,7 @@ App = function() {
 	}
 
 	function updatePauseButton() {
-		var button = toolbar.querySelector("#player > [value=pause]");
+		var button = domToolbar.querySelector("#player > [value=pause]");
 		button.innerHTML = pause ? "<i class='icon-white icon-play'></i>" : "<i class='icon-white icon-pause'></i>";
 	}
 
@@ -362,11 +377,11 @@ App = function() {
     	var b = c.channels[2];
     	var a = 255;
 
-		var pattern = document.createElement("canvas");
-		pattern.width = 4;
-		pattern.height = 2;
+		var patternCanvas = document.createElement("canvas");
+		patternCanvas.width = 4;
+		patternCanvas.height = 2;
 
-		var ctx = pattern.getContext("2d");
+		var ctx = patternCanvas.getContext("2d");
 
 		var imageData = ctx.getImageData(0, 0, 4, 2);
 
@@ -382,39 +397,18 @@ App = function() {
 
 		ctx.putImageData(imageData, 0, 0);
 
-		return ctx.createPattern(pattern, "repeat");
-	}
-	
-	function httpGetText(uri, async, callback) {
-		var request = new XMLHttpRequest();
-		request.onreadystatechange = function () {
-			if (request.readyState == 4 && request.status == 200) {
-				var text = request.responseText;
-				callback(text);
-			}
-		}
-
-		request.open("GET", uri, async);
-		//request.overrideMimeType("text/plain");
-		request.setRequestHeader("Content-Type", "text/plain");
-		request.send();
+		return ctx.createPattern(patternCanvas, "repeat");
 	}
 
-	function httpPostText(uri, async, text, callback) {
-		var request = new XMLHttpRequest();
-		request.onreadystatechange = function () {
-			if (request.readyState == 4 && request.status == 200) {
-				var text = request.responseText;
-				callback(text);
-			}
+	function createImage(filename) {
+		var image = new Image();
+		image.onload = function() {
+			var ctx = domCanvas.getContext("2d");
+			image.pattern = ctx.createPattern(image, "repeat");
 		}
 
-		request.open("POST", uri, async);
-		//request.overrideMimeType("text/plain");
-		request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-		request.setRequestHeader("Content-length", text.length);
-		request.setRequestHeader("Connection", "close");
-		request.send(text);
+		image.src = filename;
+		return image;
 	}
 
 	function loadSceneFromServer(name) {
@@ -430,7 +424,7 @@ App = function() {
 		httpPostText("scene.rb", false, postData, function(text) {});
 	}
 
-	function initScene() {
+	function resetScene() {
 		space.clear();
 		space.gravity.copy(gravity);
 
@@ -441,7 +435,7 @@ App = function() {
 		else {
 			demo = null;
 			loadSceneFromServer(sceneNameArr[sceneIndex]);
-		}		
+		}
 
 		initFrame();
 	}
@@ -452,30 +446,30 @@ App = function() {
 		timeDelta = 0;
 
 		// Set dirtyBounds to full screen
-		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+		dirtyBounds.set(canvasToWorld(new vec2(0, domCanvas.height)), canvasToWorld(new vec2(domCanvas.width, 0)));
 		bg.outdated = true;
 	}
 
-	function worldToCanvas(v) {
+	function worldToCanvas(p) {
 		return new vec2(
-			canvas.width * 0.5 + (v.x * view.scale - view.origin.x),
-			canvas.height - (v.y * view.scale - view.origin.y));
+			domCanvas.width * 0.5 + (p.x * camera.scale - camera.origin.x),
+			domCanvas.height - (p.y * camera.scale - camera.origin.y));
 	}
 
-	function canvasToWorld(v) {
+	function canvasToWorld(p) {
 		return new vec2(
-			(view.origin.x + (v.x - canvas.width * 0.5)) / view.scale,
-			(view.origin.y - (v.y - canvas.height)) / view.scale);
+			(camera.origin.x + (p.x - domCanvas.width * 0.5)) / camera.scale,
+			(camera.origin.y - (p.y - domCanvas.height)) / camera.scale);
 	}
 
 	function screenAlign(bounds) {
 		var mins = worldToCanvas(bounds.mins);
 		mins.x = Math.max(Math.floor(mins.x), 0);
-		mins.y = Math.min(Math.ceil(mins.y), canvas.height);
+		mins.y = Math.min(Math.ceil(mins.y), domCanvas.height);
 		bounds.mins = canvasToWorld(mins);
 
 		var maxs = worldToCanvas(bounds.maxs);
-		maxs.x = Math.min(Math.ceil(maxs.x), canvas.width);
+		maxs.x = Math.min(Math.ceil(maxs.x), domCanvas.width);
 		maxs.y = Math.max(Math.floor(maxs.y), 0);
 		bounds.maxs = canvasToWorld(maxs);
 	}
@@ -497,64 +491,65 @@ App = function() {
 		var frameTime = (time - lastTime) / 1000;
 		lastTime = time;
 
-		if (activeWindow) {			
+		if (activeWindow) {
+			if (window.requestAnimFrame) {
+				frameTime = Math.floor(frameTime * 60 + 0.5) / 60;
+			}
+
 			if (!editMode) {
 				if (!mouseDown) {
 					var p = canvasToWorld(mousePosition);
 					var shape = space.findShapeByPoint(p);
 					mouseCursor = shape ? "pointer" : "default";
+					domCanvas.style.cursor = mouseCursor;
+				}
+
+				if (!pause || step) {
+					var h = 1 / frameRateHz;
+
+					timeDelta += frameTime;
+
+					if (step) {
+						step = false;
+						timeDelta = h;
+					}
+					
+					stats.timeStep = 0;
+					stats.stepCount = 0;
+
+					for (var maxSteps = 4; maxSteps > 0 && timeDelta >= h; maxSteps--) {
+						var t0 = Date.now();
+						space.step(h, velocityIterations, positionIterations, warmStarting, allowSleep);
+						stats.timeStep += Date.now() - t0;
+						stats.stepCount++;
+
+						timeDelta -= h;
+					}
+
+					if (timeDelta > h) {
+						timeDelta = 0;
+					}
+				}
+
+				if (stats.stepCount > 0) {
+					updateScreen(frameTime);
 				}
 			}
 			else {
 				if (!mouseDownMoving) {
-					checkHighlight(mousePosition);
+					processEditMode();
 
 					mouseCursor = "default";
-				}
-			}
-
-			canvas.style.cursor = mouseCursor;
-			
-			if (window.requestAnimFrame) {
-				frameTime = Math.floor(frameTime * 60 + 0.5) / 60;
-			}
-
-			if ((!pause || step) && !editMode) {
-				var h = 1 / frameRateHz;
-
-				timeDelta += frameTime;
-
-				if (step) {
-					step = false;
-					timeDelta = h;
-				}
-				
-				stats.timeStep = 0;
-				stats.stepCount = 0;
-
-				for (var maxSteps = 4; maxSteps > 0 && timeDelta >= h; maxSteps--) {
-					var t0 = Date.now();
-					space.step(h, velocityIterations, positionIterations, warmStarting, allowSleep);
-					stats.timeStep += Date.now() - t0;
-					stats.stepCount++;
-
-					timeDelta -= h;
+					domCanvas.style.cursor = mouseCursor;
 				}
 
-				if (timeDelta > h) {
-					timeDelta = 0;
-				}
-			}
-
-			if (stats.stepCount > 0) {
 				updateScreen(frameTime);
-			}			
+			}
 		}
 
 		frameCount++;
 			
-		// Calc frame per second
-
+		// Calculate frame per second
 		fps_frameCount++;
 		fps_time += frameTime;
 
@@ -562,6 +557,74 @@ App = function() {
 			fps = fps_frameCount / fps_time;
 			fps_time -= 1.0;
 			fps_frameCount = 0;
+		}
+	}
+
+	function processEditMode() {
+		highlightFeatureArr = [];
+		transformAxis = 0;
+
+		if (transformMode == TM_SELECT) {
+			var feature = getFeatureByPoint(canvasToWorld(mousePosition));
+
+			if (isValidFeature(feature)) {
+				highlightFeatureArr[0] = feature;
+			}
+		}
+		else if (transformMode == TM_TRANSLATE) {
+			var center = worldToCanvas(transformCenter);
+
+			if (Math.abs(mousePosition.x - center.x) < GIZMO_INNER_RADIUS && Math.abs(mousePosition.y - center.y) < GIZMO_INNER_RADIUS) {
+				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
+			}
+			else {	
+				var dx = mousePosition.x - center.x;
+				var dy = -(mousePosition.y - center.y);
+
+				if (dx <= GIZMO_RADIUS && dx >= GIZMO_INNER_OFFSET && Math.abs(dy) < SELECTABLE_LINE_DIST_THREHOLD) {
+					transformAxis = TRANSFORM_AXIS_X;
+				}
+				else if (dy <= GIZMO_RADIUS && dy >= GIZMO_INNER_OFFSET && Math.abs(dx) < SELECTABLE_LINE_DIST_THREHOLD) {
+					transformAxis = TRANSFORM_AXIS_Y;					
+				}
+			}
+		}		
+		else if (transformMode == TM_ROTATE) {
+			var dsq = vec2.distsq(mousePosition, worldToCanvas(transformCenter));
+
+			if (dsq > (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) &&
+				dsq < (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD)) {
+				transformAxis = TRANSFORM_AXIS_Z;
+			}
+		}
+		else if (transformMode == TM_SCALE) {
+			var center = worldToCanvas(transformCenter);			
+			var dsq = vec2.distsq(mousePosition, center);
+			var cd = GIZMO_INNER_RADIUS;// + SELECTABLE_CIRCLE_DIST_THREHOLD;
+
+			if (dsq < cd * cd) {
+				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
+			}
+			else {
+				var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + SELECTABLE_LINE_DIST_THREHOLD;
+
+				var px = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
+				var dx = Math.abs(mousePosition.x - px.x);
+				var dy = Math.abs(mousePosition.y - px.y);				
+
+				if (dx < cd && dy < cd) {
+					transformAxis = TRANSFORM_AXIS_X;
+				}
+				else {					
+					var py = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
+					var dx = Math.abs(mousePosition.x - py.x);
+					var dy = Math.abs(mousePosition.y - py.y);
+
+					if (dx < cd && dy < cd) {
+						transformAxis = TRANSFORM_AXIS_Y;
+					}
+				}
+			}
 		}
 	}
 	
@@ -584,12 +647,12 @@ App = function() {
 		}
 		else {
 			info.innerHTML = "";
-		}
+		}		
 	}
 
 	function drawFrame(frameTime) {
-		// view.bounds for culling
-		view.bounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+		// camera.bounds for culling
+		camera.bounds.set(canvasToWorld(new vec2(0, domCanvas.height)), canvasToWorld(new vec2(domCanvas.width, 0)));
 
 		// Check the visibility of shapes for all bodies
 		for (var i in space.bodyHash) {
@@ -600,7 +663,7 @@ App = function() {
 			for (var j = 0; j < body.shapeArr.length; j++) {
 				var shape = body.shapeArr[j];
 				var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
-				if (view.bounds.intersectsBounds(bounds)) {
+				if (camera.bounds.intersectsBounds(bounds)) {
 					shape.visible = true;
 					body.visible = true;
 				}
@@ -614,14 +677,15 @@ App = function() {
 		if (bg.outdated) {
 			bg.outdated = false;
 			bg.ctx.fillStyle = backgroundColor;
-			bg.ctx.fillRect(0, 0, canvas.width, canvas.height);
+			bg.ctx.fillRect(0, 0, domCanvas.width, domCanvas.height);
 
 			bg.ctx.save();
-			bg.ctx.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
+			bg.ctx.setTransform(camera.scale, 0, 0, -camera.scale, domCanvas.width * 0.5 - camera.origin.x, domCanvas.height + camera.origin.y);
 			
 			if (editMode) {
-				drawGrids(bg.ctx, 64, "#BBB");
-			}			
+				scaledGridSize = computeScaledGridSize(gridSize);
+				drawGrids(bg.ctx);
+			}
 			else {
 				// Draw static bodies
 				for (var i in space.bodyHash) {
@@ -642,8 +706,8 @@ App = function() {
 				var maxs = worldToCanvas(dirtyBounds.maxs);
 				var x = Math.max(Math.floor(mins.x), 0);
 				var y = Math.max(Math.floor(maxs.y), 0);
-				var w = Math.min(Math.ceil(maxs.x + 1), canvas.width) - x;
-				var h = Math.min(Math.ceil(mins.y + 1), canvas.height) - y;
+				var w = Math.min(Math.ceil(maxs.x + 1), domCanvas.width) - x;
+				var h = Math.min(Math.ceil(mins.y + 1), domCanvas.height) - y;
 				
 				if (x >= 0 && y >= 0 && w > 0 && h > 0) {
 					// void drawImage(HTMLVideoElement image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh);
@@ -658,33 +722,32 @@ App = function() {
 		fg.ctx.save();
 		
 		// Transform view coordinates to screen canvas
-		/*fg.ctx.translate(canvas.width * 0.5, canvas.height);
+		/*fg.ctx.translate(domCanvas.width * 0.5, domCanvas.height);
 		fg.ctx.scale(1, -1);
 
 		// Transform world coordinates to view
-		fg.ctx.translate(-view.origin.x, -view.origin.y);
-		fg.ctx.scale(view.scale, view.scale);*/
+		fg.ctx.translate(-camera.origin.x, -camera.origin.y);
+		fg.ctx.scale(camera.scale, camera.scale);*/
 
-		fg.ctx.setTransform(view.scale, 0, 0, -view.scale, canvas.width * 0.5 - view.origin.x, canvas.height + view.origin.y);
-
-		//renderer.drawRect(fg.ctx, dirtyBounds.mins, dirtyBounds.maxs, 1, "#00F");
+		fg.ctx.setTransform(camera.scale, 0, 0, -camera.scale, domCanvas.width * 0.5 - camera.origin.x, domCanvas.height + camera.origin.y);
 
 		dirtyBounds.clear();
 
 		// Draw bodies except for static bodies
 		for (var i in space.bodyHash) {
 			var body = space.bodyHash[i];
-			if (editMode || (!editMode && !body.isStatic())) {
-				drawBody(fg.ctx, body, 1, "#000", bodyColor(body));
-				dirtyBounds.addBounds(Bounds.expand(body.bounds, 2, 2));
-			}			
+			if (body.visible) {
+				if (editMode || (!editMode && !body.isStatic())) {				
+					drawBody(fg.ctx, body, 1, "#000", bodyColor(body));					
+				}
+			}
 		}
 		
 		// Draw joints
 		if (!editMode) {
 			if (showAxis) {
 				for (var i in space.bodyHash) {
-					drawBodyAxis(fg.ctx, body);
+					drawBodyAxis(fg.ctx, space.bodyHash[i]);
 				}
 			}
 
@@ -696,7 +759,7 @@ App = function() {
 		}		
 		else {
 			drawEditMode(fg.ctx);
-		}
+		}		
 
 		// Draw contacts
 		if (showContacts) {
@@ -716,186 +779,73 @@ App = function() {
 			}
 		}		
 
+		if (showDirtyBounds) {
+			renderer.drawRect(fg.ctx, dirtyBounds.mins, dirtyBounds.maxs, 1, "#00F");
+			dirtyBounds.expand(1, 1);
+		}
+
 		fg.ctx.restore();
-	}	
+	}
 
-	function drawGrids(ctx, refGridSize, gridColor) {
-		var n = refGridSize * view.scale;
-		var p = 1; while (p <= n) p <<= 1; p >>= 1; // previous power of two
-		var gridSize = refGridSize * refGridSize / p;
+	function computeScaledGridSize(gridSize) {
+		var n = gridSize * camera.scale;
+		
+		// previous power of two
+		var p = 1; 
+		while (p <= n) {
+			p <<= 1;
+		}
+		p >>= 1;
 
-		var start_x = Math.floor(view.bounds.mins.x / gridSize) * gridSize;
-		var start_y = Math.floor(view.bounds.mins.y / gridSize) * gridSize;
-		var end_x = Math.ceil(view.bounds.maxs.x / gridSize) * gridSize;
-		var end_y = Math.ceil(view.bounds.maxs.y / gridSize) * gridSize;
+		return gridSize * gridSize / p;
+	}
+
+	function drawGrids(ctx) {
+		var start_x = Math.floor(camera.bounds.mins.x / scaledGridSize) * scaledGridSize;
+		var start_y = Math.floor(camera.bounds.mins.y / scaledGridSize) * scaledGridSize;
+		var end_x = Math.ceil(camera.bounds.maxs.x / scaledGridSize) * scaledGridSize;
+		var end_y = Math.ceil(camera.bounds.maxs.y / scaledGridSize) * scaledGridSize;
 
 		var v1 = new vec2(start_x, start_y);
 		var v2 = new vec2(start_x, end_y);
 
-		for (var x = start_x; x <= end_x; x += gridSize) {
+		ctx.save();
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+		// Draw vertical lines
+		for (var x = start_x; x <= end_x; x += scaledGridSize) {
 			v1.x = x;
 			v2.x = x;
-			renderer.drawLine(ctx, v1, v2, 0.75 / view.scale, gridColor);
+			renderer.drawLine(ctx, worldToCanvas(v1), worldToCanvas(v2), 1, x % gridFrameSize == 0 ? gridFrameColor : gridColor);
 		}
 
 		v1.set(start_x, start_y);
 		v2.set(end_x, start_y);
 
-		for (var y = start_y; y <= end_y; y += gridSize) {
+		// Draw horizontal lines
+		for (var y = start_y; y <= end_y; y += scaledGridSize) {
 			v1.y = y;
 			v2.y = y;
-			renderer.drawLine(ctx, v1, v2, 0.75 / view.scale, gridColor);
+			renderer.drawLine(ctx, worldToCanvas(v1), worldToCanvas(v2), 1, y % gridFrameSize == 0 ? gridFrameColor : gridColor);
 		}
-	}
-
-	function drawBodyAxis(ctx, body) {
-		if (body.visible) {
-			var rvec = body.xf.rotate(new vec2(12, 0));
-			renderer.drawLine(ctx, body.xf.t, vec2.add(body.xf.t, rvec), 1, "#F00");
-			renderer.drawLine(ctx, body.xf.t, vec2.add(body.xf.t, vec2.perp(rvec)), 1, "#0F0");
-		}
-	}
-
-	function drawBody(ctx, body, lineWidth, outlineColor, fillColor) {
-		for (var i = 0; i < body.shapeArr.length; i++) {
-			var shape = body.shapeArr[i];
-			if (!shape.visible) {
-				continue;
-			}			
-
-			drawBodyShape(ctx, shape, lineWidth, outlineColor, fillColor);
-
-			if (showBounds || !body.isStatic()) {
-				if (showBounds) {
-					var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
-					bounds.expand(1, 1);
-					renderer.drawRect(ctx, shape.bounds.mins, bounds.maxs, lineWidth, "#0A0");
-				}				
-			}
-		}
-	}
-
-	function drawBodyShape(ctx, shape, lineWidth, outlineColor, fillColor) {
-		switch (shape.type) {
-		case Shape.TYPE_CIRCLE:
-			renderer.drawCircle(ctx, shape.tc, shape.r, shape.body.a, lineWidth, outlineColor, fillColor);
-			break;
-		case Shape.TYPE_SEGMENT:
-			renderer.drawSegment(ctx, shape.ta, shape.tb, shape.r, lineWidth, outlineColor, fillColor);
-			break;
-		case Shape.TYPE_POLY:
-			renderer.drawPolygon(ctx, shape.tverts, lineWidth, !shape.convexity ? "#F00" : outlineColor, fillColor);
-			break;
-		}
-	}
-
-	function drawBodyShapeViewTransformed(ctx, shape, lineWidth, outlineColor, fillColor) {
-		ctx.save();
-		ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-		ctx.lineWidth = view.scale;
-
-		switch (shape.type) {
-		case Shape.TYPE_CIRCLE:
-			renderer.drawCircle(ctx, worldToCanvas(shape.tc), shape.r * view.scale, -shape.body.a, lineWidth, outlineColor, fillColor);
-			break;
-		case Shape.TYPE_SEGMENT:
-			renderer.drawSegment(ctx, worldToCanvas(shape.ta), worldToCanvas(shape.tb), shape.r * view.scale, lineWidth, outlineColor, fillColor);
-			break;
-		case Shape.TYPE_POLY:
-			var ctverts = new Array(shape.tverts.length);
-			for (var i = 0; i < ctverts.length; i++) {
-			 	ctverts[i] = worldToCanvas(shape.tverts[i]);
-			}
-			renderer.drawPolygon(ctx, ctverts, lineWidth, outlineColor, fillColor);
-			break;
-		}		
 
 		ctx.restore();
 	}
 
-	function drawGizmo(ctx) {
-		ctx.save();
-		ctx.setTransform(1, 0, 0, 1, 0, 0);
+	function snapPointByGrid(p) {
+		var v = new vec2;
+		v.x = Math.round(p.x / scaledGridSize) * scaledGridSize;
+		v.y = Math.round(p.y / scaledGridSize) * scaledGridSize;
 
-		var center = worldToCanvas(transformCenter);		
-
-		var extent = new vec2(GIZMO_RADIUS / view.scale, GIZMO_RADIUS / view.scale);
-		var mins = vec2.sub(transformCenter, extent);
-		var maxs = vec2.add(transformCenter, extent);
-		var bounds = new Bounds(mins, maxs);
-		bounds.expand(4, 4); // expand for outline
-
-		if (transformMode == TM_TRANSLATE) {
-			var p1 = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
-			var p2 = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
-
-			var s1 = vec2.add(center, new vec2(GIZMO_INNER_OFFSET, 0));
-			var s2 = vec2.add(center, new vec2(0, -GIZMO_INNER_OFFSET));
-
-			var x_color = transformAxis == TRANSFORM_AXIS_X ? "#FA0" : "#F00";
-			var y_color = transformAxis == TRANSFORM_AXIS_Y ? "#FA0" : "#0F0";
-
-			renderer.drawArrow(ctx, s1, p1, ARROW_TYPE_NONE, ARROW_TYPE_NORMAL, 16, 2, x_color, x_color);
-			renderer.drawArrow(ctx, s2, p2, ARROW_TYPE_NONE, ARROW_TYPE_NORMAL, 16, 2, y_color, y_color);
-			
-			var mins = vec2.sub(center, new vec2(GIZMO_INNER_RADIUS, -GIZMO_INNER_RADIUS));
-			var maxs = vec2.add(center, new vec2(GIZMO_INNER_RADIUS, -GIZMO_INNER_RADIUS));
-
-			var color1 = transformAxis == TRANSFORM_AXIS_XY ? "#FA0" : "#FF0";
-			var color2 = Color.parse(color1); color2.channels[3] = 0.4;
-
-			renderer.drawRect(ctx, mins, maxs, 0, color1, color2.rgba());
-		}
-		else if (transformMode == TM_SCALE) {
-			var p1 = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
-			var p2 = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
-
-			var s1 = vec2.add(center, new vec2(GIZMO_INNER_OFFSET, 0));
-			var s2 = vec2.add(center, new vec2(0, -GIZMO_INNER_OFFSET));			
-
-			var x_color = transformAxis == TRANSFORM_AXIS_X ? "#FA0" : "#F00";
-			var y_color = transformAxis == TRANSFORM_AXIS_Y ? "#FA0" : "#0F0";
-
-			renderer.drawArrow(ctx, s1, p1, ARROW_TYPE_NONE, ARROW_TYPE_BOX, GIZMO_SCALE_AXIS_BOX_EXTENT, 2, x_color, x_color);
-			renderer.drawArrow(ctx, s2, p2, ARROW_TYPE_NONE, ARROW_TYPE_BOX, GIZMO_SCALE_AXIS_BOX_EXTENT, 2, y_color, y_color);
-
-			var color1 = transformAxis == TRANSFORM_AXIS_XY ? "#FA0" : "#FF0";
-			var color2 = Color.parse(color1); color2.channels[3] = 0.4;
-			
-			renderer.drawCircle(ctx, center, GIZMO_INNER_RADIUS, undefined, 2, color1, color2.rgba());
-
-			var extent = (GIZMO_SCALE_AXIS_BOX_EXTENT + 2) / view.scale;
-			bounds.addExtents(canvasToWorld(p1), extent, extent);
-			bounds.addExtents(canvasToWorld(p2), extent, extent);
-		}
-		else if (transformMode == TM_ROTATE) {
-			var color = transformAxis & TRANSFORM_AXIS_Z ? "#FA0" : "#00F";
-
-			renderer.drawCircle(ctx, center, 2, undefined, 0, "", color);
-			renderer.drawCircle(ctx, center, GIZMO_RADIUS, undefined, 2, color);
-			
-			if (mouseDownMoving && transformAxis & TRANSFORM_AXIS_Z) {
-				var r = vec2.scale(vec2.normalize(vec2.sub(mousePosition, center)), GIZMO_RADIUS);
-				var p = vec2.add(center, r);
-				renderer.drawLine(ctx, center, p, 2, "#F55");
-			}			
-		}
-
-		//renderer.drawDashLine(ctx, vec2.sub(center, new vec2(15, 0)), vec2.add(center, new vec2(15, 0)), 1, 20, "#00F");
-		//renderer.drawDashLine(ctx, vec2.sub(center, new vec2(0, 15)), vec2.add(center, new vec2(0, 15)), 1, 20, "#00F");			
-
-		dirtyBounds.addBounds(bounds);
-
-		ctx.restore();
-	}	
+		return v;
+	}
 
 	function drawEditMode(ctx) {
 		for (var i in space.bodyHash) {
 			drawBodyAxis(ctx, space.bodyHash[i]);
 		}
 
-		if (selectionMode == SM_VERTICES || selectionMode == SM_EDGES) {
+		if (selectionMode == SM_VERTICES) {
 			// Draw vertices
 			for (var i in space.bodyHash) {
 				var body = space.bodyHash[i];
@@ -924,9 +874,7 @@ App = function() {
 					}
 				}
 			}
-		}
-
-		if (selectionMode == SM_VERTICES) {			
+	
 			// Draw selected vertices
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
 				var vertex = selectedFeatureArr[i];
@@ -934,7 +882,7 @@ App = function() {
 				if (shape && shape.visible) {
 					var index = vertex & 0xFFFF;
 					var p = drawShapeVertex(ctx, shape, index, selectionColor);
-					dirtyBounds.addExtents(p, HELPER_VERTEX_EXTENT, HELPER_VERTEX_EXTENT);
+					//dirtyBounds.addExtents(p, HELPER_VERTEX_EXTENT, HELPER_VERTEX_EXTENT);
 				}
 			}
 
@@ -945,7 +893,7 @@ App = function() {
 				if (shape && shape.visible) {
 					var index = vertex & 0xFFFF;
 					var p = drawShapeVertex(ctx, shape, index, highlightColor);
-					dirtyBounds.addExtents(p, HELPER_VERTEX_EXTENT, HELPER_VERTEX_EXTENT);
+					//dirtyBounds.addExtents(p, HELPER_VERTEX_EXTENT, HELPER_VERTEX_EXTENT);
 				}				
 			}
 		}
@@ -960,10 +908,8 @@ App = function() {
 					var v1 = shape.tverts[index1];
 					var v2 = shape.tverts[index2];
 
-			 		renderer.drawLine(ctx, v1, v2, 1.5, selectionColor);
-			 		drawShapeVertex(ctx, shape, index1, selectionColor);
-			 		drawShapeVertex(ctx, shape, index2, selectionColor);
-
+			 		renderer.drawLine(ctx, v1, v2, 2, selectionColor);
+			 	
 					dirtyBounds.addPoint(v1);
 					dirtyBounds.addPoint(v2);
 				}
@@ -979,9 +925,7 @@ App = function() {
 					var v1 = shape.tverts[index1];
 					var v2 = shape.tverts[index2];
 
-			 		renderer.drawLine(ctx, v1, v2, 1.5, highlightColor);
-			 		drawShapeVertex(ctx, shape, index1, highlightColor);
-			 		drawShapeVertex(ctx, shape, index2, highlightColor);
+			 		renderer.drawLine(ctx, v1, v2, 2, highlightColor);			 
 					
 					dirtyBounds.addPoint(v1);
 					dirtyBounds.addPoint(v2);
@@ -1070,6 +1014,177 @@ App = function() {
 		return p;
 	}
 
+	function drawBody(ctx, body, lineWidth, outlineColor, fillColor) {
+		for (var i = 0; i < body.shapeArr.length; i++) {
+			var shape = body.shapeArr[i];
+			if (!shape.visible) {
+				continue;
+			}			
+
+			/*if (editMode) {
+				drawBodyShapeViewTransformed(ctx, shape, lineWidth, outlineColor, fillColor);
+			}
+			else {*/
+				drawBodyShape(ctx, shape, lineWidth, outlineColor, fillColor);
+			//}
+
+			if (showBounds) {
+				var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
+				bounds.expand(1, 1);
+				renderer.drawRect(ctx, bounds.mins, bounds.maxs, lineWidth, "#0A0");
+				dirtyBounds.addBounds(bounds);
+			}
+
+			if (editMode || (!editMode && !body.isStatic())) {
+				var expand = showBounds ? 2 : 1;
+				var bounds = Bounds.expand(shape.bounds, expand, expand);
+				dirtyBounds.addBounds(bounds);
+			}
+		}
+	}
+
+	function drawBodyShape(ctx, shape, lineWidth, outlineColor, fillColor) {
+		switch (shape.type) {
+		case Shape.TYPE_CIRCLE:
+			renderer.drawCircle(ctx, shape.tc, shape.r, shape.body.a, lineWidth, outlineColor, fillColor);
+			break;
+		case Shape.TYPE_SEGMENT:
+			renderer.drawSegment(ctx, shape.ta, shape.tb, shape.r, lineWidth, outlineColor, fillColor);
+			break;
+		case Shape.TYPE_POLY:
+			if (shape.convexity) renderer.drawPolygon(ctx, shape.tverts, lineWidth, outlineColor, fillColor);
+			else renderer.drawPolygon(ctx, shape.tverts, 2, "#F00", fillColor);
+			break;
+		}
+	}
+
+	function drawBodyShapeViewTransformed(ctx, shape, lineWidth, outlineColor, fillColor) {
+		ctx.save();
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+		ctx.lineWidth = camera.scale;
+
+		switch (shape.type) {
+		case Shape.TYPE_CIRCLE:
+			renderer.drawCircle(ctx, worldToCanvas(shape.tc), shape.r * camera.scale, -shape.body.a, lineWidth, outlineColor, fillColor);
+			break;
+		case Shape.TYPE_SEGMENT:
+			renderer.drawSegment(ctx, worldToCanvas(shape.ta), worldToCanvas(shape.tb), shape.r * camera.scale, lineWidth, outlineColor, fillColor);
+			break;
+		case Shape.TYPE_POLY:
+			var ctverts = new Array(shape.tverts.length);
+			for (var i = 0; i < ctverts.length; i++) {
+			 	ctverts[i] = worldToCanvas(shape.tverts[i]);
+			}
+			renderer.drawPolygon(ctx, ctverts, lineWidth, outlineColor, fillColor);
+			break;
+		}		
+
+		ctx.restore();
+	}
+
+	function drawBodyAxis(ctx, body) {
+		if (!body.visible) {
+			return;
+		}
+
+		ctx.save();
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+		var rvec = body.xf.rotate(new vec2(HELPER_BODY_AXIS_SIZE, 0));
+		var origin = body.xf.t;
+		var px = vec2.add(origin, rvec);
+		var py = vec2.add(origin, vec2.perp(rvec));
+
+		renderer.drawLine(ctx, worldToCanvas(origin), worldToCanvas(px), 1, "#F00");
+		renderer.drawLine(ctx, worldToCanvas(origin), worldToCanvas(py), 1, "#0F0");
+
+		var bounds = new Bounds;
+		bounds.addPoint(origin);
+		bounds.addPoint(px);
+		bounds.addPoint(py);
+		bounds.expand(1, 1);
+		dirtyBounds.addBounds(bounds);
+		
+		ctx.restore();
+	}
+
+	function drawGizmo(ctx) {
+		ctx.save();
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+		var center = worldToCanvas(transformCenter);
+
+		var extent = new vec2(GIZMO_RADIUS / camera.scale, GIZMO_RADIUS / camera.scale);
+		var mins = vec2.sub(transformCenter, extent);
+		var maxs = vec2.add(transformCenter, extent);
+		var bounds = new Bounds(mins, maxs);
+		bounds.expand(4, 4); // expand for outline
+
+		if (transformMode == TM_TRANSLATE) {
+			var p1 = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
+			var p2 = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
+
+			var s1 = vec2.add(center, new vec2(GIZMO_INNER_OFFSET, 0));
+			var s2 = vec2.add(center, new vec2(0, -GIZMO_INNER_OFFSET));
+
+			var x_color = transformAxis == TRANSFORM_AXIS_X ? "#FC0" : "#F00";
+			var y_color = transformAxis == TRANSFORM_AXIS_Y ? "#FC0" : "#0F0";
+
+			renderer.drawArrow(ctx, s1, p1, ARROW_TYPE_NONE, ARROW_TYPE_NORMAL, 16, 2, x_color, x_color);
+			renderer.drawArrow(ctx, s2, p2, ARROW_TYPE_NONE, ARROW_TYPE_NORMAL, 16, 2, y_color, y_color);
+			
+			var mins = vec2.sub(center, new vec2(GIZMO_INNER_RADIUS, -GIZMO_INNER_RADIUS));
+			var maxs = vec2.add(center, new vec2(GIZMO_INNER_RADIUS, -GIZMO_INNER_RADIUS));
+
+			var color1 = transformAxis == TRANSFORM_AXIS_XY ? "#FC0" : "#FF0";
+			var color2 = Color.parse(color1); color2.channels[3] = 0.4;
+
+			renderer.drawRect(ctx, mins, maxs, 0, color1, color2.rgba());
+		}	
+		else if (transformMode == TM_ROTATE) {
+			var color = transformAxis & TRANSFORM_AXIS_Z ? "#FC0" : "#00F";
+
+			renderer.drawCircle(ctx, center, 2, undefined, 0, "", color);
+			renderer.drawCircle(ctx, center, GIZMO_RADIUS, undefined, 2, color);
+			
+			if (mouseDownMoving && transformAxis & TRANSFORM_AXIS_Z) {
+				var r = vec2.scale(vec2.normalize(vec2.sub(mousePosition, center)), GIZMO_RADIUS);
+				var p = vec2.add(center, r);
+				renderer.drawLine(ctx, center, p, 2, "#F55");
+			}			
+		}
+		else if (transformMode == TM_SCALE) {
+			var p1 = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
+			var p2 = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
+
+			var s1 = vec2.add(center, new vec2(GIZMO_INNER_OFFSET, 0));
+			var s2 = vec2.add(center, new vec2(0, -GIZMO_INNER_OFFSET));			
+
+			var x_color = transformAxis == TRANSFORM_AXIS_X ? "#FC0" : "#F00";
+			var y_color = transformAxis == TRANSFORM_AXIS_Y ? "#FC0" : "#0F0";
+
+			renderer.drawArrow(ctx, s1, p1, ARROW_TYPE_NONE, ARROW_TYPE_BOX, GIZMO_SCALE_AXIS_BOX_EXTENT, 2, x_color, x_color);
+			renderer.drawArrow(ctx, s2, p2, ARROW_TYPE_NONE, ARROW_TYPE_BOX, GIZMO_SCALE_AXIS_BOX_EXTENT, 2, y_color, y_color);
+
+			var color1 = transformAxis == TRANSFORM_AXIS_XY ? "#FC0" : "#FF0";
+			var color2 = Color.parse(color1); color2.channels[3] = 0.4;
+			
+			renderer.drawCircle(ctx, center, GIZMO_INNER_RADIUS, undefined, 2, color1, color2.rgba());
+
+			var extent = (GIZMO_SCALE_AXIS_BOX_EXTENT + 2) / camera.scale;
+			bounds.addExtents(canvasToWorld(p1), extent, extent);
+			bounds.addExtents(canvasToWorld(p2), extent, extent);
+		}
+
+		//renderer.drawDashLine(ctx, vec2.sub(center, new vec2(15, 0)), vec2.add(center, new vec2(15, 0)), 1, 20, "#00F");
+		//renderer.drawDashLine(ctx, vec2.sub(center, new vec2(0, 15)), vec2.add(center, new vec2(0, 15)), 1, 20, "#00F");			
+
+		dirtyBounds.addBounds(bounds);
+
+		ctx.restore();
+	}	
+	
 	function drawJoint(ctx, joint) {
 		var body1 = joint.body1;
 		var body2 = joint.body2;
@@ -1171,26 +1286,44 @@ App = function() {
 	function onResize(ev) {
 		window.scrollTo(0, 0);
 
-		fg.canvas.width = window.innerWidth - mainView.offsetLeft;
-		fg.canvas.height = window.innerHeight - mainView.offsetTop;
+		fg.canvas.style.left = "0px";
+		fg.canvas.style.top = "0px";
+
+		fg.canvas.width = window.innerWidth - domView.offsetLeft;
+		fg.canvas.height = window.innerHeight - domView.offsetTop;
 
 		bg.canvas.width = fg.canvas.width;
 		bg.canvas.height = fg.canvas.height;
 
-		//console.log([mainView.offsetLeft, mainView.offsetTop, mainView.clientWidth, mainView.clientHeight].join(" "));
+		//console.log([domView.offsetLeft, domView.offsetTop, domView.clientWidth, domView.clientHeight].join(" "));
 
 		// Set dirtyBounds to full screen
-		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));		
-		bg.outdated = true;
-
-		fg.canvas.style.left = "0px";
-		fg.canvas.style.top = "0px";		
+		dirtyBounds.set(canvasToWorld(new vec2(0, domCanvas.height)), canvasToWorld(new vec2(domCanvas.width, 0)));		
+		bg.outdated = true;		
 	}
 
 	function getMousePosition(ev) {
 		return new vec2(
-			ev.clientX + document.body.scrollLeft - mainView.offsetLeft, 
-			ev.clientY + document.body.scrollTop - mainView.offsetTop);
+			ev.clientX + document.body.scrollLeft - domView.offsetLeft, 
+			ev.clientY + document.body.scrollTop - domView.offsetTop);
+	}
+
+	function isValidFeature(feature) {
+		switch (selectionMode) {
+		case SM_VERTICES:
+			return feature != -1 ? true : false;
+		case SM_EDGES:
+			return feature != -1 ? true : false;
+		case SM_SHAPES:
+			return feature ? true : false;
+		case SM_BODIES:
+			return feature ? true : false;
+		case SM_JOINTS:
+			return feature ? true : false;
+		}
+
+		console.log("invalid select mode");
+		return false;
 	}
 
 	function getFeatureByPoint(p) {
@@ -1230,70 +1363,13 @@ App = function() {
 			}*/
 		}
 
+		console.error("getFeatureByPoint");
 		return null;
 	}
 
-	function isValidFeature(feature) {
-		switch (selectionMode) {
-		case SM_VERTICES:
-			return feature != -1 ? true : false;
-		case SM_EDGES:
-			return feature != -1 ? true : false;
-		case SM_SHAPES:
-			return feature ? true : false;
-		case SM_BODIES:
-			return feature ? true : false;
-		case SM_JOINTS:
-			return feature ? true : false;
-		}
-
-		console.log("invalid select mode");
-		return false;
-	}
-
 	function doSelect(p, flags) {
-		var feature;
-
-		if (selectionMode == SM_VERTICES) {
-			var vertex = space.findVertexByPoint(p, SELECTABLE_POINT_DIST_THREHOLD, selectedFeatureArr[0]);
-			if (vertex == -1) {
-				return false;
-			}
-
-			feature = vertex;		
-		}
-		else if (selectionMode == SM_EDGES) {
-			var edge = space.findEdgeByPoint(p, SELECTABLE_LINE_DIST_THREHOLD, selectedFeatureArr[0]);
-			if (edge == -1) {
-				return false;
-			}
-			
-			feature = edge;			
-		}
-		else if (selectionMode == SM_SHAPES) {
-			var shape = space.findShapeByPoint(p, selectedFeatureArr[0]);
-			if (!shape) {
-				return false;
-			}
-
-			feature = shape;		
-		}
-		else if (selectionMode == SM_BODIES) {
-			var shape = space.findShapeByPoint(p, selectedFeatureArr[0]);
-			if (!shape) {
-				return false;
-			}
-
-			feature = shape.body;		
-		}
-		else if (selectionMode == SM_JOINTS) {	
-			/*var shape = space.findShapeByPoint(p);
-			if (!shape || isEmptyObject(shape.body.jointHash)) {
-				return false;
-			}
-
-			var joint = shape.body.jointHash[0];
-			feature = joint;*/		
+		var feature = getFeatureByPoint(p);
+		if (!isValidFeature(feature)) {
 			return false;
 		}
 
@@ -1373,14 +1449,16 @@ App = function() {
 			var center = new vec2(0, 0);
 
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
-				var shape = selectedFeatureArr[i];
+				var body = selectedFeatureArr[i];
 
-				center.addself(shape.body.xf.t);
+				center.addself(body.xf.t);
 			}
 
 			center.scale(1 / selectedFeatureArr.length);
 			transformCenter.copy(center);
 		}
+
+		transformScale.set(1, 1);
 	}
 
 	function getShapeVertex(shape, index) {
@@ -1462,15 +1540,15 @@ App = function() {
 			clickedFeature = getFeatureByPoint(p);
 		}
 
-		// for the touch device
-		mousePositionOld.x = pos.x;
-		mousePositionOld.y = pos.y;
-
 		mousePosition.x = pos.x;
 		mousePosition.y = pos.y;
 
-		mouseDownPosition.x = pos.x;
-		mouseDownPosition.y = pos.x;
+		// for the touch device
+		mousePositionOld.x = mousePosition.x;
+		mousePositionOld.y = mousePosition.y;
+
+		mouseDownPosition.x = mousePosition.x;
+		mouseDownPosition.y = mousePosition.x;
 
 		ev.preventDefault();
 	}
@@ -1498,7 +1576,11 @@ App = function() {
 					}
 				}
 				else {
+					if (snapEnabled) {
+					 	p = snapPointByGrid(p);
+					}
 					transformCenter.copy(p);
+					transformScale.set(1, 1);
 				}
 			}
 		}
@@ -1512,83 +1594,15 @@ App = function() {
 	}
 
 	function scrollView(dx, dy) {
-		view.origin.x += dx;
-		view.origin.y += dy;
+		camera.origin.x += dx;
+		camera.origin.y += dy;
 
-		//view.origin.y = Math.clamp(view.origin.y, 0, 0);
+		//camera.origin.y = Math.clamp(camera.origin.y, 0, 0);
 
 		// Set dirtyBounds to full screen
-		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+		dirtyBounds.set(canvasToWorld(new vec2(0, domCanvas.height)), canvasToWorld(new vec2(domCanvas.width, 0)));
 		bg.outdated = true;
-	}
-
-	function checkHighlight(point) {
-		highlightFeatureArr = [];
-		transformAxis = 0;
-
-		if (transformMode == TM_SELECT) {
-			var feature = getFeatureByPoint(canvasToWorld(point));
-
-			if (isValidFeature(feature)) {
-				highlightFeatureArr[0] = feature;
-			}
-		}
-		else if (transformMode == TM_TRANSLATE) {
-			var center = worldToCanvas(transformCenter);
-
-			if (Math.abs(point.x - center.x) < GIZMO_INNER_RADIUS && Math.abs(point.y - center.y) < GIZMO_INNER_RADIUS) {
-				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
-			}
-			else {	
-				var dx = point.x - center.x;
-				var dy = -(point.y - center.y);
-
-				if (dx <= GIZMO_RADIUS && dx >= GIZMO_INNER_OFFSET && Math.abs(dy) < SELECTABLE_LINE_DIST_THREHOLD) {
-					transformAxis = TRANSFORM_AXIS_X;
-				}
-				else if (dy <= GIZMO_RADIUS && dy >= GIZMO_INNER_OFFSET && Math.abs(dx) < SELECTABLE_LINE_DIST_THREHOLD) {
-					transformAxis = TRANSFORM_AXIS_Y;					
-				}
-			}
-		}
-		else if (transformMode == TM_SCALE) {
-			var center = worldToCanvas(transformCenter);			
-			var dsq = vec2.distsq(point, center);
-			var cd = GIZMO_INNER_RADIUS;// + SELECTABLE_CIRCLE_DIST_THREHOLD;
-
-			if (dsq < cd * cd) {
-				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
-			}
-			else {
-				var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + SELECTABLE_LINE_DIST_THREHOLD;
-
-				var px = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
-				var dx = Math.abs(point.x - px.x);
-				var dy = Math.abs(point.y - px.y);				
-
-				if (dx < cd && dy < cd) {
-					transformAxis = TRANSFORM_AXIS_X;
-				}
-				else {					
-					var py = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
-					var dx = Math.abs(point.x - py.x);
-					var dy = Math.abs(point.y - py.y);
-
-					if (dx < cd && dy < cd) {
-						transformAxis = TRANSFORM_AXIS_Y;
-					}
-				}
-			}
-		}
-		else if (transformMode == TM_ROTATE) {
-			var dsq = vec2.distsq(point, worldToCanvas(transformCenter));
-
-			if (dsq > (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) &&
-				dsq < (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD)) {
-				transformAxis = TRANSFORM_AXIS_Z;
-			}
-		}
-	}
+	}	
 
 	function onMouseMove(ev) {
 		mousePosition = getMousePosition(ev);
@@ -1599,16 +1613,20 @@ App = function() {
 					mouseBody.p.copy(canvasToWorld(mousePosition));
 				}
 				else {
-					scrollView(-(mousePosition.x - mousePositionOld.x), mousePosition.y - mousePositionOld.y);
+					var dx = mousePosition.x - mousePositionOld.x;
+					var dy = mousePosition.y - mousePositionOld.y;
+					
+					scrollView(-dx, dy);
 				}
 			}
 		}
 		else {
-			highlightFeatureArr = [];
+			if (mouseDown) {
+				if (ev.altKey) {	
+					var dx = mousePosition.x - mousePositionOld.x;
+					var dy = mousePosition.y - mousePositionOld.y;
 
-			if (mouseDown) {				
-				if (ev.altKey) {					
-					scrollView(-(mousePosition.x - mousePositionOld.x), mousePosition.y - mousePositionOld.y);
+					scrollView(-dx, dy);
 				}
 				else if (transformMode == TM_SELECT) {
 					if (!mouseDownMoving && !ev.shiftKey && !ev.metaKey) {
@@ -1617,17 +1635,36 @@ App = function() {
 
 					doSelect(canvasToWorld(mousePosition), ev.metaKey ? SF_XOR : SF_ADDITIVE);
 				}
-				else if ((transformMode == TM_TRANSLATE || transformMode == TM_SCALE || transformMode == TM_ROTATE) && transformAxis) {
-					var dx = (mousePosition.x - mousePositionOld.x) / view.scale;
-					var dy = -(mousePosition.y - mousePositionOld.y) / view.scale;
+				else if ((transformMode == TM_TRANSLATE || transformMode == TM_ROTATE || transformMode == TM_SCALE) && transformAxis) {
+					var wmp_new = canvasToWorld(mousePosition);
+					var wmp_old = canvasToWorld(mousePositionOld);
+
+					if (snapEnabled && (transformMode == TM_TRANSLATE || transformMode == TM_SCALE)) {
+						if (!mouseDownMoving) {
+							snapCenterOffset = vec2.sub(transformCenter, wmp_old);
+							snapOffset.set(0, 0);
+						}
+
+						wmp_new.addself(snapCenterOffset);
+						var wmp_new_old = wmp_new;
+						wmp_new = snapPointByGrid(wmp_new);
+						
+						wmp_old.addself(snapCenterOffset);
+						wmp_old.addself(snapOffset);
+
+						snapOffset = vec2.sub(wmp_new, wmp_new_old);
+					}
+
+					var wdx = wmp_new.x - wmp_old.x;
+					var wdy = wmp_new.y - wmp_old.y;
 
 					if (transformMode == TM_TRANSLATE) {
 						if (transformAxis & TRANSFORM_AXIS_X) {
-							transformCenter.x += dx;
+							transformCenter.x += wdx;
 						}
 
 						if (transformAxis & TRANSFORM_AXIS_Y) {
-							transformCenter.y += dy;
+							transformCenter.y += wdy;
 						}
 					}
 
@@ -1640,7 +1677,7 @@ App = function() {
 							var v = getShapeVertex(shape, index);
 
 							if (transformMode == TM_TRANSLATE) {
-								var delta = new vec2(dx, dy);
+								var delta = new vec2(wdx, wdy);
 								if (!(transformAxis & TRANSFORM_AXIS_X)) {
 									delta.x = 0;
 								}
@@ -1650,19 +1687,21 @@ App = function() {
 								}
 
 								setShapeVertex(shape, index, vec2.add(v, delta));
-							}
-							else if (transformMode == TM_SCALE) {
-								var p1 = vec2.sub(mousePositionOld, worldToCanvas(transformCenter));
-								var p2 = vec2.sub(mousePosition, worldToCanvas(transformCenter));
+							}							
+							else if (transformMode == TM_ROTATE) {
+								var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
+								var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
+								var da = p2.toAngle() - p1.toAngle();
+								var wv = vec2.add(vec2.rotate(vec2.sub(v, transformCenter), da), transformCenter);
+								setShapeVertex(shape, index, wv);
+							}		
+							else if (transformMode == TM_SCALE) {							
+								var scale_old = transformScale.duplicate();
 
-								if (transformAxis == TRANSFORM_AXIS_XY) {
-									var offset = new vec2(GIZMO_RADIUS, -GIZMO_RADIUS);
-									
-									p1.addself(offset);
-									p2.addself(offset);
-								}
+								transformScale.x += wdx * 0.01;
+								transformScale.y += wdy * 0.01;
 								
-								var scale = new vec2(p2.x / p1.x, p2.y / p1.y);
+								var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);
 
 								if (!(transformAxis & TRANSFORM_AXIS_X)) {
 									scale.x = 1;
@@ -1674,14 +1713,7 @@ App = function() {
 								
 								var wv = vec2.add(vec2.scale2(vec2.sub(v, transformCenter), scale), transformCenter);
 								setShapeVertex(shape, index, wv);
-							}
-							else if (transformMode == TM_ROTATE) {
-								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), transformCenter));
-								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), transformCenter));
-								var da = p2.toAngle() - p1.toAngle();
-								var wv = vec2.add(vec2.rotate(vec2.sub(v, transformCenter), da), transformCenter);
-								setShapeVertex(shape, index, wv);
-							}							
+							}					
 
 							shape.finishVerts();
 							shape.body.resetMassData();
@@ -1705,7 +1737,7 @@ App = function() {
 							var vertex2 = (shape.id << 16) | ((index + 1) % shape.verts.length);
 
 							if (transformMode == TM_TRANSLATE) {
-								var delta = new vec2(dx, dy);
+								var delta = new vec2(wdx, wdy);
 
 								if (!(transformAxis & TRANSFORM_AXIS_X)) {
 									delta.x = 0;
@@ -1724,19 +1756,31 @@ App = function() {
 									markedVertexArr.push(vertex2);
 									setShapeVertex(shape, index + 1, vec2.add(v2, delta));
 								}
-							}
-							else if (transformMode == TM_SCALE) {
-								var p1 = vec2.sub(mousePositionOld, worldToCanvas(transformCenter));
-								var p2 = vec2.sub(mousePosition, worldToCanvas(transformCenter));
-
-								if (transformAxis == TRANSFORM_AXIS_XY) {
-									var offset = new vec2(GIZMO_RADIUS, -GIZMO_RADIUS);
-									
-									p1.addself(offset);
-									p2.addself(offset);
-								}
+							}							
+							else if (transformMode == TM_ROTATE) {
+								var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
+								var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
+								var da = p2.toAngle() - p1.toAngle();
 								
-								var scale = new vec2(p2.x / p1.x, p2.y / p1.y);
+								if (markedVertexArr.indexOf(vertex1) == -1) {
+									markedVertexArr.push(vertex1);
+									var wv = vec2.add(vec2.rotate(vec2.sub(v1, transformCenter), da), transformCenter);
+									setShapeVertex(shape, index, wv);
+								}
+
+								if (markedVertexArr.indexOf(vertex2) == -1) {
+									markedVertexArr.push(vertex2);
+									var wv = vec2.add(vec2.rotate(vec2.sub(v2, transformCenter), da), transformCenter);
+									setShapeVertex(shape, index + 1, wv);
+								}
+							}
+							else if (transformMode == TM_SCALE) {								
+								var scale_old = transformScale.duplicate();
+
+								transformScale.x += wdx * 0.01;
+								transformScale.y += wdy * 0.01;
+								
+								var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);							
 
 								if (!(transformAxis & TRANSFORM_AXIS_X)) {
 									scale.x = 1;
@@ -1755,23 +1799,6 @@ App = function() {
 								if (markedVertexArr.indexOf(vertex2) == -1) {
 									markedVertexArr.push(vertex2);
 									var wv = vec2.add(vec2.scale2(vec2.sub(v2, transformCenter), scale), transformCenter);
-									setShapeVertex(shape, index + 1, wv);
-								}
-							}
-							else if (transformMode == TM_ROTATE) {
-								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), transformCenter));
-								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), transformCenter));
-								var da = p2.toAngle() - p1.toAngle();
-								
-								if (markedVertexArr.indexOf(vertex1) == -1) {
-									markedVertexArr.push(vertex1);
-									var wv = vec2.add(vec2.rotate(vec2.sub(v1, transformCenter), da), transformCenter);
-									setShapeVertex(shape, index, wv);
-								}
-
-								if (markedVertexArr.indexOf(vertex2) == -1) {
-									markedVertexArr.push(vertex2);
-									var wv = vec2.add(vec2.rotate(vec2.sub(v2, transformCenter), da), transformCenter);
 									setShapeVertex(shape, index + 1, wv);
 								}
 							}
@@ -1801,7 +1828,7 @@ App = function() {
 							var body = shape.body;							
 
 							if (transformMode == TM_TRANSLATE) {
-								var delta = new vec2(dx, dy);
+								var delta = new vec2(wdx, wdy);
 
 								if (!(transformAxis & TRANSFORM_AXIS_X)) {
 									delta.x = 0;
@@ -1830,18 +1857,38 @@ App = function() {
 									break;
 								}
 							}
-							else if (transformMode == TM_SCALE) {								
-								var p1 = vec2.sub(mousePositionOld, worldToCanvas(transformCenter));
-								var p2 = vec2.sub(mousePosition, worldToCanvas(transformCenter));
+							else if (transformMode == TM_ROTATE) {
+								var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
+								var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
+								var da = p2.toAngle() - p1.toAngle();
 
-								if (transformAxis == TRANSFORM_AXIS_XY) {
-									var offset = new vec2(GIZMO_RADIUS, -GIZMO_RADIUS);
-									
-									p1.addself(offset);
-									p2.addself(offset);
+								switch (shape.type) {
+								case Shape.TYPE_CIRCLE:									
+									var wc = vec2.add(vec2.rotate(vec2.sub(shape.tc, transformCenter), da), transformCenter);
+									shape.c.copy(body.getLocalPoint(wc));
+									break;
+								case Shape.TYPE_SEGMENT:
+									var wa = vec2.add(vec2.rotate(vec2.sub(shape.ta, transformCenter), da), transformCenter);
+									shape.a.copy(body.getLocalPoint(wa));
+
+									var wb = vec2.add(vec2.rotate(vec2.sub(shape.tb, transformCenter), da), transformCenter);
+									shape.b.copy(body.getLocalPoint(wb));
+									break;
+								case Shape.TYPE_POLY:
+									for (var j = 0; j < shape.tverts.length; j++) {
+										var wv = vec2.add(vec2.rotate(vec2.sub(shape.tverts[j], transformCenter), da), transformCenter);
+										shape.verts[j].copy(body.getLocalPoint(wv));
+									}
+									break;
 								}
-								
-								var scale = new vec2(p2.x / p1.x, p2.y / p1.y);
+							}
+							else if (transformMode == TM_SCALE) {								
+								var scale_old = transformScale.duplicate();
+
+								transformScale.x += wdx * 0.01;
+								transformScale.y += wdy * 0.01;
+
+								var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);
 
 								if (!(transformAxis & TRANSFORM_AXIS_X)) {
 									scale.x = 1;
@@ -1867,31 +1914,6 @@ App = function() {
 								case Shape.TYPE_POLY:
 									for (var j = 0; j < shape.tverts.length; j++) {
 										var wv = vec2.add(vec2.scale2(vec2.sub(shape.tverts[j], transformCenter), scale), transformCenter);
-										shape.verts[j].copy(body.getLocalPoint(wv));
-									}
-									break;
-								}
-							}
-							else if (transformMode == TM_ROTATE) {
-								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), transformCenter));
-								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), transformCenter));
-								var da = p2.toAngle() - p1.toAngle();
-
-								switch (shape.type) {
-								case Shape.TYPE_CIRCLE:									
-									var wc = vec2.add(vec2.rotate(vec2.sub(shape.tc, transformCenter), da), transformCenter);
-									shape.c.copy(body.getLocalPoint(wc));
-									break;
-								case Shape.TYPE_SEGMENT:
-									var wa = vec2.add(vec2.rotate(vec2.sub(shape.ta, transformCenter), da), transformCenter);
-									shape.a.copy(body.getLocalPoint(wa));
-
-									var wb = vec2.add(vec2.rotate(vec2.sub(shape.tb, transformCenter), da), transformCenter);
-									shape.b.copy(body.getLocalPoint(wb));
-									break;
-								case Shape.TYPE_POLY:
-									for (var j = 0; j < shape.tverts.length; j++) {
-										var wv = vec2.add(vec2.rotate(vec2.sub(shape.tverts[j], transformCenter), da), transformCenter);
 										shape.verts[j].copy(body.getLocalPoint(wv));
 									}
 									break;
@@ -1925,23 +1947,23 @@ App = function() {
 
 							if (transformMode == TM_TRANSLATE) {
 								if (transformAxis & TRANSFORM_AXIS_X) {
-									p.x += dx;
+									p.x += wdx;
 								}
 
 								if (transformAxis & TRANSFORM_AXIS_Y) {
-									p.y += dy;
+									p.y += wdy;
 								}
-							}
-							else if (transformMode == TM_SCALE) {
-								// NOT AVAILABLE
-							}
+							}							
 							else if (transformMode == TM_ROTATE) {
-								var p1 = vec2.normalize(vec2.sub(canvasToWorld(mousePositionOld), transformCenter));
-								var p2 = vec2.normalize(vec2.sub(canvasToWorld(mousePosition), transformCenter));
+								var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
+								var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
 								var da = p2.toAngle() - p1.toAngle();
 
 								p = vec2.add(vec2.rotate(vec2.sub(p, transformCenter), da), transformCenter);								
 								a += da;
+							}
+							else if (transformMode == TM_SCALE) {
+								// NOT AVAILABLE
 							}
 
 							body.setTransform(p.x, p.y, a);
@@ -1972,28 +1994,82 @@ App = function() {
 		}
 	}
 
+	function onMouseDoubleClick(ev) {
+		var pos = getMousePosition(ev);
+		var p = canvasToWorld(pos);
+
+		if (editMode) {
+			if (transformMode == TM_SELECT) {
+				var flag = ev.shiftKey ? SF_ADDITIVE : (ev.metaKey ? SF_XOR : SF_REPLACE);				
+
+				if (flag == SF_REPLACE) {
+					selectedFeatureArr = [];
+				}
+
+				var feature = getFeatureByPoint(p);
+
+				if (isValidFeature(feature)) {
+					if (selectionMode == SM_VERTICES) {
+						var shape_id = (feature >> 16) & 0xFFFF;
+						var shape = space.shapeById(shape_id);
+						
+						for (var i = 0; i < shape.tverts.length; i++) {
+							var vertex = (shape_id << 16) | i;
+							selectedFeatureArr.push(vertex);
+						}
+					}
+					else if (selectionMode == SM_EDGES) {
+						var shape_id = (feature >> 16) & 0xFFFF;
+						var shape = space.shapeById(shape_id);
+						
+						for (var i = 0; i < shape.tverts.length; i++) {
+							var vertex = (shape_id << 16) | i;
+							selectedFeatureArr.push(vertex);
+						}
+					}
+					else if (selectionMode == SM_SHAPES) {
+						var body = feature.body;
+
+						for (var i = 0; i < body.shapeArr.length; i++) {
+							var shape = body.shapeArr[i];
+							selectedFeatureArr.push(shape);
+						}
+					}
+					else if (selectionMode == SM_BODIES) {
+						// NOT AVAILABLE
+					}
+					else if (selectionMode == SM_JOINTS) {
+
+					}
+
+					resetTransformCenter();
+				}
+			}		
+		}
+	}
+
 	function onMouseWheel(ev) {
 		// Zoom in and out using vertical mouse wheel
 		var ds = -ev.wheelDeltaY * 0.001;
-		var oldViewScale = view.scale;
-		view.scale = Math.clamp(oldViewScale + ds, view.minScale, view.maxScale);
-		ds = view.scale - oldViewScale;
+		var oldViewScale = camera.scale;
+		camera.scale = Math.clamp(oldViewScale + ds, camera.minScale, camera.maxScale);
+		ds = camera.scale - oldViewScale;
 
 		// Adjust view origin for focused zoom in and out
 		// p = (1 + ds) * p - ds * p
 		var p = canvasToWorld(getMousePosition(ev));
-		view.origin.x += p.x * ds;
-		view.origin.y += p.y * ds;
+		camera.origin.x += p.x * ds;
+		camera.origin.y += p.y * ds;
 
 		// Horizontal scroll using horizontal mouse wheel
 		var dx = ev.wheelDeltaX * 0.2;
-		view.origin.x -= dx;
+		camera.origin.x -= dx;
 
 		// Clamp view origin limit
-		//view.origin.y = Math.clamp(view.origin.y, 0, 0);
+		//camera.origin.y = Math.clamp(camera.origin.y, 0, 0);
 
 		// Set dirtyBounds to full screen
-		dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+		dirtyBounds.set(canvasToWorld(new vec2(0, domCanvas.height)), canvasToWorld(new vec2(domCanvas.width, 0)));
 		bg.outdated = true;
 
 		ev.preventDefault();		
@@ -2050,15 +2126,15 @@ App = function() {
 
 				touchScaleCenter = canvasToWorld(vec2.lerp(touchPos[0], touchPos[1], d1 / (d1 + d2)));
 
-				var oldScale = view.scale;
-				view.scale = Math.clamp(gestureScale, view.minScale, view.maxScale);
-				var ds = view.scale - oldScale;				
+				var oldScale = camera.scale;
+				camera.scale = Math.clamp(gestureScale, camera.minScale, camera.maxScale);
+				var ds = camera.scale - oldScale;				
 		
-				view.origin.x += touchScaleCenter.x * ds;
-				view.origin.y += touchScaleCenter.y * ds;
+				camera.origin.x += touchScaleCenter.x * ds;
+				camera.origin.y += touchScaleCenter.y * ds;
 
 				// Set dirtyBounds to full screen
-				dirtyBounds.set(canvasToWorld(new vec2(0, canvas.height)), canvasToWorld(new vec2(canvas.width, 0)));
+				dirtyBounds.set(canvasToWorld(new vec2(0, domCanvas.height)), canvasToWorld(new vec2(domCanvas.width, 0)));
 				bg.outdated = true;
 			}
 
@@ -2074,7 +2150,7 @@ App = function() {
 	}
 
 	function onGestureStart(ev) {
-		gestureStartScale = view.scale;
+		gestureStartScale = camera.scale;
 
 		ev.preventDefault();
 	}
@@ -2107,17 +2183,7 @@ App = function() {
 				onDelete();
 				ev.preventDefault();
 			}
-			break;
-		case 74: // 'j'
-			break;
-		case 83: // 's'
-			if (editMode) {
-				if (ev.ctrlKey) {
-					sliceEdges();
-					ev.preventDefault();
-				}
-			}
-			break;
+			break;		
 		case 81: // 'q'
 			if (editMode) {
 				onClickedTransformMode("select");
@@ -2136,15 +2202,29 @@ App = function() {
 				ev.preventDefault();
 			}
 			else if (editMode) {
+				onClickedTransformMode("rotate");
+				ev.preventDefault();
+			}
+			break;	
+		case 82: // 'r'			
+			if (editMode) {
 				onClickedTransformMode("scale");
 				ev.preventDefault();
 			}
-			break;
-		case 82: // 'r'
+			break;	
+		case 83: // 's'
 			if (editMode) {
-				onClickedTransformMode("rotate");
-				ev.preventDefault();
-			}			
+				if (ev.ctrlKey) {
+					sliceEdges();
+					ev.preventDefault();
+				}
+			}
+			break;
+		case 74: // 'j'
+			break;
+		case 80: // 'p'
+			// TODO: Screenshot
+			var dataURL = domCanvas.toDataURL();
 			break;
 		case 49: // '1'
 		case 50: // '2'
@@ -2178,7 +2258,7 @@ App = function() {
 
 	function onChangedScene(index) {
 		sceneIndex = index;
-		initScene();
+		resetScene();
 
 		selectedFeatureArr = [];
 		markedFeatureArr = [];
@@ -2213,6 +2293,10 @@ App = function() {
 	function onClickedEnableDirtyRect() {
 		enableDirtyBounds = !enableDirtyBounds;
 	}
+
+	function onClickedShowDirtyRect() {
+		showDirtyBounds = !showDirtyBounds;
+	}
 	
 	function onClickedShowAxis() {
 		showAxis = !showAxis;
@@ -2237,7 +2321,7 @@ App = function() {
 	function onClickedPlayer(value) {
 		switch (value) {
 		case "restart":
-			initScene();
+			resetScene();
 			pause = false;
 			break;
 		case "pause":
@@ -2282,7 +2366,7 @@ App = function() {
 	}
 
 	function onClickedTransformMode(value) {
-		transformMode = { select: TM_SELECT, translate: TM_TRANSLATE, scale: TM_SCALE, rotate: TM_ROTATE }[value];		
+		transformMode = { select: TM_SELECT, translate: TM_TRANSLATE, rotate: TM_ROTATE, scale: TM_SCALE }[value];
 
 		updateToolbar();		
 
@@ -2421,7 +2505,7 @@ App = function() {
 	}
 
 	function onClickedSnap() {
-		snap = !snap;
+		snapEnabled = !snapEnabled;
 
 		updateToolbar();
 
@@ -2443,22 +2527,26 @@ App = function() {
 		var editbox = document.getElementById("p_iters");
 		editbox.value = positionIterations;
 
-		var layout = document.getElementById("settings");
+		var layout = document.getElementById("domSettings");
 		var button = document.getElementById("toggle_settings");
 
 		if (showSettings) {
 			layout.style.display = "block";
-			layout.style.left = (canvas.width - layout.clientWidth) - 4 + "px";
+			layout.style.left = (domCanvas.width - layout.clientWidth) - 4 + "px";
 			layout.style.top = "4px";				
 
 			if (button.className.indexOf(" pushed") == -1) {
 				button.className += " pushed";
 			}
+
+			button.innerHTML = "<i class='icon-cog'></i>";
 		}
 		else {
 			layout.style.display = "none";
 
 			button.className = button.className.replace(" pushed", "");
+
+			button.innerHTML = "<i class='icon-white icon-cog'></i>";
 		}
 
 		return false;
