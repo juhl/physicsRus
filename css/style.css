@@ -129,9 +129,10 @@ div#about {
   left: 0;
   right: 0;
   margin: auto;
-  width: 480px;
-  height: 320px;  
+  width: 400px;
+  height: 160px;  
   font-size: 10pt;
+  font-family: tahoma, menlo;
   display: none;
   padding: 10px;
   border-radius: 5px; 

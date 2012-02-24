@@ -209,7 +209,7 @@ App = function() {
 		}
 		addEvent(domToolbar.querySelector("#toggle_snap"), "click", onClickedSnap);
 		addEvent(domToolbar.querySelector("#toggle_settings"), "click", onClickedSettings);
-		addEvent(domToolbar.querySelector("#toggle_about"), "click", onClickedAbout);
+		//addEvent(domToolbar.querySelector("#toggle_about"), "click", onClickedAbout);
 
 		// Setting up settings events
 		domSettings = document.querySelector("#settings");
@@ -2527,7 +2527,7 @@ App = function() {
 		var editbox = document.getElementById("p_iters");
 		editbox.value = positionIterations;
 
-		var layout = document.getElementById("domSettings");
+		var layout = document.getElementById("settings");
 		var button = document.getElementById("toggle_settings");
 
 		if (showSettings) {
