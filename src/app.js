@@ -57,8 +57,8 @@ App = function() {
 
 	// default values for creating shape
 	const DEFAULT_DENSITY = 0.1;
-	const DEFAULT_RESTITUTION = 0.7;
-	const DEFAULT_FRICTION = 0.7;
+	const DEFAULT_RESTITUTION = 0.5;
+	const DEFAULT_FRICTION = 0.8;
 
 	// DOM objects
 	var domView;
