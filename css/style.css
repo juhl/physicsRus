@@ -6,6 +6,11 @@ html, body {
   font-family: Verdana, times new roman, NanumGothic, sans-serif;    
   text-align: left;
   color: #ccc;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none;
 }
 header {
   padding-top: 0;
@@ -49,11 +54,6 @@ canvas {
   position: absolute;
   background-color: #eee;
   cursor: default;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -o-user-select: none;
-  user-select: none;
 }
 div#content {
   margin: 0; 
@@ -75,12 +75,7 @@ div#toolbar {
   background: -webkit-gradient(linear, left top, left bottom, from(#3B3937), to(#2B2927));
   -webkit-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 0.1);
   -moz-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 0.1);
-  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 0.1);
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -o-user-select: none;
-  user-select: none;
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 0.1); 
 }
 div#sidebar {
   margin: 0;
@@ -97,11 +92,6 @@ div#sidebar {
   -webkit-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 1.1);
   -moz-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 1.1);
   box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 1.0);
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -o-user-select: none;
-  user-select: none;
 }
 div#sidebar > .pannel {
   padding: 2px;

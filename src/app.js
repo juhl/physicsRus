@@ -318,7 +318,30 @@ App = function() {
 		}		
 
 		editModeEventArr[EM_TRANSLATE] = {};
-		editModeEventArr[EM_TRANSLATE].mouseDown = function(ev) {}
+		editModeEventArr[EM_TRANSLATE].checkTransformAxis = function() {
+			highlightFeatureArr = [];
+				transformAxis = 0;
+
+			var center = worldToCanvas(transformCenter);
+
+			if (Math.abs(mousePosition.x - center.x) < GIZMO_INNER_RADIUS && Math.abs(mousePosition.y - center.y) < GIZMO_INNER_RADIUS) {
+				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
+			}
+			else {	
+				var dx = mousePosition.x - center.x;
+				var dy = -(mousePosition.y - center.y);
+
+				if (dx <= GIZMO_RADIUS && dx >= GIZMO_INNER_OFFSET && Math.abs(dy) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
+					transformAxis = TRANSFORM_AXIS_X;
+				}
+				else if (dy <= GIZMO_RADIUS && dy >= GIZMO_INNER_OFFSET && Math.abs(dx) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
+					transformAxis = TRANSFORM_AXIS_Y;					
+				}
+			}				
+		}
+		editModeEventArr[EM_TRANSLATE].mouseDown = function(ev) {
+			this.checkTransformAxis();
+		}
 		editModeEventArr[EM_TRANSLATE].mouseUp = function(ev) {
 			if (mouseDown && !mouseDownMoving) {
 				var pos = getMousePosition(ev);
@@ -330,7 +353,7 @@ App = function() {
 				transformCenter.copy(p);
 				transformScale.set(1, 1);
 			}
-		}
+		}		
 		editModeEventArr[EM_TRANSLATE].mouseMove = function(ev) {			
 			if (mouseDown && transformAxis) {
 				var wmp_new = canvasToWorld(mousePosition);
@@ -486,30 +509,25 @@ App = function() {
 				}
 			}
 			else {
-				highlightFeatureArr = [];
-				transformAxis = 0;
-
-				var center = worldToCanvas(transformCenter);
-
-				if (Math.abs(mousePosition.x - center.x) < GIZMO_INNER_RADIUS && Math.abs(mousePosition.y - center.y) < GIZMO_INNER_RADIUS) {
-					transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
-				}
-				else {	
-					var dx = mousePosition.x - center.x;
-					var dy = -(mousePosition.y - center.y);
-
-					if (dx <= GIZMO_RADIUS && dx >= GIZMO_INNER_OFFSET && Math.abs(dy) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
-						transformAxis = TRANSFORM_AXIS_X;
-					}
-					else if (dy <= GIZMO_RADIUS && dy >= GIZMO_INNER_OFFSET && Math.abs(dx) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
-						transformAxis = TRANSFORM_AXIS_Y;					
-					}
-				}
+				this.checkTransformAxis();
 			}
 		}		
 
 		editModeEventArr[EM_ROTATE] = {};
-		editModeEventArr[EM_ROTATE].mouseDown = function(ev) {}
+		editModeEventArr[EM_ROTATE].checkTransformAxis = function() {
+			highlightFeatureArr = [];
+			transformAxis = 0;
+
+			var dsq = vec2.distsq(mousePosition, worldToCanvas(transformCenter));
+
+			if (dsq > (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) &&
+				dsq < (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD)) {
+				transformAxis = TRANSFORM_AXIS_Z;
+			}
+		}
+		editModeEventArr[EM_ROTATE].mouseDown = function(ev) {
+			this.checkTransformAxis();
+		}
 		editModeEventArr[EM_ROTATE].mouseUp = function(ev) {
 			if (mouseDown && !mouseDownMoving) {
 				var pos = getMousePosition(ev);
@@ -654,20 +672,46 @@ App = function() {
 				}
 			}
 			else {			
-				highlightFeatureArr = [];
-				transformAxis = 0;
-
-				var dsq = vec2.distsq(mousePosition, worldToCanvas(transformCenter));
-
-				if (dsq > (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) &&
-					dsq < (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD)) {
-					transformAxis = TRANSFORM_AXIS_Z;
-				}
+				this.checkTransformAxis();
 			}
 		}		
 
 		editModeEventArr[EM_SCALE] = {};
-		editModeEventArr[EM_SCALE].mouseDown = function(ev) {}
+		editModeEventArr[EM_SCALE].checkTransformAxis = function() {
+			highlightFeatureArr = [];
+			transformAxis = 0;
+
+			var center = worldToCanvas(transformCenter);
+			var dsq = vec2.distsq(mousePosition, center);
+			var cd = GIZMO_INNER_RADIUS;// + SELECTABLE_CIRCLE_DIST_THREHOLD;
+
+			if (dsq < cd * cd) {
+				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
+			}
+			else {
+				var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + SELECTABLE_LINE_DIST_THREHOLD;
+
+				var px = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
+				var dx = Math.abs(mousePosition.x - px.x);
+				var dy = Math.abs(mousePosition.y - px.y);				
+
+				if (dx < cd && dy < cd) {
+					transformAxis = TRANSFORM_AXIS_X;
+				}
+				else {					
+					var py = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
+					var dx = Math.abs(mousePosition.x - py.x);
+					var dy = Math.abs(mousePosition.y - py.y);
+
+					if (dx < cd && dy < cd) {
+						transformAxis = TRANSFORM_AXIS_Y;
+					}
+				}
+			}				
+		}
+		editModeEventArr[EM_SCALE].mouseDown = function(ev) {
+			this.checkTransformAxis();
+		}
 		editModeEventArr[EM_SCALE].mouseUp = function(ev) {
 			if (mouseDown && !mouseDownMoving) {
 				var pos = getMousePosition(ev);
@@ -805,36 +849,7 @@ App = function() {
 				}
 			}
 			else {
-				highlightFeatureArr = [];
-				transformAxis = 0;
-
-				var center = worldToCanvas(transformCenter);
-				var dsq = vec2.distsq(mousePosition, center);
-				var cd = GIZMO_INNER_RADIUS;// + SELECTABLE_CIRCLE_DIST_THREHOLD;
-
-				if (dsq < cd * cd) {
-					transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
-				}
-				else {
-					var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + SELECTABLE_LINE_DIST_THREHOLD;
-
-					var px = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
-					var dx = Math.abs(mousePosition.x - px.x);
-					var dy = Math.abs(mousePosition.y - px.y);				
-
-					if (dx < cd && dy < cd) {
-						transformAxis = TRANSFORM_AXIS_X;
-					}
-					else {					
-						var py = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
-						var dx = Math.abs(mousePosition.x - py.x);
-						var dy = Math.abs(mousePosition.y - py.y);
-
-						if (dx < cd && dy < cd) {
-							transformAxis = TRANSFORM_AXIS_Y;
-						}
-					}
-				}				
+				this.checkTransformAxis();
 			}
 		}	
 		
@@ -2278,6 +2293,10 @@ App = function() {
 		else {
 			editModeEventArr[editMode].mouseDown(ev);
 		}
+
+		// HACK !
+		document.body.tabIndex = 0;
+		document.body.focus();
 		
 		// for the touch device
 		mousePositionOld.x = mousePosition.x;
