@@ -65,6 +65,9 @@ App = function() {
 	var domCanvas;
 	var domToolbar;
 	var domSidebar;
+	var domShapeInspector;
+	var domBodyInspector;
+	var domJointInspector;
 	var domSettings;
 
 	// canvas rendering stuffs	
@@ -95,7 +98,7 @@ App = function() {
 	var demoArr = [DemoCar, DemoRagDoll, DemoSeeSaw, DemoPyramid, DemoCrank, DemoRope, DemoWeb, DemoBounce];
 	var sceneNameArr = [];
 	var sceneIndex;	
-	var randomColor = ["#AFC", "#59C", "#DBB", "#9E6", "#7CF", "#A9E", "#F89", "#8AD", "#FAF", "#CDE", "#FC7", "#FF8"]; // Random colors for drawing bodies
+	var randomColor = ["#BEB", "#48B", "#CAA", "#8D5", "#6BE", "#98D", "#E78", "#7BC", "#E9E", "#BCD", "#EB6", "#EE7"]; // Random colors for drawing bodies
 	var mouseBody;
 	var mouseJoint;
 	var creatingBody;
@@ -227,6 +230,28 @@ App = function() {
 		for (var i in elements) {
 			addEvent(elements[i], "click", function() { return onClickedEditMode(this.value); });
 		}
+		domShapeInspector = domSidebar.querySelector("#shape_inspector");
+		addEvent(domShapeInspector.querySelector("[name=density]"), "change", function() { onChangedShapeDensity(this.value); });
+		addEvent(domShapeInspector.querySelector("[name=density]"), "input", function() { onChangedShapeDensity(this.value); });
+		addEvent(domShapeInspector.querySelector("[name=elasticity]"), "change", function() { onChangedShapeElasticity(this.value); });
+		addEvent(domShapeInspector.querySelector("[name=elasticity]"), "input", function() { onChangedShapeElasticity(this.value); });
+		addEvent(domShapeInspector.querySelector("[name=friction]"), "change", function() { onChangedShapeFriction(this.value); });
+		addEvent(domShapeInspector.querySelector("[name=friction]"), "input", function() { onChangedShapeFriction(this.value); });
+
+		domBodyInspector = domSidebar.querySelector("#body_inspector");
+		addEvent(domBodyInspector.querySelector("[name=type]"), "change", function() { onChangedBodyType(this.value); });
+		addEvent(domBodyInspector.querySelector("[name=name]"), "change", function() { onChangedBodyName(this.value); });
+		addEvent(domBodyInspector.querySelector("[name=position_x]"), "change", function() { onChangedBodyPositionX(this.value); });
+		addEvent(domBodyInspector.querySelector("[name=position_x]"), "input", function() { onChangedBodyPositionX(this.value); });
+		addEvent(domBodyInspector.querySelector("[name=position_y]"), "change", function() { onChangedBodyPositionY(this.value); });
+		addEvent(domBodyInspector.querySelector("[name=position_y]"), "input", function() { onChangedBodyPositionY(this.value); });
+		addEvent(domBodyInspector.querySelector("[name=angle]"), "change", function() { onChangedBodyAngle(this.value); });
+		addEvent(domBodyInspector.querySelector("[name=angle]"), "input", function() { onChangedBodyAngle(this.value); });
+
+		domJointInspector = domSidebar.querySelector("#joint_inspector");
+		addEvent(domJointInspector.querySelector("[name=body1]"), "change", function() { onChangedJointBody1(this.value); });
+		addEvent(domJointInspector.querySelector("[name=body2]"), "change", function() { onChangedJointBody2(this.value); });
+		addEvent(domJointInspector.querySelector("[name=collideConnected]"), "click", onClickedJointCollideConnected);
 
 		// Setting up settings events
 		domSettings = document.querySelector("#settings");
@@ -263,11 +288,13 @@ App = function() {
 				var p = canvasToWorld(pos);
 
 				if (!doSelect(p, flag) && flag == SF_REPLACE) {
-					selectedFeatureArr = [];
+					selectedFeatureArr = [];					
 				}
 				else {
 					resetTransformCenter();
 				}
+
+				updateSidebar();
 			}
 		}
 		editModeEventArr[EM_SELECT].mouseMove = function(ev) {
@@ -277,6 +304,7 @@ App = function() {
 				}
 
 				doSelect(canvasToWorld(mousePosition), ev.metaKey ? SF_XOR : SF_ADDITIVE);
+				updateSidebar();
 			}
 			else {
 				highlightFeatureArr = [];
@@ -510,7 +538,7 @@ App = function() {
 					for (var i = 0; i < selectedFeatureArr.length; i++) {
 						var vertex = selectedFeatureArr[i];
 						var shape = space.shapeById((vertex >> 16) & 0xFFFF);
-						var body = shape.body;							
+						var body = shape.body;
 						var index = vertex & 0xFFFF;
 
 						var v = getShapeVertex(shape, index);
@@ -895,6 +923,53 @@ App = function() {
 				shape.body.syncTransform();
 				shape.body.cacheData();
 			}
+		}
+
+		editModeEventArr[EM_CREATE_POLY] = {};
+		editModeEventArr[EM_CREATE_POLY].mouseDown = function(ev) {
+			var p = canvasToWorld(mousePosition);
+			if (snapEnabled) {
+				p = snapPointByGrid(p);
+			}
+			
+			if (!creatingBody) {
+				creatingBody = new Body(Body.DYNAMIC, p);
+				var shape = new ShapePoly();
+				shape.density = DEFAULT_DENSITY;
+				shape.e = DEFAULT_RESTITUTION;
+				shape.u = DEFAULT_FRICTION;
+				creatingBody.addShape(shape);
+				space.addBody(creatingBody);
+			}
+
+			var shape = creatingBody.shapeArr[0];
+			shape.verts.push(creatingBody.getLocalPoint(p));
+
+			shape.finishVerts();
+			shape.body.resetMassData();
+			shape.body.syncTransform();
+			shape.body.cacheData();
+		}
+		editModeEventArr[EM_CREATE_POLY].mouseUp = function(ev) {
+			//creatingBody = null;
+		}
+		editModeEventArr[EM_CREATE_POLY].mouseMove = function(ev) {
+			if (mouseDown && creatingBody) {
+				var p = canvasToWorld(mousePosition);
+				
+				if (snapEnabled) {
+					p = snapPointByGrid(p);
+				}
+
+				var shape = creatingBody.shapeArr[0];
+				var last_v = shape.verts[shape.verts.length - 1];
+				last_v.copy(creatingBody.getLocalPoint(p));
+
+				shape.finishVerts();
+				shape.body.resetMassData();
+				shape.body.syncTransform();
+				shape.body.cacheData();
+			}
 		}		
 	}	
 
@@ -1018,9 +1093,12 @@ App = function() {
 
 	function updateSidebar() {
 		var editModeButtons = domSidebar.querySelectorAll("[name=editmode]");
+		var shapeInspector = domSidebar.querySelector("#shape_inspector");
+		var bodyInspector = domSidebar.querySelector("#body_inspector");
+		var jointInspector = domSidebar.querySelector("#joint_inspector");
 
 		if (editorEnabled) {
-			domSidebar.style.display = "table-cell";
+			//domSidebar.style.display = "table-cell";
 
 			// edit mode buttons
 			var value = ["select", "translate", "rotate", "scale", "create_circle", "create_box", "create_poly"][editMode];
@@ -1036,9 +1114,60 @@ App = function() {
 					e.className = e.className.replace(" pushed", "");
 				}
 			}
+
+			shapeInspector.style.display = "none";
+			bodyInspector.style.display = "none";
+			jointInspector.style.display = "none";
+
+			if (selectionMode == SM_SHAPES) {
+				if (selectedFeatureArr.length == 1) {
+					var shape = selectedFeatureArr[0];
+
+					shapeInspector.style.display = "block";
+
+					var el = shapeInspector.querySelector("[name=type]");
+					el.value = ["Circle", "Segment", "Poly"][shape.type];
+
+					var el = shapeInspector.querySelector("[name=density]");
+					el.value = shape.density.toFixed(6);
+
+					var el = shapeInspector.querySelector("[name=elasticity]");
+					el.value = shape.e.toFixed(2);
+
+					var el = shapeInspector.querySelector("[name=friction]");
+					el.value = shape.u.toFixed(2);
+				}
+			}
+			else if (selectionMode == SM_BODIES) {			
+				if (selectedFeatureArr.length == 1) {				
+					var body = selectedFeatureArr[0];
+
+					bodyInspector.style.display = "block";
+
+					var el = bodyInspector.querySelector("[name=type]");
+					el.value = ["Static", "Kinetic", "Dynamic"][body.type];
+
+					var el = bodyInspector.querySelector("[name=name]");
+					el.value = body.name;
+
+					var el = bodyInspector.querySelector("[name=position_x]");
+					el.value = body.xf.t.x.toFixed(2);
+
+					var el = bodyInspector.querySelector("[name=position_y]");
+					el.value = body.xf.t.y.toFixed(2);
+
+					var el = bodyInspector.querySelector("[name=angle]");
+					el.value = rad2deg(body.a).toFixed(1);
+				}
+			}
+			else if (selectionMode == SM_JOINTS) {
+				if (selectedFeatureArr.length == 1) {
+					jointInspector.style.display = "block";
+				}
+			}
 		}
 		else {
-			domSidebar.style.display = "none";			
+			//domSidebar.style.display = "none";
 		}
 	}	
 
@@ -1938,9 +2067,11 @@ App = function() {
 		}
 		else if (selectionMode == SM_BODIES) {
 			var shape = space.findShapeByPoint(p, selectedFeatureArr[0]);
-			if (shape) {
-				return shape.body;
+			if (!shape) {
+				return null;
 			}
+
+			return shape.body;			
 		}
 		else if (selectionMode == SM_JOINTS) {
 			var shape = space.findShapeByPoint(p);
@@ -1961,6 +2092,7 @@ App = function() {
 					}		
 				}
 			}*/
+			return null;
 		}
 
 		console.error("getFeatureByPoint");
@@ -1969,7 +2101,7 @@ App = function() {
 
 	function doSelect(p, flags) {
 		var feature = getFeatureByPoint(p);
-		if (!isValidFeature(feature)) {
+		if (!isValidFeature(feature)) {			
 			return false;
 		}
 
@@ -1994,7 +2126,7 @@ App = function() {
 		else {
 			selectedFeatureArr = [];
 			selectedFeatureArr.push(feature);
-		}		
+		}
 
 		return true;
 	}
@@ -2411,6 +2543,10 @@ App = function() {
 			return;
 		}
 
+		if (ev.target.tagName != "BODY") {
+			return;
+		}
+
 		switch (ev.keyCode) {
 		case 123: // F12
 			// TODO: Screenshot
@@ -2521,6 +2657,82 @@ App = function() {
 		highlightFeatureArr = [];
 	}
 
+	function onChangedShapeDensity(value) {
+		if (selectedFeatureArr.length == 1) {
+			var shape = selectedFeatureArr[0];
+			shape.density = parseFloat(value);
+			shape.body.resetMassData();
+		}
+	}
+
+	function onChangedShapeElasticity(value) {
+		if (selectedFeatureArr.length == 1) {
+			var shape = selectedFeatureArr[0];
+			shape.e = parseFloat(value);
+		}	
+	}
+
+	function onChangedShapeFriction(value) {
+		if (selectedFeatureArr.length == 1) {
+			var shape = selectedFeatureArr[0];
+			shape.u = parseFloat(value);
+		}	
+	}
+
+	function onChangedBodyType(value) {
+		if (selectedFeatureArr.length == 1) {
+			var body = selectedFeatureArr[0];
+			body.type = { "Static": Body.STATIC, "Kinetic": Body.KINETIC, "Dynamic": Body.DYNAMIC }[value];
+			body.resetMassData();
+			body.cacheData();
+		}
+	}
+
+	function onChangedBodyName(value) {
+		if (selectedFeatureArr.length == 1) {
+			var body = selectedFeatureArr[0];
+			body.name = new String(value);
+		}
+	}
+
+	function onChangedBodyPositionX(value) {
+		if (selectedFeatureArr.length == 1) {
+			var body = selectedFeatureArr[0];			
+			var p = new vec2(parseFloat(value), body.xf.t.y);
+			body.setTransform(p, body.a);
+			body.cacheData();
+		}
+	}
+
+	function onChangedBodyPositionY(value) {
+		if (selectedFeatureArr.length == 1) {
+			var body = selectedFeatureArr[0];			
+			var p = new vec2(body.xf.t.x, parseFloat(value));
+			body.setTransform(p, body.a);
+			body.cacheData();
+		}
+	}
+
+	function onChangedBodyAngle(value) {
+		if (selectedFeatureArr.length == 1) {
+			var body = selectedFeatureArr[0];
+			body.setTransform(body.xf.t, deg2rad(parseFloat(value)));
+			body.cacheData();
+		}
+	}
+
+	function onChangedJointBody1(value) {
+
+	}
+
+	function onChangedJointBody2(value) {
+		
+	}
+
+	function onClickedJointCollideConnected() {
+		
+	}
+
 	function onChangedGravity(value) {
 		gravity.y = parseFloat(value);
 		space.gravity.copy(gravity);
@@ -2627,7 +2839,9 @@ App = function() {
 	}
 
 	function onClickedEditMode(value) {
-		editMode = { create_circle: EM_CREATE_CIRCLE, create_box: EM_CREATE_BOX, create_poly: EM_CREATE_POLY, 
+		editMode = { create_circle: EM_CREATE_CIRCLE, create_box: EM_CREATE_BOX, create_poly: EM_CREATE_POLY,
+			create_revolute_joint: EM_CREATE_REVOLUTE_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT,
+			create_weld_joint: EM_CREATE_WELD_JOINT, create_angle_joint: EM_CREATE_ANGLE_JOINT,
 			select: EM_SELECT, translate: EM_TRANSLATE, rotate: EM_ROTATE, scale: EM_SCALE }[value];
 
 		updateSidebar();

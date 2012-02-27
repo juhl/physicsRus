@@ -5,6 +5,7 @@ html, body {
   height: 100%;
   font-family: Verdana, times new roman, NanumGothic, sans-serif;    
   text-align: left;
+  color: #ccc;
 }
 header {
   padding-top: 0;
@@ -23,10 +24,9 @@ footer {
 label {  
   vertical-align: middle;
 }
-select {  
+select {
   border: 1px solid #222;
-  height: 23px;
-  font-size: 12px;
+  line-height: 15px;  
   color: #333;
   vertical-align: middle;
   -webkit-border-radius: 3px;
@@ -70,7 +70,6 @@ div#toolbar {
   vertical-align: middle;
   font-size: 10px;
   background-color: #3B3937;
-  color: white;
   overflow: hidden;
   background: -moz-linear-gradient(#3B3937, #2B2927);
   background: -webkit-gradient(linear, left top, left bottom, from(#3B3937), to(#2B2927));
@@ -85,7 +84,7 @@ div#toolbar {
 }
 div#sidebar {
   margin: 0;
-  padding: 8px 8px 8px 8px;
+  padding: 4px;
   width: 240px;
   height: 100%;
   position: relative;
@@ -94,7 +93,6 @@ div#sidebar {
   font-size: 10px;
   display: table-cell;
   background-color: #3B3937;
-  color: white;
   overflow: hidden;  
   -webkit-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 1.1);
   -moz-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 1.1);
@@ -104,6 +102,20 @@ div#sidebar {
   -moz-user-select: none;
   -o-user-select: none;
   user-select: none;
+}
+div#sidebar > .pannel {
+  padding: 2px;
+  display: none;
+}
+div#sidebar > .pannel > .title {  
+  display: block;
+  line-height: 18px;
+  padding-left: 4px;
+  background-color: #282828;
+  vertical-align: middle;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
 }
 div#main_view {
   margin: 0;
@@ -141,7 +153,6 @@ div#settings {
   text-align: left;
   font-size: 10px;  
   background-color: #333;
-  color: #FFF;    
   text-shadow: 1px 1px 2px rgba(0,0,0,0.5), 1px 1px 2px rgba(0,0,0,0.5); 
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;  

@@ -57,9 +57,9 @@ Body = function(type, pos, angle) {
 	this.stepCount = 0;
 }
 
-Body.STATIC = 1;
-Body.KINETIC = 2;
-Body.DYNAMIC = 3;
+Body.STATIC = 0;
+Body.KINETIC = 1;
+Body.DYNAMIC = 2;
 
 Body.prototype.duplicate = function() {
 	var body = new Body(this.type, this.xf.t, this.a);

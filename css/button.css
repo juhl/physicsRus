@@ -11,7 +11,7 @@
   
   position: relative;
   
-  color: #eee;  
+  color: #ddd;  
   cursor: pointer;   
   text-decoration: none;
   font-style: normal;
@@ -129,11 +129,13 @@
 }
 
 .btn.grey   { background: #CCCCBB !important; } .btn.grey.pushed    { color: white; } .btn.grey.pushed:hover   { color: white; }
-.btn.blue   {  background: #005AFF;
+.btn.blue   { color: white; 
+  background: #005AFF;
   background: -moz-linear-gradient(#008AFF, #0050E0);
   background: -webkit-gradient(linear, left top, left bottom, from(#008AFF), to(#0050E0)); } 
 .btn.blue.pushed    { color: white; } .btn.blue.pushed:hover   { color: white; }
-.btn.red    { background: #E32100; 
+.btn.red    { color: white;
+  background: #E32100; 
   background: -moz-linear-gradient(#FF5030, #D02010);
   background: -webkit-gradient(linear, left top, left bottom, from(#FF5030), to(#D02010)); } 
 .btn.red.pushed     { color: white; } .btn.red.pushed:hover    { color: white; }

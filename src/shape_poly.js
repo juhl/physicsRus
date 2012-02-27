@@ -9,15 +9,17 @@ ShapePoly = function(verts) {
 	this.planes = [];
    
 	this.tverts = [];
-	this.tplanes = [];	
+	this.tplanes = [];
 
-	for (var i = 0; i < verts.length; i++) {
-		this.verts[i] = verts[i].duplicate();
-		this.tverts[i] = this.verts[i];
+	if (verts) {
+		for (var i = 0; i < verts.length; i++) {
+			this.verts[i] = verts[i].duplicate();
+			this.tverts[i] = this.verts[i];
 
-		this.tplanes[i] = {};
-		this.tplanes[i].n = vec2.zero;
-		this.tplanes[i].d = 0;
+			this.tplanes[i] = {};
+			this.tplanes[i].n = vec2.zero;
+			this.tplanes[i].d = 0;
+		}
 	}
 
 	this.finishVerts();
@@ -27,7 +29,7 @@ ShapePoly.prototype = new Shape;
 ShapePoly.prototype.constructor = ShapePoly;
 
 ShapePoly.prototype.finishVerts = function() {
-	if (this.verts < 2) {
+	if (this.verts.length < 2) {
 		this.convexity = false;
 		this.planes = [];
 		return;
@@ -96,17 +98,20 @@ ShapePoly.prototype.inertia = function(mass) {
 	return inertiaForPoly(mass, this.verts, vec2.zero);
 }
 
-// pos is world centroid
 ShapePoly.prototype.cacheData = function(xf) {
-	var numVerts = this.verts.length;
-	for (var i = 0; i < numVerts; i++) {
-		this.tverts[i] = xf.transform(this.verts[i]);
-	}
-
 	this.bounds.clear();
 
-	if (this.verts < 2) {
-		this.bounds.addPoint(this.tverts[i]);
+	var numVerts = this.verts.length;
+	if (numVerts == 0) {
+		return;
+	}
+
+	for (var i = 0; i < numVerts; i++) {
+		this.tverts[i] = xf.transform(this.verts[i]);
+	}		
+
+	if (numVerts < 2) {
+		this.bounds.addPoint(this.tverts[0]);
 		return;
 	}	
 
