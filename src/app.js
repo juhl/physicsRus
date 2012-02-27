@@ -6,8 +6,8 @@ App = function() {
 	const EM_TRANSLATE = 1;
 	const EM_ROTATE = 2;
 	const EM_SCALE = 3;
-	const EM_CREATE_BOX = 4;
-	const EM_CREATE_CIRCLE = 5;
+	const EM_CREATE_CIRCLE = 4;
+	const EM_CREATE_BOX = 5;
 	const EM_CREATE_POLY = 6;
 	const EM_CREATE_REVOLUTE_JOINT = 7;
 	const EM_CREATE_DISTANCE_JOINT = 8;
@@ -136,7 +136,6 @@ App = function() {
 	var mousePosition = new vec2;
 	var mousePositionOld = new vec2;
 	var mouseDownPosition = new vec2;
-	var mouseCursor = "default";
 	var touchPosOld = new Array(2);
 	var gestureStartScale;
 	var gestureScale;
@@ -217,17 +216,17 @@ App = function() {
 		var elements = domToolbar.querySelectorAll("[name=selectionmode]");
 		for (var i in elements) {
 			addEvent(elements[i], "click", function() { return onClickedSelectionMode(this.value); });
-		}
-		var elements = domToolbar.querySelectorAll("[name=transformmode]");
-		for (var i in elements) {
-			addEvent(elements[i], "click", function() { return onClickedTransformMode(this.value); });
-		}
+		}		
 		addEvent(domToolbar.querySelector("#toggle_snap"), "click", onClickedSnap);
 		addEvent(domToolbar.querySelector("#toggle_settings"), "click", onClickedSettings);
 		//addEvent(domToolbar.querySelector("#toggle_about"), "click", onClickedAbout);
 
 		// Setting up sidebar events
 		domSidebar = document.querySelector("#sidebar");
+		var elements = domSidebar.querySelectorAll("[name=editmode]");
+		for (var i in elements) {
+			addEvent(elements[i], "click", function() { return onClickedEditMode(this.value); });
+		}
 
 		// Setting up settings events
 		domSettings = document.querySelector("#settings");
@@ -250,6 +249,7 @@ App = function() {
 		}
 
 		updateToolbar();
+		updateSidebar();
 
 		// Setting up mouse event for each edit modes
 		editModeEventArr[EM_SELECT] = {};
@@ -350,16 +350,13 @@ App = function() {
 		var editButton = domToolbar.querySelector("#edit");
 		var snapButton = domToolbar.querySelector("#toggle_snap");
 		var playerSpan = domToolbar.querySelector("#player");
-		var selectionModeSpan = domToolbar.querySelector("#selectionmode");
-		var transformModeSpan = domToolbar.querySelector("#transformmode");
+		var selectionModeSpan = domToolbar.querySelector("#selectionmode");		
 		var selectionModeButtons = domToolbar.querySelectorAll("#selectionmode > [name=selectionmode]");
-		var transformModeButtons = domToolbar.querySelectorAll("#transformmode > [name=transformmode]");		
-
+		
 		if (editorEnabled) {
 			// show / hide
 			playerSpan.style.display = "none";
 			selectionModeSpan.style.display = "inline";
-			transformModeSpan.style.display = "inline";
 			snapButton.style.display = "inline";
 
 			// edit button
@@ -379,22 +376,8 @@ App = function() {
 					e.className = e.className.replace(" pushed", "");
 				}
 			}
-
-			// transform mode buttons
-			var value = ["select", "translate", "rotate", "scale"][editMode];
-			for (var i = 0; i < transformModeButtons.length; i++) {
-				var e = transformModeButtons[i];
-				
-				if (e.value == value) {
-					if (e.className.indexOf(" pushed") == -1) {
-						e.className += " pushed";
-					}
-				}
-				else {
-					e.className = e.className.replace(" pushed", "");
-				}
-			}
-			
+		
+			// snap button			
 			if (snapEnabled) {
 				if (snapButton.className.indexOf(" pushed") == -1) {
 					snapButton.className += " pushed";
@@ -407,8 +390,7 @@ App = function() {
 		else {
 			// show / hide
 			playerSpan.style.display = "inline";
-			selectionModeSpan.style.display = "none";
-			transformModeSpan.style.display = "none";
+			selectionModeSpan.style.display = "none";			
 			snapButton.style.display = "none";
 
 			// edit button
@@ -422,6 +404,32 @@ App = function() {
 		var button = domToolbar.querySelector("#player > [value=pause]");
 		button.innerHTML = pause ? "<i class='icon-white icon-play'></i>" : "<i class='icon-white icon-pause'></i>";
 	}
+
+	function updateSidebar() {
+		var editModeButtons = domSidebar.querySelectorAll("[name=editmode]");
+
+		if (editorEnabled) {
+			domSidebar.style.display = "table-cell";
+
+			// edit mode buttons
+			var value = ["select", "translate", "rotate", "scale", "create_circle", "create_box", "create_poly"][editMode];
+			for (var i = 0; i < editModeButtons.length; i++) {
+				var e = editModeButtons[i];
+				
+				if (e.value == value) {
+					if (e.className.indexOf(" pushed") == -1) {
+						e.className += " pushed";
+					}
+				}
+				else {
+					e.className = e.className.replace(" pushed", "");
+				}
+			}
+		}
+		else {
+			domSidebar.style.display = "none";			
+		}
+	}	
 
 	function createCheckPattern(color) {		
 		var c = Color.parse(color);
@@ -550,11 +558,10 @@ App = function() {
 			}
 
 			if (!editorEnabled) {
-				if (!mouseDown) {
+				if (!mouseDown && editMode == EM_SELECT) {
 					var p = canvasToWorld(mousePosition);
 					var shape = space.findShapeByPoint(p);
-					mouseCursor = shape ? "pointer" : "default";
-					domCanvas.style.cursor = mouseCursor;
+					domCanvas.style.cursor = shape ? "pointer" : "default";
 				}
 
 				if (!pause || step) {
@@ -588,12 +595,7 @@ App = function() {
 					updateScreen(frameTime);
 				}
 			}
-			else {
-				if (!mouseDownMoving) {
-					mouseCursor = "default";
-					domCanvas.style.cursor = mouseCursor;
-				}
-
+			else {			
 				updateScreen(frameTime);
 			}
 		}
@@ -1277,7 +1279,7 @@ App = function() {
 		fg.canvas.width = window.innerWidth - domView.offsetLeft;
 		fg.canvas.height = window.innerHeight - domView.offsetTop;
 
-		console.log(fg.canvas.width, fg.canvas.height);
+		//console.log(fg.canvas.width, fg.canvas.height);
 
 		bg.canvas.width = fg.canvas.width;
 		bg.canvas.height = fg.canvas.height;
@@ -1676,6 +1678,10 @@ App = function() {
 			}
 		}
 		else {
+			/*if (editMode == EM_CREATE_CIRCLE || editMode == EM_CREATE_BOX) {
+				domCanvas.style.cursor = "crosshair";
+			}*/
+
 			if (mouseDown) {
 				if (ev.altKey) {	
 					var dx = mousePosition.x - mousePositionOld.x;
@@ -2323,13 +2329,13 @@ App = function() {
 			break;		
 		case 81: // 'q'
 			if (editorEnabled) {
-				onClickedTransformMode("select");
+				onClickedEditMode("select");
 				ev.preventDefault();
 			}			
 			break;
 		case 87: // 'w'
 			if (editorEnabled) {
-				onClickedTransformMode("translate");
+				onClickedEditMode("translate");
 				ev.preventDefault();
 			}			
 			break;
@@ -2339,13 +2345,13 @@ App = function() {
 				ev.preventDefault();
 			}
 			else if (editorEnabled) {
-				onClickedTransformMode("rotate");
+				onClickedEditMode("rotate");
 				ev.preventDefault();
 			}
 			break;	
 		case 82: // 'r'			
 			if (editorEnabled) {
-				onClickedTransformMode("scale");
+				onClickedEditMode("scale");
 				ev.preventDefault();
 			}
 			break;	
@@ -2358,19 +2364,23 @@ App = function() {
 			}
 			break;
 		case 66: // 'b'
-			editMode = EM_CREATE_BOX;
-			updateToolbar();
-			ev.preventDefault();			
+			if (editorEnabled) {
+				onClickedEditMode("create_box");
+				ev.preventDefault();
+			}
 			break;
 		case 67: // 'c'
-			editMode = EM_CREATE_CIRCLE;
-			updateToolbar();
-			ev.preventDefault();
+			if (editorEnabled) {
+				onClickedEditMode("create_circle");
+				ev.preventDefault();
+			}
 			break;
 		case 80: // 'p'
-			editMode = EM_CREATE_POLY;
-			updateToolbar();
-			ev.preventDefault();
+		if (editorEnabled) {
+				onClickedEditMode("create_poly");
+				ev.preventDefault();
+			}
+			break;
 		case 74: // 'j'
 			break;	
 		case 49: // '1'
@@ -2489,6 +2499,9 @@ App = function() {
 		highlightFeatureArr = [];
 
 		updateToolbar();
+		updateSidebar();
+
+		onResize();
 
 		initFrame();
 		
@@ -2503,15 +2516,16 @@ App = function() {
 
 		updateToolbar();
 
-		onClickedTransformMode("select");
+		onClickedEditMode("select");
 
 		return false;
 	}
 
-	function onClickedTransformMode(value) {
-		editMode = { select: EM_SELECT, translate: EM_TRANSLATE, rotate: EM_ROTATE, scale: EM_SCALE }[value];
+	function onClickedEditMode(value) {
+		editMode = { create_circle: EM_CREATE_CIRCLE, create_box: EM_CREATE_BOX, create_poly: EM_CREATE_POLY, 
+			select: EM_SELECT, translate: EM_TRANSLATE, rotate: EM_ROTATE, scale: EM_SCALE }[value];
 
-		updateToolbar();		
+		updateSidebar();
 
 		return false;
 	}
