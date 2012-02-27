@@ -254,6 +254,22 @@ App = function() {
 		// Setting up mouse event for each edit modes
 
 		editModeEventArr[EM_SELECT] = {};
+		editModeEventArr[EM_SELECT].mouseDown = function(ev) {}
+		editModeEventArr[EM_SELECT].mouseUp = function(ev) {
+			if (mouseDown && !mouseDownMoving) {
+				var flag = ev.shiftKey ? SF_ADDITIVE : (ev.metaKey ? SF_XOR : SF_REPLACE);
+
+				var pos = getMousePosition(ev);
+				var p = canvasToWorld(pos);
+
+				if (!doSelect(p, flag) && flag == SF_REPLACE) {
+					selectedFeatureArr = [];
+				}
+				else {
+					resetTransformCenter();
+				}
+			}
+		}
 		editModeEventArr[EM_SELECT].mouseMove = function(ev) {
 			if (mouseDown) {
 				if (!mouseDownMoving && !ev.shiftKey && !ev.metaKey) {
@@ -271,25 +287,22 @@ App = function() {
 					highlightFeatureArr[0] = feature;
 				}
 			}
-		}
-		editModeEventArr[EM_SELECT].mouseDown = function(ev) {}
-		editModeEventArr[EM_SELECT].mouseUp = function(ev) {
-			if (mouseDown && !mouseDownMoving) {
-				var flag = ev.shiftKey ? SF_ADDITIVE : (ev.metaKey ? SF_XOR : SF_REPLACE);
+		}		
 
+		editModeEventArr[EM_TRANSLATE] = {};
+		editModeEventArr[EM_TRANSLATE].mouseDown = function(ev) {}
+		editModeEventArr[EM_TRANSLATE].mouseUp = function(ev) {
+			if (mouseDown && !mouseDownMoving) {
 				var pos = getMousePosition(ev);
 				var p = canvasToWorld(pos);
 
-				if (!doSelect(p, flag) && flag == SF_REPLACE) {
-					selectedFeatureArr = [];
+				if (snapEnabled) {
+				 	p = snapPointByGrid(p);
 				}
-				else {
-					resetTransformCenter();
-				}
+				transformCenter.copy(p);
+				transformScale.set(1, 1);
 			}
 		}
-
-		editModeEventArr[EM_TRANSLATE] = {};
 		editModeEventArr[EM_TRANSLATE].mouseMove = function(ev) {			
 			if (mouseDown && transformAxis) {
 				var wmp_new = canvasToWorld(mousePosition);
@@ -465,9 +478,11 @@ App = function() {
 					}
 				}
 			}
-		}
-		editModeEventArr[EM_TRANSLATE].mouseDown = function(ev) {}
-		editModeEventArr[EM_TRANSLATE].mouseUp = function(ev) {
+		}		
+
+		editModeEventArr[EM_ROTATE] = {};
+		editModeEventArr[EM_ROTATE].mouseDown = function(ev) {}
+		editModeEventArr[EM_ROTATE].mouseUp = function(ev) {
 			if (mouseDown && !mouseDownMoving) {
 				var pos = getMousePosition(ev);
 				var p = canvasToWorld(pos);
@@ -478,9 +493,7 @@ App = function() {
 				transformCenter.copy(p);
 				transformScale.set(1, 1);
 			}
-		}		
-
-		editModeEventArr[EM_ROTATE] = {};
+		}
 		editModeEventArr[EM_ROTATE].mouseMove = function(ev) {
 			if (mouseDown && transformAxis) {
 				var wmp_new = canvasToWorld(mousePosition);
@@ -623,9 +636,11 @@ App = function() {
 					transformAxis = TRANSFORM_AXIS_Z;
 				}
 			}
-		}
-		editModeEventArr[EM_ROTATE].mouseDown = function(ev) {}
-		editModeEventArr[EM_ROTATE].mouseUp = function(ev) {
+		}		
+
+		editModeEventArr[EM_SCALE] = {};
+		editModeEventArr[EM_SCALE].mouseDown = function(ev) {}
+		editModeEventArr[EM_SCALE].mouseUp = function(ev) {
 			if (mouseDown && !mouseDownMoving) {
 				var pos = getMousePosition(ev);
 				var p = canvasToWorld(pos);
@@ -637,8 +652,6 @@ App = function() {
 				transformScale.set(1, 1);
 			}
 		}
-
-		editModeEventArr[EM_SCALE] = {};
 		editModeEventArr[EM_SCALE].mouseMove = function(ev) {
 			if (mouseDown && transformAxis) {
 				var wmp_new = canvasToWorld(mousePosition);
@@ -795,72 +808,66 @@ App = function() {
 					}
 				}				
 			}
-		}
-		editModeEventArr[EM_SCALE].mouseDown = function(ev) {}
-		editModeEventArr[EM_SCALE].mouseUp = function(ev) {
-			if (mouseDown && !mouseDownMoving) {
-				var pos = getMousePosition(ev);
-				var p = canvasToWorld(pos);
-
-				if (snapEnabled) {
-				 	p = snapPointByGrid(p);
-				}
-				transformCenter.copy(p);
-				transformScale.set(1, 1);
-			}
-		}
+		}	
 		
 		editModeEventArr[EM_CREATE_CIRCLE] = {};
+		editModeEventArr[EM_CREATE_CIRCLE].mouseDown = function(ev) {
+			var p = canvasToWorld(mousePosition);
+			if (snapEnabled) {
+				p = snapPointByGrid(p);
+			}
+
+			creatingBody = new Body(Body.DYNAMIC, p);
+			var shape = new ShapeCircle(0, 0, 0);
+			shape.density = DEFAULT_DENSITY;
+			shape.e = DEFAULT_RESTITUTION;
+			shape.u = DEFAULT_FRICTION;
+			creatingBody.addShape(shape);
+			space.addBody(creatingBody);
+		}
+		editModeEventArr[EM_CREATE_CIRCLE].mouseUp = function(ev) {}
 		editModeEventArr[EM_CREATE_CIRCLE].mouseMove = function(ev) {
-			if (mouseDown) {
+			if (mouseDown && creatingBody) {
 				var p1 = canvasToWorld(mouseDownPosition);
 				var p2 = canvasToWorld(mousePosition);
 
 				if (snapEnabled) {
 					p1 = snapPointByGrid(p1);
 					p2 = snapPointByGrid(p2);
-				}
-		
-				if (!mouseDownMoving) {
-					creatingBody = new Body(Body.DYNAMIC, p1);
-					var shape = new ShapeCircle(0, 0, 0);
-					shape.density = DEFAULT_DENSITY;
-					shape.e = DEFAULT_RESTITUTION;
-					shape.u = DEFAULT_FRICTION;
-					creatingBody.addShape(shape);
-					space.addBody(creatingBody);
-				}
+				}				
 
 				var shape = creatingBody.shapeArr[0];
 				shape.r = vec2.dist(p2, p1/*creatingBody.shapeArr[0].tc*/);
 				shape.body.resetMassData();					
 				shape.body.cacheData();
 			}
-		}
-		editModeEventArr[EM_CREATE_CIRCLE].mouseDown = function(ev) {}
-		editModeEventArr[EM_CREATE_CIRCLE].mouseUp = function(ev) {}
+		}		
 
 		editModeEventArr[EM_CREATE_BOX] = {};
+		editModeEventArr[EM_CREATE_BOX].mouseDown = function(ev) {
+			var p = canvasToWorld(mousePosition);
+			if (snapEnabled) {
+				p = snapPointByGrid(p);
+			}
+			
+			creatingBody = new Body(Body.DYNAMIC, p);
+			var shape = new ShapeBox(0, 0, 0, 0);
+			shape.density = DEFAULT_DENSITY;
+			shape.e = DEFAULT_RESTITUTION;
+			shape.u = DEFAULT_FRICTION;
+			creatingBody.addShape(shape);
+			space.addBody(creatingBody);
+		}
+		editModeEventArr[EM_CREATE_BOX].mouseUp = function(ev) {}
 		editModeEventArr[EM_CREATE_BOX].mouseMove = function(ev) {
-			if (mouseDown) {
+			if (mouseDown && creatingBody) {
 				var p1 = canvasToWorld(mouseDownPosition);
 				var p2 = canvasToWorld(mousePosition);
 				
 				if (snapEnabled) {
 					p1 = snapPointByGrid(p1);
 					p2 = snapPointByGrid(p2);						
-				}
-
-				if (!mouseDownMoving) {
-					var pos = snapPointByGrid(p1);
-					creatingBody = new Body(Body.DYNAMIC, pos);
-					var shape = new ShapeBox(0, 0, 0, 0);
-					shape.density = DEFAULT_DENSITY;
-					shape.e = DEFAULT_RESTITUTION;
-					shape.u = DEFAULT_FRICTION;
-					creatingBody.addShape(shape);
-					space.addBody(creatingBody);
-				}
+				}				
 
 				var mins = new vec2(p1.x, p1.y);
 				var maxs = new vec2(p2.x, p2.y);
@@ -888,9 +895,7 @@ App = function() {
 				shape.body.syncTransform();
 				shape.body.cacheData();
 			}
-		}
-		editModeEventArr[EM_CREATE_BOX].mouseDown = function(ev) {}
-		editModeEventArr[EM_CREATE_BOX].mouseUp = function(ev) {}
+		}		
 	}	
 
 	function onLoad() {
