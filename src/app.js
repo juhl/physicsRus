@@ -7,13 +7,15 @@ App = function() {
 	const EM_ROTATE = 2;
 	const EM_SCALE = 3;
 	const EM_CREATE_CIRCLE = 4;
-	const EM_CREATE_BOX = 5;
-	const EM_CREATE_POLY = 6;
-	const EM_CREATE_REVOLUTE_JOINT = 7;
-	const EM_CREATE_DISTANCE_JOINT = 8;
-	const EM_CREATE_PRISMATIC_JOINT = 9;
-	const EM_CREATE_ANGLE_JOINT = 10;
-	const EM_CREATE_WELD_JOINT = 11;
+	const EM_CREATE_TRIANGLE = 5;
+	const EM_CREATE_BOX = 6;
+	const EM_CREATE_HEXAGON = 7;
+	const EM_CREATE_POLY = 8;
+	const EM_CREATE_REVOLUTE_JOINT = 9;
+	const EM_CREATE_DISTANCE_JOINT = 10;
+	const EM_CREATE_PRISMATIC_JOINT = 11;
+	const EM_CREATE_ANGLE_JOINT = 12;
+	const EM_CREATE_WELD_JOINT = 13;
 
 	// selection mode
 	const SM_VERTICES = 0;
@@ -57,12 +59,13 @@ App = function() {
 
 	// default values for creating shape
 	const DEFAULT_DENSITY = 0.1;
-	const DEFAULT_RESTITUTION = 0.5;
+	const DEFAULT_RESTITUTION = 0.3;
 	const DEFAULT_FRICTION = 0.8;
 
 	// DOM objects
 	var domView;
 	var domCanvas;
+	var domInfo;
 	var domToolbar;
 	var domSidebar;
 	var domShapeInspector;
@@ -108,7 +111,7 @@ App = function() {
 	var editMode = EM_SELECT;
 	var editModeEventArr = [];
 	var selectionMode = SM_BODIES;
-	var snapEnabled = true;
+	var snapEnabled = false;
 	var selectedFeatureArr = [];
 	var markedFeatureArr = [];
 	var highlightFeatureArr = [];
@@ -173,6 +176,8 @@ App = function() {
 
 		bg.canvas = document.createElement("canvas");
 		bg.ctx = bg.canvas.getContext("2d");
+
+		domInfo = document.getElementById("info");
 		
 		//addEvent(window, "focus", function(ev) { activeWindow = true; });
 		//addEvent(window, "blur", function(ev) { activeWindow = false; });
@@ -233,8 +238,8 @@ App = function() {
 		domShapeInspector = domSidebar.querySelector("#shape_inspector");
 		addEvent(domShapeInspector.querySelector("[name=density]"), "change", function() { onChangedShapeDensity(this.value); });
 		addEvent(domShapeInspector.querySelector("[name=density]"), "input", function() { onChangedShapeDensity(this.value); });
-		addEvent(domShapeInspector.querySelector("[name=elasticity]"), "change", function() { onChangedShapeElasticity(this.value); });
-		addEvent(domShapeInspector.querySelector("[name=elasticity]"), "input", function() { onChangedShapeElasticity(this.value); });
+		addEvent(domShapeInspector.querySelector("[name=restitution]"), "change", function() { onChangedShapeRestitution(this.value); });
+		addEvent(domShapeInspector.querySelector("[name=restitution]"), "input", function() { onChangedShapeRestitution(this.value); });
 		addEvent(domShapeInspector.querySelector("[name=friction]"), "change", function() { onChangedShapeFriction(this.value); });
 		addEvent(domShapeInspector.querySelector("[name=friction]"), "input", function() { onChangedShapeFriction(this.value); });
 
@@ -868,7 +873,17 @@ App = function() {
 			creatingBody.addShape(shape);
 			space.addBody(creatingBody);
 		}
-		editModeEventArr[EM_CREATE_CIRCLE].mouseUp = function(ev) {}
+		editModeEventArr[EM_CREATE_CIRCLE].mouseUp = function(ev) {			
+			if (creatingBody) {
+				var shape = creatingBody.shapeArr[0];
+				if (shape.area() < 0.0001) {
+					space.removeBody(creatingBody);
+					delete shape;
+					delete creatingBody;
+					creatingBody = null;
+				}
+			}
+		}
 		editModeEventArr[EM_CREATE_CIRCLE].mouseMove = function(ev) {
 			if (mouseDown && creatingBody) {
 				var p1 = canvasToWorld(mouseDownPosition);
@@ -884,7 +899,73 @@ App = function() {
 				shape.body.resetMassData();					
 				shape.body.cacheData();
 			}
-		}		
+		}
+
+		editModeEventArr[EM_CREATE_TRIANGLE] = {};
+		editModeEventArr[EM_CREATE_TRIANGLE].mouseDown = function(ev) {
+			var p = canvasToWorld(mousePosition);
+			if (snapEnabled) {
+				p = snapPointByGrid(p);
+			}
+			
+			creatingBody = new Body(Body.DYNAMIC, p);
+			var shape = new ShapeTriangle(p, p, p);
+			shape.density = DEFAULT_DENSITY;
+			shape.e = DEFAULT_RESTITUTION;
+			shape.u = DEFAULT_FRICTION;
+			creatingBody.addShape(shape);
+			space.addBody(creatingBody);
+		}
+		editModeEventArr[EM_CREATE_TRIANGLE].mouseUp = function(ev) {
+			if (creatingBody) {
+				var shape = creatingBody.shapeArr[0];
+				if (shape.area() < 0.0001) {
+					space.removeBody(creatingBody);
+					delete shape;
+					delete creatingBody;
+					creatingBody = null;
+				}
+			}
+		}
+		editModeEventArr[EM_CREATE_TRIANGLE].mouseMove = function(ev) {
+			if (mouseDown && creatingBody) {
+				var p1 = canvasToWorld(mouseDownPosition);
+				var p2 = canvasToWorld(mousePosition);
+				
+				if (snapEnabled) {
+					p1 = snapPointByGrid(p1);
+					p2 = snapPointByGrid(p2);
+				}
+
+				var p3 = new vec2(p1.x, p2.y);
+				var delta = vec2.sub(p2, p1);
+				var cw = (delta.x > 0) ^ (delta.y > 0);
+				
+				creatingBody.setTransform(p1.y < p2.y ? p1 : p3, 0);
+
+				var wv = [];
+				wv.push(p1);
+				if (cw) {
+					wv.push(p3);
+					wv.push(p2);
+				}
+				else {
+					wv.push(p2);
+					wv.push(p3);
+				}
+
+				var shape = creatingBody.shapeArr[0];
+
+				for (var i = 0; i < 3; i++) {
+					shape.verts[i].copy(creatingBody.getLocalPoint(wv[i]));
+				}
+
+				shape.finishVerts();
+				shape.body.resetMassData();
+				shape.body.syncTransform();
+				shape.body.cacheData();
+			}
+		}
 
 		editModeEventArr[EM_CREATE_BOX] = {};
 		editModeEventArr[EM_CREATE_BOX].mouseDown = function(ev) {
@@ -901,7 +982,17 @@ App = function() {
 			creatingBody.addShape(shape);
 			space.addBody(creatingBody);
 		}
-		editModeEventArr[EM_CREATE_BOX].mouseUp = function(ev) {}
+		editModeEventArr[EM_CREATE_BOX].mouseUp = function(ev) {
+			if (creatingBody) {
+				var shape = creatingBody.shapeArr[0];
+				if (shape.area() < 0.0001) {
+					space.removeBody(creatingBody);
+					delete shape;
+					delete creatingBody;
+					creatingBody = null;
+				}
+			}
+		}
 		editModeEventArr[EM_CREATE_BOX].mouseMove = function(ev) {
 			if (mouseDown && creatingBody) {
 				var p1 = canvasToWorld(mouseDownPosition);
@@ -940,6 +1031,76 @@ App = function() {
 			}
 		}
 
+		editModeEventArr[EM_CREATE_HEXAGON] = {};
+		editModeEventArr[EM_CREATE_HEXAGON].mouseDown = function(ev) {
+			var p = canvasToWorld(mousePosition);
+			if (snapEnabled) {
+				p = snapPointByGrid(p);
+			}
+			
+			creatingBody = new Body(Body.DYNAMIC, p);
+			var verts = new Array(6);
+			for (var i = 0; i < 6; i++) {
+				verts[i] = p;
+			}
+			var shape = new ShapePoly(verts);
+			shape.density = DEFAULT_DENSITY;
+			shape.e = DEFAULT_RESTITUTION;
+			shape.u = DEFAULT_FRICTION;
+			creatingBody.addShape(shape);
+			space.addBody(creatingBody);
+		}
+		editModeEventArr[EM_CREATE_HEXAGON].mouseUp = function(ev) {
+			if (creatingBody) {
+				var shape = creatingBody.shapeArr[0];
+				if (shape.area() < 0.0001) {
+					space.removeBody(creatingBody);
+					delete shape;
+					delete creatingBody;
+					creatingBody = null;
+				}
+			}
+		}
+		editModeEventArr[EM_CREATE_HEXAGON].mouseMove = function(ev) {
+			if (mouseDown && creatingBody) {
+				var p1 = canvasToWorld(mouseDownPosition);
+				var p2 = canvasToWorld(mousePosition);
+				
+				if (snapEnabled) {
+					p1 = snapPointByGrid(p1);
+					p2 = snapPointByGrid(p2);
+				}
+
+				var mins = new vec2(p1.x, p1.y);
+				var maxs = new vec2(p2.x, p2.y);
+
+				if (p1.x > p2.x) { mins.x = p2.x; maxs.x = p1.x; }
+				if (p1.y > p2.y) { mins.y = p2.y; maxs.y = p1.y; }
+
+				var center = vec2.lerp(mins, maxs, 0.5);
+				creatingBody.setTransform(center, 0);
+
+				var wv = new Array(6);
+				wv[0] = new vec2(mins.x, center.y);
+				wv[1] = new vec2((mins.x + center.x) * 0.5, mins.y);
+				wv[2] = new vec2((maxs.x + center.x) * 0.5, mins.y);
+				wv[3] = new vec2(maxs.x, center.y);
+				wv[4] = new vec2((maxs.x + center.x) * 0.5, maxs.y);
+				wv[5] = new vec2((mins.x + center.x) * 0.5, maxs.y);
+
+				var shape = creatingBody.shapeArr[0];
+
+				for (var i = 0; i < 6; i++) {
+					shape.verts[i].copy(creatingBody.getLocalPoint(wv[i]));
+				}
+
+				shape.finishVerts();
+				shape.body.resetMassData();
+				shape.body.syncTransform();
+				shape.body.cacheData();
+			}
+		}
+
 		editModeEventArr[EM_CREATE_POLY] = {};
 		editModeEventArr[EM_CREATE_POLY].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
@@ -965,8 +1126,16 @@ App = function() {
 			shape.body.syncTransform();
 			shape.body.cacheData();
 		}
-		editModeEventArr[EM_CREATE_POLY].mouseUp = function(ev) {
-			//creatingBody = null;
+		editModeEventArr[EM_CREATE_POLY].mouseUp = function(ev) {			
+			if (creatingBody) {
+				var shape = creatingBody.shapeArr[0];
+				if (shape.area() < 0.0001) {
+					space.removeBody(creatingBody);
+					delete shape;
+					delete creatingBody;
+					creatingBody = null;
+				}
+			}
 		}
 		editModeEventArr[EM_CREATE_POLY].mouseMove = function(ev) {
 			if (mouseDown && creatingBody) {
@@ -1116,7 +1285,7 @@ App = function() {
 			domSidebar.style.display = "table-cell";
 
 			// edit mode buttons
-			var value = ["select", "translate", "rotate", "scale", "create_circle", "create_box", "create_poly"][editMode];
+			var value = ["select", "translate", "rotate", "scale", "create_circle", "create_triangle", "create_box", "create_hexagon", "create_poly"][editMode];
 			for (var i = 0; i < editModeButtons.length; i++) {
 				var e = editModeButtons[i];
 				
@@ -1146,7 +1315,7 @@ App = function() {
 					var el = shapeInspector.querySelector("[name=density]");
 					el.value = shape.density.toFixed(6);
 
-					var el = shapeInspector.querySelector("[name=elasticity]");
+					var el = shapeInspector.querySelector("[name=restitution]");
 					el.value = shape.e.toFixed(2);
 
 					var el = shapeInspector.querySelector("[name=friction]");
@@ -1371,22 +1540,20 @@ App = function() {
 	function updateScreen(frameTime) {	
 		var t0 = Date.now();
 		drawFrame(frameTime);
-		stats.timeDrawFrame = Date.now() - t0;
-
-		var info = document.getElementById("info");
+		stats.timeDrawFrame = Date.now() - t0;		
 		
 		// Show statistaics
-		if (showStats) {
+		if (showStats) {			
 			// Update info once per every 10 frames
 			if ((frameCount % 10) == 0) {
-				info.innerHTML =
+				domInfo.innerHTML =
 					["fps:", fps.toFixed(1), "tm_draw:", stats.timeDrawFrame, "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "<br />"].join(" ") +
 					["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver, "<br />"].join(" ") +
 					["bodies:", space.numBodies, "joints:", space.numJoints, "contacts:", space.numContacts, "pos_iters:", stats.positionIterations].join(" ");
 			}
 		}
 		else {
-			info.innerHTML = "";
+			domInfo.innerHTML = "";
 		}		
 	}
 
@@ -2685,7 +2852,7 @@ App = function() {
 		}
 	}
 
-	function onChangedShapeElasticity(value) {
+	function onChangedShapeRestitution(value) {
 		if (selectedFeatureArr.length == 1) {
 			var shape = selectedFeatureArr[0];
 			shape.e = parseFloat(value);
@@ -2804,6 +2971,8 @@ App = function() {
 
 	function onClickedShowStats() {
 		showStats = !showStats;
+
+		domInfo.style.display = showStats ? "block" : "none";
 	}	
 
 	function onClickedPlayer(value) {
@@ -2859,14 +3028,14 @@ App = function() {
 	}
 
 	function onClickedEditMode(value) {
-		editMode = { create_circle: EM_CREATE_CIRCLE, create_box: EM_CREATE_BOX, create_poly: EM_CREATE_POLY,
+		editMode = { create_circle: EM_CREATE_CIRCLE, create_triangle: EM_CREATE_TRIANGLE, create_box: EM_CREATE_BOX, create_hexagon: EM_CREATE_HEXAGON, create_poly: EM_CREATE_POLY,
 			create_revolute_joint: EM_CREATE_REVOLUTE_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT,
 			create_weld_joint: EM_CREATE_WELD_JOINT, create_angle_joint: EM_CREATE_ANGLE_JOINT,
 			select: EM_SELECT, translate: EM_TRANSLATE, rotate: EM_ROTATE, scale: EM_SCALE }[value];
 
 		updateSidebar();
 
-		if (editMode == EM_CREATE_CIRCLE || editMode == EM_CREATE_BOX || editMode == EM_CREATE_POLY) {
+		if (editMode == EM_CREATE_CIRCLE || editMode == EM_CREATE_TRIANGLE || editMode == EM_CREATE_BOX || editMode == EM_CREATE_HEXAGON || editMode == EM_CREATE_POLY) {
 			domCanvas.style.cursor = "crosshair";
 		}
 		else {

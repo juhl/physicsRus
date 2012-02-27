@@ -126,6 +126,7 @@ div#info {
   left: 0px;
   display: none;
   position: absolute;
+  color: black;
   vertical-align: top;  
   font-family: menlo;
   font-size: 9pt;  
