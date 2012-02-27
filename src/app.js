@@ -14,8 +14,9 @@ App = function() {
 	const EM_CREATE_REVOLUTE_JOINT = 9;
 	const EM_CREATE_DISTANCE_JOINT = 10;
 	const EM_CREATE_PRISMATIC_JOINT = 11;
-	const EM_CREATE_ANGLE_JOINT = 12;
+	const EM_CREATE_LINE_JOINT = 12;
 	const EM_CREATE_WELD_JOINT = 13;
+	const EM_CREATE_ANGLE_JOINT = 14;
 
 	// selection mode
 	const SM_VERTICES = 0;
@@ -937,21 +938,21 @@ App = function() {
 					p2 = snapPointByGrid(p2);
 				}
 
-				var p3 = new vec2(p1.x, p2.y);
+				var p3 = new vec2(p2.x, p1.y);
 				var delta = vec2.sub(p2, p1);
-				var cw = (delta.x > 0) ^ (delta.y > 0);
+				var ccw = (delta.x > 0) ^ (delta.y > 0);
 				
 				creatingBody.setTransform(p1.y < p2.y ? p1 : p3, 0);
 
 				var wv = [];
 				wv.push(p1);
-				if (cw) {
-					wv.push(p3);
+				if (ccw) {
 					wv.push(p2);
+					wv.push(p3);
 				}
 				else {
-					wv.push(p2);
 					wv.push(p3);
+					wv.push(p2);
 				}
 
 				var shape = creatingBody.shapeArr[0];
@@ -1285,7 +1286,10 @@ App = function() {
 			domSidebar.style.display = "table-cell";
 
 			// edit mode buttons
-			var value = ["select", "translate", "rotate", "scale", "create_circle", "create_triangle", "create_box", "create_hexagon", "create_poly"][editMode];
+			var value = ["select", "translate", "rotate", "scale", 
+				"create_circle", "create_triangle", "create_box", "create_hexagon", "create_poly",
+				"create_revolute_joint", "create_distance_joint", "create_prismatic_joint", "create_line_joint",
+				"create_weld_joint", "create_angle_joint"][editMode];
 			for (var i = 0; i < editModeButtons.length; i++) {
 				var e = editModeButtons[i];
 				
@@ -3029,7 +3033,7 @@ App = function() {
 
 	function onClickedEditMode(value) {
 		editMode = { create_circle: EM_CREATE_CIRCLE, create_triangle: EM_CREATE_TRIANGLE, create_box: EM_CREATE_BOX, create_hexagon: EM_CREATE_HEXAGON, create_poly: EM_CREATE_POLY,
-			create_revolute_joint: EM_CREATE_REVOLUTE_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT,
+			create_revolute_joint: EM_CREATE_REVOLUTE_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT, create_line_joint: EM_CREATE_LINE_JOINT,
 			create_weld_joint: EM_CREATE_WELD_JOINT, create_angle_joint: EM_CREATE_ANGLE_JOINT,
 			select: EM_SELECT, translate: EM_TRANSLATE, rotate: EM_ROTATE, scale: EM_SCALE }[value];
 
