@@ -252,6 +252,7 @@ App = function() {
 		updateSidebar();
 
 		// Setting up mouse event for each edit modes
+
 		editModeEventArr[EM_SELECT] = {};
 		editModeEventArr[EM_SELECT].mouseMove = function(ev) {
 			if (mouseDown) {
@@ -262,20 +263,22 @@ App = function() {
 				doSelect(canvasToWorld(mousePosition), ev.metaKey ? SF_XOR : SF_ADDITIVE);
 			}
 			else {
-				var feature = getFeatureByPoint(canvasToWorld(mousePosition));
+				highlightFeatureArr = [];
+				transformAxis = 0;
 
+				var feature = getFeatureByPoint(canvasToWorld(mousePosition));
 				if (isValidFeature(feature)) {
 					highlightFeatureArr[0] = feature;
 				}
 			}
 		}
-
-		editModeEventArr[EM_SELECT].mouseDown = function(ev) {
-		}
-
+		editModeEventArr[EM_SELECT].mouseDown = function(ev) {}
 		editModeEventArr[EM_SELECT].mouseUp = function(ev) {
 			if (mouseDown && !mouseDownMoving) {
 				var flag = ev.shiftKey ? SF_ADDITIVE : (ev.metaKey ? SF_XOR : SF_REPLACE);
+
+				var pos = getMousePosition(ev);
+				var p = canvasToWorld(pos);
 
 				if (!doSelect(p, flag) && flag == SF_REPLACE) {
 					selectedFeatureArr = [];
@@ -285,6 +288,609 @@ App = function() {
 				}
 			}
 		}
+
+		editModeEventArr[EM_TRANSLATE] = {};
+		editModeEventArr[EM_TRANSLATE].mouseMove = function(ev) {			
+			if (mouseDown && transformAxis) {
+				var wmp_new = canvasToWorld(mousePosition);
+				var wmp_old = canvasToWorld(mousePositionOld);
+
+				if (snapEnabled) {
+					if (!mouseDownMoving) {
+						snapCenterOffset = vec2.sub(transformCenter, wmp_old);
+						snapOffset.set(0, 0);
+					}
+
+					wmp_new.addself(snapCenterOffset);
+					var wmp_new_old = wmp_new;
+					wmp_new = snapPointByGrid(wmp_new);
+					
+					wmp_old.addself(snapCenterOffset);
+					wmp_old.addself(snapOffset);
+
+					snapOffset = vec2.sub(wmp_new, wmp_new_old);
+				}
+
+				var wdx = wmp_new.x - wmp_old.x;
+				var wdy = wmp_new.y - wmp_old.y;
+
+				var delta = new vec2(wdx, wdy);
+
+				if (transformAxis & TRANSFORM_AXIS_X) {
+					transformCenter.x += wdx;
+				}
+				else {
+					delta.x = 0;
+				}
+
+				if (transformAxis & TRANSFORM_AXIS_Y) {
+					transformCenter.y += wdy;
+				}
+				else {
+					delta.y = 0;
+				}				
+
+				if (selectionMode == SM_VERTICES) {
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var vertex = selectedFeatureArr[i];
+						var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+						var body = shape.body;
+						var index = vertex & 0xFFFF;
+
+						var v = getShapeVertex(shape, index);
+
+						setShapeVertex(shape, index, vec2.add(v, delta));
+
+						shape.finishVerts();
+						body.resetMassData();
+						body.syncTransform();
+						body.cacheData();
+					}
+				}
+				else if (selectionMode == SM_EDGES) {
+					var markedVertexArr = [];
+
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var edge = selectedFeatureArr[i];
+						var shape = space.shapeById((edge >> 16) & 0xFFFF);
+						var body = shape.body;
+						var index = edge & 0xFFFF;
+
+						var v1 = getShapeVertex(shape, index);
+						var v2 = getShapeVertex(shape, index + 1);
+
+						var vertex1 = (shape.id << 16) | index;
+						var vertex2 = (shape.id << 16) | ((index + 1) % shape.verts.length);
+					
+						if (markedVertexArr.indexOf(vertex1) == -1) {
+							markedVertexArr.push(vertex1);
+							setShapeVertex(shape, index, vec2.add(v1, delta));
+						}
+
+						if (markedVertexArr.indexOf(vertex2) == -1) {
+							markedVertexArr.push(vertex2);
+							setShapeVertex(shape, index + 1, vec2.add(v2, delta));
+						}
+
+						shape.finishVerts();
+						body.resetMassData();
+						body.syncTransform();
+						body.cacheData();
+					}
+				}
+				else if (selectionMode == SM_SHAPES) {
+					// Copy shapes
+					if (!mouseDownMoving && ev.shiftKey) {
+						for (var i = 0; i < selectedFeatureArr.length; i++) {
+							var shape = selectedFeatureArr[i];
+							var dup = shape.duplicate();
+
+							shape.body.addShape(dup);
+							selectedFeatureArr[i] = dup;
+						}
+					} 
+
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var shape = selectedFeatureArr[i];
+						var body = shape.body;
+
+						switch (shape.type) {
+						case Shape.TYPE_CIRCLE:
+							var wc = vec2.add(shape.tc, delta);
+							shape.c.copy(body.getLocalPoint(wc));
+							break;
+						case Shape.TYPE_SEGMENT:
+							var wa = vec2.add(shape.ta, delta);
+							var wb = vec2.add(shape.ta, delta);
+							shape.a.copy(body.getLocalPoint(wa));
+							shape.b.copy(body.getLocalPoint(wb));
+							break;
+						case Shape.TYPE_POLY:
+							for (var j = 0; j < shape.tverts.length; j++) {
+								var wv = vec2.add(shape.tverts[j], delta);
+								shape.verts[j].copy(body.getLocalPoint(wv));
+							}
+							break;
+						}
+
+						shape.finishVerts();
+						body.resetMassData();
+						body.syncTransform();
+						body.cacheData();
+					}
+				}
+				else if (selectionMode == SM_BODIES) {
+					// Copy bodies
+					if (!mouseDownMoving && ev.shiftKey) {
+						for (var i = 0; i < selectedFeatureArr.length; i++) {
+							var body = selectedFeatureArr[i];
+							var dup = body.duplicate();
+
+							space.addBody(dup);
+							selectedFeatureArr[i] = dup;
+						}
+					}
+
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var body = selectedFeatureArr[i];
+						var p = body.xf.t.duplicate();
+						var a = body.a;
+
+						p.x += delta.x;
+						p.y += delta.y;
+
+						body.setTransform(p, a);
+						body.cacheData();
+					}						
+				}
+			}
+			else {
+				highlightFeatureArr = [];
+				transformAxis = 0;
+
+				var center = worldToCanvas(transformCenter);
+
+				if (Math.abs(mousePosition.x - center.x) < GIZMO_INNER_RADIUS && Math.abs(mousePosition.y - center.y) < GIZMO_INNER_RADIUS) {
+					transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
+				}
+				else {	
+					var dx = mousePosition.x - center.x;
+					var dy = -(mousePosition.y - center.y);
+
+					if (dx <= GIZMO_RADIUS && dx >= GIZMO_INNER_OFFSET && Math.abs(dy) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
+						transformAxis = TRANSFORM_AXIS_X;
+					}
+					else if (dy <= GIZMO_RADIUS && dy >= GIZMO_INNER_OFFSET && Math.abs(dx) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
+						transformAxis = TRANSFORM_AXIS_Y;					
+					}
+				}
+			}
+		}
+		editModeEventArr[EM_TRANSLATE].mouseDown = function(ev) {}
+		editModeEventArr[EM_TRANSLATE].mouseUp = function(ev) {
+			if (mouseDown && !mouseDownMoving) {
+				var pos = getMousePosition(ev);
+				var p = canvasToWorld(pos);
+
+				if (snapEnabled) {
+				 	p = snapPointByGrid(p);
+				}
+				transformCenter.copy(p);
+				transformScale.set(1, 1);
+			}
+		}		
+
+		editModeEventArr[EM_ROTATE] = {};
+		editModeEventArr[EM_ROTATE].mouseMove = function(ev) {
+			if (mouseDown && transformAxis) {
+				var wmp_new = canvasToWorld(mousePosition);
+				var wmp_old = canvasToWorld(mousePositionOld);
+
+				if (snapEnabled) {
+				}
+
+				var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
+				var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
+				var da = p2.toAngle() - p1.toAngle();
+
+				if (selectionMode == SM_VERTICES) {
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var vertex = selectedFeatureArr[i];
+						var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+						var body = shape.body;							
+						var index = vertex & 0xFFFF;
+
+						var v = getShapeVertex(shape, index);
+
+						var wv = vec2.add(vec2.rotate(vec2.sub(v, transformCenter), da), transformCenter);
+						setShapeVertex(shape, index, wv);
+
+						shape.finishVerts();
+						body.resetMassData();
+						body.syncTransform();
+						body.cacheData();
+					}
+				}
+				else if (selectionMode == SM_EDGES) {
+					var markedVertexArr = [];
+
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var edge = selectedFeatureArr[i];
+						var shape = space.shapeById((edge >> 16) & 0xFFFF);
+						var body = shape.body;							
+						var index = edge & 0xFFFF;
+
+						var v1 = getShapeVertex(shape, index);
+						var v2 = getShapeVertex(shape, index + 1);
+
+						var vertex1 = (shape.id << 16) | index;
+						var vertex2 = (shape.id << 16) | ((index + 1) % shape.verts.length);
+						
+						if (markedVertexArr.indexOf(vertex1) == -1) {
+							markedVertexArr.push(vertex1);
+							var wv = vec2.add(vec2.rotate(vec2.sub(v1, transformCenter), da), transformCenter);
+							setShapeVertex(shape, index, wv);
+						}
+
+						if (markedVertexArr.indexOf(vertex2) == -1) {
+							markedVertexArr.push(vertex2);
+							var wv = vec2.add(vec2.rotate(vec2.sub(v2, transformCenter), da), transformCenter);
+							setShapeVertex(shape, index + 1, wv);
+						}
+
+						shape.finishVerts();
+						body.resetMassData();
+						body.syncTransform();
+						body.cacheData();
+					}
+				}
+				else if (selectionMode == SM_SHAPES) {
+					// Copy shapes
+					if (!mouseDownMoving && ev.shiftKey) {
+						for (var i = 0; i < selectedFeatureArr.length; i++) {
+							var shape = selectedFeatureArr[i];
+							var dup = shape.duplicate();
+
+							shape.body.addShape(dup);
+							selectedFeatureArr[i] = dup;
+						}
+					} 
+
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var shape = selectedFeatureArr[i];
+						var body = shape.body;
+
+						switch (shape.type) {
+						case Shape.TYPE_CIRCLE:
+							var wc = vec2.add(vec2.rotate(vec2.sub(shape.tc, transformCenter), da), transformCenter);
+							shape.c.copy(body.getLocalPoint(wc));
+							break;
+						case Shape.TYPE_SEGMENT:
+							var wa = vec2.add(vec2.rotate(vec2.sub(shape.ta, transformCenter), da), transformCenter);
+							shape.a.copy(body.getLocalPoint(wa));
+
+							var wb = vec2.add(vec2.rotate(vec2.sub(shape.tb, transformCenter), da), transformCenter);
+							shape.b.copy(body.getLocalPoint(wb));
+							break;
+						case Shape.TYPE_POLY:
+							for (var j = 0; j < shape.tverts.length; j++) {
+								var wv = vec2.add(vec2.rotate(vec2.sub(shape.tverts[j], transformCenter), da), transformCenter);
+								shape.verts[j].copy(body.getLocalPoint(wv));
+							}
+							break;
+						}
+
+						shape.finishVerts();
+						body.resetMassData();
+						body.syncTransform();
+						body.cacheData();
+					}
+				}
+				else if (selectionMode == SM_BODIES) {
+					// Copy bodies
+					if (!mouseDownMoving && ev.shiftKey) {
+						for (var i = 0; i < selectedFeatureArr.length; i++) {
+							var body = selectedFeatureArr[i];
+							var dup = body.duplicate();
+
+							space.addBody(dup);
+							selectedFeatureArr[i] = dup;
+						}
+					}
+
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var body = selectedFeatureArr[i];
+
+						var p = body.xf.t.duplicate();
+						var a = body.a;
+
+						p = vec2.add(vec2.rotate(vec2.sub(p, transformCenter), da), transformCenter);
+						a += da;
+
+						body.setTransform(p, a);
+						body.cacheData();
+					}
+				}
+			}
+			else {			
+				highlightFeatureArr = [];
+				transformAxis = 0;
+
+				var dsq = vec2.distsq(mousePosition, worldToCanvas(transformCenter));
+
+				if (dsq > (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) &&
+					dsq < (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD)) {
+					transformAxis = TRANSFORM_AXIS_Z;
+				}
+			}
+		}
+		editModeEventArr[EM_ROTATE].mouseDown = function(ev) {}
+		editModeEventArr[EM_ROTATE].mouseUp = function(ev) {
+			if (mouseDown && !mouseDownMoving) {
+				var pos = getMousePosition(ev);
+				var p = canvasToWorld(pos);
+
+				if (snapEnabled) {
+				 	p = snapPointByGrid(p);
+				}
+				transformCenter.copy(p);
+				transformScale.set(1, 1);
+			}
+		}
+
+		editModeEventArr[EM_SCALE] = {};
+		editModeEventArr[EM_SCALE].mouseMove = function(ev) {
+			if (mouseDown && transformAxis) {
+				var wmp_new = canvasToWorld(mousePosition);
+				var wmp_old = canvasToWorld(mousePositionOld);
+
+				if (snapEnabled) {
+					if (!mouseDownMoving) {
+						snapCenterOffset = vec2.sub(transformCenter, wmp_old);
+						snapOffset.set(0, 0);
+					}
+
+					wmp_new.addself(snapCenterOffset);
+					var wmp_new_old = wmp_new;
+					wmp_new = snapPointByGrid(wmp_new);
+					
+					wmp_old.addself(snapCenterOffset);
+					wmp_old.addself(snapOffset);
+
+					snapOffset = vec2.sub(wmp_new, wmp_new_old);
+				}
+
+				var wdx = wmp_new.x - wmp_old.x;
+				var wdy = wmp_new.y - wmp_old.y;
+
+				var scale_old = transformScale.duplicate();
+
+				transformScale.x += wdx * 0.01;
+				transformScale.y += wdy * 0.01;
+				
+				var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);
+
+				if (!(transformAxis & TRANSFORM_AXIS_X)) {
+					scale.x = 1;
+				}
+
+				if (!(transformAxis & TRANSFORM_AXIS_Y)) {
+					scale.y = 1;
+				}
+
+				if (selectionMode == SM_VERTICES) {
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var vertex = selectedFeatureArr[i];
+						var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+						var body = shape.body;							
+						var index = vertex & 0xFFFF;
+
+						var v = getShapeVertex(shape, index);
+
+						var wv = vec2.add(vec2.scale2(vec2.sub(v, transformCenter), scale), transformCenter);
+						setShapeVertex(shape, index, wv);
+
+						shape.finishVerts();
+						shape.body.resetMassData();
+						shape.body.syncTransform();
+						shape.body.cacheData();
+					}
+				}
+				else if (selectionMode == SM_EDGES) {
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var edge = selectedFeatureArr[i];
+						var shape = space.shapeById((edge >> 16) & 0xFFFF);
+						var body = shape.body;							
+						var index = edge & 0xFFFF;
+
+						var v1 = getShapeVertex(shape, index);
+						var v2 = getShapeVertex(shape, index + 1);
+
+						var vertex1 = (shape.id << 16) | index;
+						var vertex2 = (shape.id << 16) | ((index + 1) % shape.verts.length);					
+
+						if (markedVertexArr.indexOf(vertex1) == -1) {
+							markedVertexArr.push(vertex1);
+							var wv = vec2.add(vec2.scale2(vec2.sub(v1, transformCenter), scale), transformCenter);
+							setShapeVertex(shape, index, wv);	
+						}
+
+						if (markedVertexArr.indexOf(vertex2) == -1) {
+							markedVertexArr.push(vertex2);
+							var wv = vec2.add(vec2.scale2(vec2.sub(v2, transformCenter), scale), transformCenter);
+							setShapeVertex(shape, index + 1, wv);
+						}
+
+						shape.finishVerts();
+						shape.body.resetMassData();
+						shape.body.syncTransform();
+						shape.body.cacheData();
+					}
+				}
+				else if (selectionMode == SM_SHAPES) {
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var shape = selectedFeatureArr[i];
+						var body = shape.body;
+
+						switch (shape.type) {
+						case Shape.TYPE_CIRCLE:
+							var wv = vec2.add(vec2.scale2(vec2.sub(shape.tc, transformCenter), scale), transformCenter);
+							shape.c.copy(body.getLocalPoint(wv));
+							shape.r *= scale.x; // FIXME
+							break;
+						case Shape.TYPE_SEGMENT:
+							var wa = vec2.add(vec2.scale2(vec2.sub(shape.ta, transformCenter), scale), transformCenter);
+							var wv = vec2.add(vec2.scale2(vec2.sub(shape.ta, transformCenter), scale), transformCenter);
+							shape.a.copy(body.getLocalPoint(wa));
+							shape.b.copy(body.getLocalPoint(wb));
+							shape.r *= scale.x; // FIXME
+							break;
+						case Shape.TYPE_POLY:
+							for (var j = 0; j < shape.tverts.length; j++) {
+								var wv = vec2.add(vec2.scale2(vec2.sub(shape.tverts[j], transformCenter), scale), transformCenter);
+								shape.verts[j].copy(body.getLocalPoint(wv));
+							}
+							break;
+						}
+
+						shape.finishVerts();
+						shape.body.resetMassData();
+						shape.body.syncTransform();
+						shape.body.cacheData();
+					}
+				}
+				else if (selectionMode == SM_BODIES) {
+					// NOT AVAILABLE
+				}
+			}
+			else {
+				highlightFeatureArr = [];
+				transformAxis = 0;
+
+				var center = worldToCanvas(transformCenter);
+				var dsq = vec2.distsq(mousePosition, center);
+				var cd = GIZMO_INNER_RADIUS;// + SELECTABLE_CIRCLE_DIST_THREHOLD;
+
+				if (dsq < cd * cd) {
+					transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
+				}
+				else {
+					var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + SELECTABLE_LINE_DIST_THREHOLD;
+
+					var px = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
+					var dx = Math.abs(mousePosition.x - px.x);
+					var dy = Math.abs(mousePosition.y - px.y);				
+
+					if (dx < cd && dy < cd) {
+						transformAxis = TRANSFORM_AXIS_X;
+					}
+					else {					
+						var py = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
+						var dx = Math.abs(mousePosition.x - py.x);
+						var dy = Math.abs(mousePosition.y - py.y);
+
+						if (dx < cd && dy < cd) {
+							transformAxis = TRANSFORM_AXIS_Y;
+						}
+					}
+				}				
+			}
+		}
+		editModeEventArr[EM_SCALE].mouseDown = function(ev) {}
+		editModeEventArr[EM_SCALE].mouseUp = function(ev) {
+			if (mouseDown && !mouseDownMoving) {
+				var pos = getMousePosition(ev);
+				var p = canvasToWorld(pos);
+
+				if (snapEnabled) {
+				 	p = snapPointByGrid(p);
+				}
+				transformCenter.copy(p);
+				transformScale.set(1, 1);
+			}
+		}
+		
+		editModeEventArr[EM_CREATE_CIRCLE] = {};
+		editModeEventArr[EM_CREATE_CIRCLE].mouseMove = function(ev) {
+			if (mouseDown) {
+				var p1 = canvasToWorld(mouseDownPosition);
+				var p2 = canvasToWorld(mousePosition);
+
+				if (snapEnabled) {
+					p1 = snapPointByGrid(p1);
+					p2 = snapPointByGrid(p2);
+				}
+		
+				if (!mouseDownMoving) {
+					creatingBody = new Body(Body.DYNAMIC, p1);
+					var shape = new ShapeCircle(0, 0, 0);
+					shape.density = DEFAULT_DENSITY;
+					shape.e = DEFAULT_RESTITUTION;
+					shape.u = DEFAULT_FRICTION;
+					creatingBody.addShape(shape);
+					space.addBody(creatingBody);
+				}
+
+				var shape = creatingBody.shapeArr[0];
+				shape.r = vec2.dist(p2, p1/*creatingBody.shapeArr[0].tc*/);
+				shape.body.resetMassData();					
+				shape.body.cacheData();
+			}
+		}
+		editModeEventArr[EM_CREATE_CIRCLE].mouseDown = function(ev) {}
+		editModeEventArr[EM_CREATE_CIRCLE].mouseUp = function(ev) {}
+
+		editModeEventArr[EM_CREATE_BOX] = {};
+		editModeEventArr[EM_CREATE_BOX].mouseMove = function(ev) {
+			if (mouseDown) {
+				var p1 = canvasToWorld(mouseDownPosition);
+				var p2 = canvasToWorld(mousePosition);
+				
+				if (snapEnabled) {
+					p1 = snapPointByGrid(p1);
+					p2 = snapPointByGrid(p2);						
+				}
+
+				if (!mouseDownMoving) {
+					var pos = snapPointByGrid(p1);
+					creatingBody = new Body(Body.DYNAMIC, pos);
+					var shape = new ShapeBox(0, 0, 0, 0);
+					shape.density = DEFAULT_DENSITY;
+					shape.e = DEFAULT_RESTITUTION;
+					shape.u = DEFAULT_FRICTION;
+					creatingBody.addShape(shape);
+					space.addBody(creatingBody);
+				}
+
+				var mins = new vec2(p1.x, p1.y);
+				var maxs = new vec2(p2.x, p2.y);
+
+				if (p1.x > p2.x) { mins.x = p2.x; maxs.x = p1.x; }
+				if (p1.y > p2.y) { mins.y = p2.y; maxs.y = p1.y; }
+
+				var center = vec2.lerp(mins, maxs, 0.5);
+				creatingBody.setTransform(center, 0);
+
+				var wv = new Array(4);
+				wv[0] = new vec2(mins.x, mins.y);
+				wv[1] = new vec2(maxs.x, mins.y);
+				wv[2] = new vec2(maxs.x, maxs.y);
+				wv[3] = new vec2(mins.x, maxs.y);					
+
+				var shape = creatingBody.shapeArr[0];
+
+				for (var i = 0; i < 4; i++) {
+					shape.verts[i].copy(creatingBody.getLocalPoint(wv[i]));
+				}
+
+				shape.finishVerts();
+				shape.body.resetMassData();
+				shape.body.syncTransform();
+				shape.body.cacheData();
+			}
+		}
+		editModeEventArr[EM_CREATE_BOX].mouseDown = function(ev) {}
+		editModeEventArr[EM_CREATE_BOX].mouseUp = function(ev) {}
 	}	
 
 	function onLoad() {
@@ -558,7 +1164,7 @@ App = function() {
 			}
 
 			if (!editorEnabled) {
-				if (!mouseDown && editMode == EM_SELECT) {
+				if (!mouseDown) {
 					var p = canvasToWorld(mousePosition);
 					var shape = space.findShapeByPoint(p);
 					domCanvas.style.cursor = shape ? "pointer" : "default";
@@ -1526,7 +2132,7 @@ App = function() {
 			}
 		}
 		else {
-			
+			editModeEventArr[editMode].mouseDown(ev);
 		}
 
 		mousePosition.x = pos.x;
@@ -1552,26 +2158,8 @@ App = function() {
 				mouseJoint = null;
 			}
 		}
-		else {			
-			if (mouseDown && !mouseDownMoving) {
-				if (editMode == EM_SELECT) {
-					var flag = ev.shiftKey ? SF_ADDITIVE : (ev.metaKey ? SF_XOR : SF_REPLACE);
-
-					if (!doSelect(p, flag) && flag == SF_REPLACE) {
-						selectedFeatureArr = [];
-					}
-					else {
-						resetTransformCenter();
-					}
-				}
-				else {
-					if (snapEnabled) {
-					 	p = snapPointByGrid(p);
-					}
-					transformCenter.copy(p);
-					transformScale.set(1, 1);
-				}
-			}
+		else {
+			editModeEventArr[editMode].mouseUp(ev);
 		}
 
 		markedFeatureArr = [];
@@ -1593,74 +2181,6 @@ App = function() {
 		bg.outdated = true;
 	}
 
-	function processEditMode() {
-		highlightFeatureArr = [];
-		transformAxis = 0;
-
-		if (editMode == EM_SELECT) {
-			var feature = getFeatureByPoint(canvasToWorld(mousePosition));
-
-			if (isValidFeature(feature)) {
-				highlightFeatureArr[0] = feature;
-			}
-		}
-		else if (editMode == EM_TRANSLATE) {
-			var center = worldToCanvas(transformCenter);
-
-			if (Math.abs(mousePosition.x - center.x) < GIZMO_INNER_RADIUS && Math.abs(mousePosition.y - center.y) < GIZMO_INNER_RADIUS) {
-				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
-			}
-			else {	
-				var dx = mousePosition.x - center.x;
-				var dy = -(mousePosition.y - center.y);
-
-				if (dx <= GIZMO_RADIUS && dx >= GIZMO_INNER_OFFSET && Math.abs(dy) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
-					transformAxis = TRANSFORM_AXIS_X;
-				}
-				else if (dy <= GIZMO_RADIUS && dy >= GIZMO_INNER_OFFSET && Math.abs(dx) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
-					transformAxis = TRANSFORM_AXIS_Y;					
-				}
-			}
-		}		
-		else if (editMode == EM_ROTATE) {
-			var dsq = vec2.distsq(mousePosition, worldToCanvas(transformCenter));
-
-			if (dsq > (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) &&
-				dsq < (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD)) {
-				transformAxis = TRANSFORM_AXIS_Z;
-			}
-		}
-		else if (editMode == EM_SCALE) {
-			var center = worldToCanvas(transformCenter);
-			var dsq = vec2.distsq(mousePosition, center);
-			var cd = GIZMO_INNER_RADIUS;// + SELECTABLE_CIRCLE_DIST_THREHOLD;
-
-			if (dsq < cd * cd) {
-				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
-			}
-			else {
-				var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + SELECTABLE_LINE_DIST_THREHOLD;
-
-				var px = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
-				var dx = Math.abs(mousePosition.x - px.x);
-				var dy = Math.abs(mousePosition.y - px.y);				
-
-				if (dx < cd && dy < cd) {
-					transformAxis = TRANSFORM_AXIS_X;
-				}
-				else {					
-					var py = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
-					var dx = Math.abs(mousePosition.x - py.x);
-					var dy = Math.abs(mousePosition.y - py.y);
-
-					if (dx < cd && dy < cd) {
-						transformAxis = TRANSFORM_AXIS_Y;
-					}
-				}
-			}
-		}
-	}
-
 	function onMouseMove(ev) {
 		mousePosition = getMousePosition(ev);
 
@@ -1677,435 +2197,15 @@ App = function() {
 				}
 			}
 		}
-		else {
-			/*if (editMode == EM_CREATE_CIRCLE || editMode == EM_CREATE_BOX) {
-				domCanvas.style.cursor = "crosshair";
-			}*/
+		else {		
+			if (mouseDown && ev.altKey) {
+				var dx = mousePosition.x - mousePositionOld.x;
+				var dy = mousePosition.y - mousePositionOld.y;
 
-			if (mouseDown) {
-				if (ev.altKey) {	
-					var dx = mousePosition.x - mousePositionOld.x;
-					var dy = mousePosition.y - mousePositionOld.y;
-
-					scrollView(-dx, dy);
-				}
-				else if (editMode == EM_SELECT) {
-					if (!mouseDownMoving && !ev.shiftKey && !ev.metaKey) {
-						selectedFeatureArr = [];
-					}
-
-					doSelect(canvasToWorld(mousePosition), ev.metaKey ? SF_XOR : SF_ADDITIVE);
-				}
-				else if (editMode == EM_TRANSLATE || editMode == EM_ROTATE || editMode == EM_SCALE) {
-					if (transformAxis) {
-						var wmp_new = canvasToWorld(mousePosition);
-						var wmp_old = canvasToWorld(mousePositionOld);
-
-						if (snapEnabled && (editMode == EM_TRANSLATE || editMode == EM_SCALE)) {
-							if (!mouseDownMoving) {
-								snapCenterOffset = vec2.sub(transformCenter, wmp_old);
-								snapOffset.set(0, 0);
-							}
-
-							wmp_new.addself(snapCenterOffset);
-							var wmp_new_old = wmp_new;
-							wmp_new = snapPointByGrid(wmp_new);
-							
-							wmp_old.addself(snapCenterOffset);
-							wmp_old.addself(snapOffset);
-
-							snapOffset = vec2.sub(wmp_new, wmp_new_old);
-						}
-
-						var wdx = wmp_new.x - wmp_old.x;
-						var wdy = wmp_new.y - wmp_old.y;
-
-						if (editMode == EM_TRANSLATE) {
-							if (transformAxis & TRANSFORM_AXIS_X) {
-								transformCenter.x += wdx;
-							}
-
-							if (transformAxis & TRANSFORM_AXIS_Y) {
-								transformCenter.y += wdy;
-							}
-						}
-
-						if (selectionMode == SM_VERTICES) {
-							for (var i = 0; i < selectedFeatureArr.length; i++) {
-								var vertex = selectedFeatureArr[i];
-								var shape = space.shapeById((vertex >> 16) & 0xFFFF);
-								var body = shape.body;							
-								var index = vertex & 0xFFFF;
-								var v = getShapeVertex(shape, index);
-
-								if (editMode == EM_TRANSLATE) {
-									var delta = new vec2(wdx, wdy);
-									if (!(transformAxis & TRANSFORM_AXIS_X)) {
-										delta.x = 0;
-									}
-
-									if (!(transformAxis & TRANSFORM_AXIS_Y)) {
-										delta.y = 0;
-									}
-
-									setShapeVertex(shape, index, vec2.add(v, delta));
-								}							
-								else if (editMode == EM_ROTATE) {
-									var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
-									var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
-									var da = p2.toAngle() - p1.toAngle();
-									var wv = vec2.add(vec2.rotate(vec2.sub(v, transformCenter), da), transformCenter);
-									setShapeVertex(shape, index, wv);
-								}		
-								else if (editMode == EM_SCALE) {							
-									var scale_old = transformScale.duplicate();
-
-									transformScale.x += wdx * 0.01;
-									transformScale.y += wdy * 0.01;
-									
-									var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);
-
-									if (!(transformAxis & TRANSFORM_AXIS_X)) {
-										scale.x = 1;
-									}
-
-									if (!(transformAxis & TRANSFORM_AXIS_Y)) {
-										scale.y = 1;
-									}
-									
-									var wv = vec2.add(vec2.scale2(vec2.sub(v, transformCenter), scale), transformCenter);
-									setShapeVertex(shape, index, wv);
-								}					
-
-								shape.finishVerts();
-								shape.body.resetMassData();
-								shape.body.syncTransform();
-								shape.body.cacheData();
-							}
-						}
-						else if (selectionMode == SM_EDGES) {
-							var markedVertexArr = [];
-
-							for (var i = 0; i < selectedFeatureArr.length; i++) {
-								var edge = selectedFeatureArr[i];
-								var shape = space.shapeById((edge >> 16) & 0xFFFF);
-								var body = shape.body;							
-								var index = edge & 0xFFFF;
-
-								var v1 = getShapeVertex(shape, index);
-								var v2 = getShapeVertex(shape, index + 1);
-
-								var vertex1 = (shape.id << 16) | index;
-								var vertex2 = (shape.id << 16) | ((index + 1) % shape.verts.length);
-
-								if (editMode == EM_TRANSLATE) {
-									var delta = new vec2(wdx, wdy);
-
-									if (!(transformAxis & TRANSFORM_AXIS_X)) {
-										delta.x = 0;
-									}
-
-									if (!(transformAxis & TRANSFORM_AXIS_Y)) {
-										delta.y = 0;
-									}
-
-									if (markedVertexArr.indexOf(vertex1) == -1) {
-										markedVertexArr.push(vertex1);
-										setShapeVertex(shape, index, vec2.add(v1, delta));
-									}
-
-									if (markedVertexArr.indexOf(vertex2) == -1) {
-										markedVertexArr.push(vertex2);
-										setShapeVertex(shape, index + 1, vec2.add(v2, delta));
-									}
-								}							
-								else if (editMode == EM_ROTATE) {
-									var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
-									var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
-									var da = p2.toAngle() - p1.toAngle();
-									
-									if (markedVertexArr.indexOf(vertex1) == -1) {
-										markedVertexArr.push(vertex1);
-										var wv = vec2.add(vec2.rotate(vec2.sub(v1, transformCenter), da), transformCenter);
-										setShapeVertex(shape, index, wv);
-									}
-
-									if (markedVertexArr.indexOf(vertex2) == -1) {
-										markedVertexArr.push(vertex2);
-										var wv = vec2.add(vec2.rotate(vec2.sub(v2, transformCenter), da), transformCenter);
-										setShapeVertex(shape, index + 1, wv);
-									}
-								}
-								else if (editMode == EM_SCALE) {								
-									var scale_old = transformScale.duplicate();
-
-									transformScale.x += wdx * 0.01;
-									transformScale.y += wdy * 0.01;
-									
-									var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);							
-
-									if (!(transformAxis & TRANSFORM_AXIS_X)) {
-										scale.x = 1;
-									}
-
-									if (!(transformAxis & TRANSFORM_AXIS_Y)) {
-										scale.y = 1;
-									}
-
-									if (markedVertexArr.indexOf(vertex1) == -1) {
-										markedVertexArr.push(vertex1);
-										var wv = vec2.add(vec2.scale2(vec2.sub(v1, transformCenter), scale), transformCenter);
-										setShapeVertex(shape, index, wv);	
-									}
-
-									if (markedVertexArr.indexOf(vertex2) == -1) {
-										markedVertexArr.push(vertex2);
-										var wv = vec2.add(vec2.scale2(vec2.sub(v2, transformCenter), scale), transformCenter);
-										setShapeVertex(shape, index + 1, wv);
-									}
-								}
-
-								shape.finishVerts();
-								shape.body.resetMassData();
-								shape.body.syncTransform();
-								shape.body.cacheData();
-							}
-						}
-						else if (selectionMode == SM_SHAPES) {
-							// Copy shapes
-							if (!mouseDownMoving && ev.shiftKey) {
-								for (var i = 0; i < selectedFeatureArr.length; i++) {
-									var shape = selectedFeatureArr[i];
-									var dup = shape.duplicate();
-
-									shape.body.addShape(dup);
-									selectedFeatureArr[i] = dup;
-								}
-							}
-
-							for (var i = 0; i < selectedFeatureArr.length; i++) {
-								var shape = selectedFeatureArr[i];
-								var body = shape.body;
-
-								if (editMode == EM_TRANSLATE) {
-									var delta = new vec2(wdx, wdy);
-
-									if (!(transformAxis & TRANSFORM_AXIS_X)) {
-										delta.x = 0;
-									}
-
-									if (!(transformAxis & TRANSFORM_AXIS_Y)) {
-										delta.y = 0;
-									}
-
-									switch (shape.type) {
-									case Shape.TYPE_CIRCLE:
-										var wc = vec2.add(shape.tc, delta);
-										shape.c.copy(body.getLocalPoint(wc));
-										break;
-									case Shape.TYPE_SEGMENT:
-										var wa = vec2.add(shape.ta, delta);
-										var wb = vec2.add(shape.ta, delta);
-										shape.a.copy(body.getLocalPoint(wa));
-										shape.b.copy(body.getLocalPoint(wb));
-										break;
-									case Shape.TYPE_POLY:
-										for (var j = 0; j < shape.tverts.length; j++) {
-											var wv = vec2.add(shape.tverts[j], delta);
-											shape.verts[j].copy(body.getLocalPoint(wv));
-										}
-										break;
-									}
-								}
-								else if (editMode == EM_ROTATE) {
-									var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
-									var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
-									var da = p2.toAngle() - p1.toAngle();
-
-									switch (shape.type) {
-									case Shape.TYPE_CIRCLE:									
-										var wc = vec2.add(vec2.rotate(vec2.sub(shape.tc, transformCenter), da), transformCenter);
-										shape.c.copy(body.getLocalPoint(wc));
-										break;
-									case Shape.TYPE_SEGMENT:
-										var wa = vec2.add(vec2.rotate(vec2.sub(shape.ta, transformCenter), da), transformCenter);
-										shape.a.copy(body.getLocalPoint(wa));
-
-										var wb = vec2.add(vec2.rotate(vec2.sub(shape.tb, transformCenter), da), transformCenter);
-										shape.b.copy(body.getLocalPoint(wb));
-										break;
-									case Shape.TYPE_POLY:
-										for (var j = 0; j < shape.tverts.length; j++) {
-											var wv = vec2.add(vec2.rotate(vec2.sub(shape.tverts[j], transformCenter), da), transformCenter);
-											shape.verts[j].copy(body.getLocalPoint(wv));
-										}
-										break;
-									}
-								}
-								else if (editMode == EM_SCALE) {								
-									var scale_old = transformScale.duplicate();
-
-									transformScale.x += wdx * 0.01;
-									transformScale.y += wdy * 0.01;
-
-									var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);
-
-									if (!(transformAxis & TRANSFORM_AXIS_X)) {
-										scale.x = 1;
-									}
-
-									if (!(transformAxis & TRANSFORM_AXIS_Y)) {
-										scale.y = 1;
-									}
-
-									switch (shape.type) {
-									case Shape.TYPE_CIRCLE:
-										var wv = vec2.add(vec2.scale2(vec2.sub(shape.tc, transformCenter), scale), transformCenter);
-										shape.c.copy(body.getLocalPoint(wv));
-										shape.r *= scale.x; // FIXME
-										break;
-									case Shape.TYPE_SEGMENT:
-										var wa = vec2.add(vec2.scale2(vec2.sub(shape.ta, transformCenter), scale), transformCenter);
-										var wv = vec2.add(vec2.scale2(vec2.sub(shape.ta, transformCenter), scale), transformCenter);
-										shape.a.copy(body.getLocalPoint(wa));
-										shape.b.copy(body.getLocalPoint(wb));
-										shape.r *= scale.x; // FIXME
-										break;
-									case Shape.TYPE_POLY:
-										for (var j = 0; j < shape.tverts.length; j++) {
-											var wv = vec2.add(vec2.scale2(vec2.sub(shape.tverts[j], transformCenter), scale), transformCenter);
-											shape.verts[j].copy(body.getLocalPoint(wv));
-										}
-										break;
-									}
-								}							
-
-								shape.finishVerts();
-								shape.body.resetMassData();
-								shape.body.syncTransform();
-								shape.body.cacheData();
-							}
-						}
-						else if (selectionMode == SM_BODIES) {
-							if (!mouseDownMoving && ev.shiftKey) {
-								for (var i = 0; i < selectedFeatureArr.length; i++) {
-									var body = selectedFeatureArr[i];
-									var dup = body.duplicate();
-
-									space.addBody(dup);
-									selectedFeatureArr[i] = dup;
-								}
-							}
-
-							for (var i = 0; i < selectedFeatureArr.length; i++) {
-								var body = selectedFeatureArr[i];
-
-								var p = body.xf.t.duplicate();
-								var a = body.a;
-
-								if (editMode == EM_TRANSLATE) {
-									if (transformAxis & TRANSFORM_AXIS_X) {
-										p.x += wdx;
-									}
-
-									if (transformAxis & TRANSFORM_AXIS_Y) {
-										p.y += wdy;
-									}
-								}							
-								else if (editMode == EM_ROTATE) {
-									var p1 = vec2.normalize(vec2.sub(wmp_old, transformCenter));
-									var p2 = vec2.normalize(vec2.sub(wmp_new, transformCenter));
-									var da = p2.toAngle() - p1.toAngle();
-
-									p = vec2.add(vec2.rotate(vec2.sub(p, transformCenter), da), transformCenter);								
-									a += da;
-								}
-								else if (editMode == EM_SCALE) {
-									// NOT AVAILABLE
-								}
-
-								body.setTransform(p, a);
-								body.cacheData();
-							}
-						}
-						else if (selectionMode == SM_JOINTS) {
-							
-						}
-					}
-				}
-				else if (editMode == EM_CREATE_CIRCLE) {
-					var p1 = canvasToWorld(mouseDownPosition);
-					var p2 = canvasToWorld(mousePosition);
-
-					if (snapEnabled) {
-						p1 = snapPointByGrid(p1);
-						p2 = snapPointByGrid(p2);
-					}
-			
-					if (!mouseDownMoving) {
-						creatingBody = new Body(Body.DYNAMIC, p1);
-						var shape = new ShapeCircle(0, 0, 0);
-						shape.density = DEFAULT_DENSITY;
-						shape.e = DEFAULT_RESTITUTION;
-						shape.u = DEFAULT_FRICTION;
-						creatingBody.addShape(shape);
-						space.addBody(creatingBody);
-					}
-
-					var shape = creatingBody.shapeArr[0];
-					shape.r = vec2.dist(p2, p1/*creatingBody.shapeArr[0].tc*/);
-					shape.body.resetMassData();					
-					shape.body.cacheData();
-				}
-				else if (editMode == EM_CREATE_BOX) {
-					var p1 = canvasToWorld(mouseDownPosition);
-					var p2 = canvasToWorld(mousePosition);
-					
-					if (snapEnabled) {
-						p1 = snapPointByGrid(p1);
-						p2 = snapPointByGrid(p2);						
-					}
-
-					if (!mouseDownMoving) {
-						var pos = snapPointByGrid(p1);
-						creatingBody = new Body(Body.DYNAMIC, pos);
-						var shape = new ShapeBox(0, 0, 0, 0);
-						shape.density = DEFAULT_DENSITY;
-						shape.e = DEFAULT_RESTITUTION;
-						shape.u = DEFAULT_FRICTION;
-						creatingBody.addShape(shape);
-						space.addBody(creatingBody);
-					}
-
-					var mins = new vec2(p1.x, p1.y);
-					var maxs = new vec2(p2.x, p2.y);
-
-					if (p1.x > p2.x) { mins.x = p2.x; maxs.x = p1.x; }
-					if (p1.y > p2.y) { mins.y = p2.y; maxs.y = p1.y; }
-
-					var center = vec2.lerp(mins, maxs, 0.5);
-					creatingBody.setTransform(center, 0);
-
-					var wv = new Array(4);
-					wv[0] = new vec2(mins.x, mins.y);
-					wv[1] = new vec2(maxs.x, mins.y);
-					wv[2] = new vec2(maxs.x, maxs.y);
-					wv[3] = new vec2(mins.x, maxs.y);					
-
-					var shape = creatingBody.shapeArr[0];
-
-					for (var i = 0; i < 4; i++) {
-						shape.verts[i].copy(creatingBody.getLocalPoint(wv[i]));
-					}
-
-					shape.finishVerts();
-					shape.body.resetMassData();
-					shape.body.syncTransform();
-					shape.body.cacheData();
-				}
+				scrollView(-dx, dy);
 			}
 			else {
-				processEditMode();
+				editModeEventArr[editMode].mouseMove(ev);
 			}
 		}
 
@@ -2526,6 +2626,13 @@ App = function() {
 			select: EM_SELECT, translate: EM_TRANSLATE, rotate: EM_ROTATE, scale: EM_SCALE }[value];
 
 		updateSidebar();
+
+		if (editMode == EM_CREATE_CIRCLE || editMode == EM_CREATE_BOX || editMode == EM_CREATE_POLY) {
+			domCanvas.style.cursor = "crosshair";
+		}
+		else {
+			domCanvas.style.cursor = "default";
+		}
 
 		return false;
 	}
