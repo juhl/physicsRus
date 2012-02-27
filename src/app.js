@@ -894,7 +894,7 @@ App = function() {
 				
 				if (snapEnabled) {
 					p1 = snapPointByGrid(p1);
-					p2 = snapPointByGrid(p2);						
+					p2 = snapPointByGrid(p2);
 				}				
 
 				var mins = new vec2(p1.x, p1.y);
@@ -1098,7 +1098,7 @@ App = function() {
 		var jointInspector = domSidebar.querySelector("#joint_inspector");
 
 		if (editorEnabled) {
-			//domSidebar.style.display = "table-cell";
+			domSidebar.style.display = "table-cell";
 
 			// edit mode buttons
 			var value = ["select", "translate", "rotate", "scale", "create_circle", "create_box", "create_poly"][editMode];
@@ -1167,7 +1167,7 @@ App = function() {
 			}
 		}
 		else {
-			//domSidebar.style.display = "none";
+			domSidebar.style.display = "none";
 		}
 	}	
 
@@ -2249,6 +2249,12 @@ App = function() {
 		mouseDown = true;
 		mouseDownMoving = false;
 
+		mousePosition.x = pos.x;
+		mousePosition.y = pos.y;
+
+		mouseDownPosition.x = mousePosition.x;
+		mouseDownPosition.y = mousePosition.y;
+
 		var pos = getMousePosition(ev);
 		var p = canvasToWorld(pos);
 
@@ -2271,16 +2277,10 @@ App = function() {
 		else {
 			editModeEventArr[editMode].mouseDown(ev);
 		}
-
-		mousePosition.x = pos.x;
-		mousePosition.y = pos.y;
-
+		
 		// for the touch device
 		mousePositionOld.x = mousePosition.x;
-		mousePositionOld.y = mousePosition.y;
-
-		mouseDownPosition.x = mousePosition.x;
-		mouseDownPosition.y = mousePosition.y;
+		mousePositionOld.y = mousePosition.y;		
 
 		ev.preventDefault();
 	}
