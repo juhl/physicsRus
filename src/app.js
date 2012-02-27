@@ -2247,7 +2247,9 @@ App = function() {
 		
 	function onMouseDown(ev) {
 		mouseDown = true;
-		mouseDownMoving = false;
+		mouseDownMoving = false;	
+
+		var pos = getMousePosition(ev);		
 
 		mousePosition.x = pos.x;
 		mousePosition.y = pos.y;
@@ -2255,15 +2257,14 @@ App = function() {
 		mouseDownPosition.x = mousePosition.x;
 		mouseDownPosition.y = mousePosition.y;
 
-		var pos = getMousePosition(ev);
-		var p = canvasToWorld(pos);
-
 		if (!editorEnabled) {
 			// Remove previous mouse joint
 			if (mouseJoint) {
 				space.removeJoint(mouseJoint);
 				mouseJoint = null;
 			}
+
+			var p = canvasToWorld(pos);
 
 			// If we picked shape then create mouse joint
 			var shape = space.findShapeByPoint(p);
