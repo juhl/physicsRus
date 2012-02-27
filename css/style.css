@@ -1,20 +1,20 @@
 html, body {
-  margin: 0px 0px; 
-  padding: 0px;
+  margin: 0; 
+  padding: 0;
   width: 100%;
   height: 100%;
   font-family: Verdana, times new roman, NanumGothic, sans-serif;    
-  text-align: center;  
+  text-align: left;
 }
 header {
-  padding-top: 0px;
+  padding-top: 0;
   line-height: 1.5;
   font-family: Lucida Grande, Verdana, sans-serif;
   text-align: center;  
   text-shadow: 0.1em 0.1em 0.3em gray;
 }
 footer {
-  padding-top: 0px; 
+  padding-top: 0; 
   line-height: 1.5;
   font-size: 10pt;
   text-align: center;  
@@ -42,8 +42,11 @@ input {
   border-radius: 3px;
 }
 canvas {
-  margin: 0px 0px;
-  padding: 0px; 
+  margin: 0;
+  padding: 0;
+  left: 0px;
+  top: 0px;
+  position: absolute;
   background-color: #eee;
   cursor: default;
   -webkit-user-select: none;
@@ -53,28 +56,49 @@ canvas {
   user-select: none;
 }
 div#content {
-  margin: 0px auto; 
-  padding: 0px;
-  text-align: center;
-  vertical-align: middle;  
+  margin: 0; 
+  padding: 0;
+  text-align: left;  
 }
 div#toolbar {
-  margin: 0px auto;
-  padding: 10px 8px 10px 8px;
-  border-bottom: 0px solid #AAA;
-  width: 2048px;
+  margin: 0;
+  padding: 10px 8px 10px 8px;  
+  position: relative;
+  width: 100%;/*2048px;*/
   height: 26px;
-  text-align: left;
+  display: block;
   vertical-align: middle;
   font-size: 10px;
-  background-color: #444;  
-  color: white;  
+  background-color: #3B3937;
+  color: white;
   overflow: hidden;
   background: -moz-linear-gradient(#3B3937, #2B2927);
   background: -webkit-gradient(linear, left top, left bottom, from(#3B3937), to(#2B2927));
-  -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.1);
-  -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.1);
+  -webkit-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 0.1);
+  -moz-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 0.1);
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+div#sidebar {
+  margin: 0;
+  padding: 8px 8px 8px 8px;  
+  width: 160px;
+  height: 100%;
+  position: relative;
+  top: 0px;
+  left: 0px;
+  font-size: 10px;
+  display: table-cell;
+  background-color: #3B3937;
+  color: white;
+  overflow: hidden;  
+  -webkit-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 1.1);
+  -moz-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 1.1);
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 1.0);
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -82,11 +106,14 @@ div#toolbar {
   user-select: none;
 }
 div#main_view {
-  margin: 0px auto; 
-  padding: 0px;  
+  margin: 0;
+  padding: 0;
+  position: relative;
+  top: 0px;
+  left: 0px;
   width: 100%;
   height: 100%;
-  position: relative;
+  display: tabel-cell;
   background-color: #eee;
 }
 div#info {  
@@ -95,6 +122,7 @@ div#info {
   width: 400px;
   top: 0px;
   left: 0px;
+  display: none;
   position: absolute;
   vertical-align: top;  
   font-family: menlo;
@@ -124,7 +152,7 @@ div#settings {
 }
 div#about {
   position: absolute;
-  top: -100px;
+  top: 0px;
   bottom: 0;
   left: 0;
   right: 0;

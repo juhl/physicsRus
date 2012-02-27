@@ -53,8 +53,7 @@
   <script src="src/app.js"></script>
 </head>
 
-<body>
-
+<body> 
   <div id="toolbar">
     <span class="combo">
       <label for="scene">Scene: </label><select id="scene" style="width:110px;"></select>
@@ -94,17 +93,18 @@
       <!--<button type="button" class="btn grey" id="toggle_about" style="width:32px;"><i class="icon-info-sign"></i></button>-->
     </span>
   </div>
-
+  <div style="display:table; width:100%; height:100%">
+  <div id="sidebar">    
+    <!--<div id="shape_inspector">
+      <label for="type">Type: </label><input type="edit" id="type" />
+      <label for="density">Density: </label><input type="range" id="density" min="0.0001" max="10" value="0.1" step="0.0001" />
+      <label for="elasticity">Elasticity: </label><input type="range" id="elasticity" min="0" max="1" value="0" step="0.02" />
+      <label for="friction">Friction: </label><input type="range" id="friction" min="0" max="1" value="0" step="0.02" />
+    </div>-->
+  </div>
   <div id="main_view">
     <canvas id="canvas"></canvas>
     <div id="info"></div>
-
-    <div id="about">
-      <h3>2D</h3>
-      <strong>2D</strong>
-      Programmed by Lee Ju Hyung (<a href="http://twitter.com/juhlnet">twitter.com/juhlnet</a>)
-    </div>
-
     <div id="settings">
       <div style="text-align:right">
         <label for="gravity">Gravity: </label><input type="number" id="gravity" size="8" min="-999" max="999" /><br />
@@ -123,14 +123,13 @@
         <input type="checkbox" id="showContacts" />Show contacts<br />
         <input type="checkbox" id="showStats" />Show statistics<br />      
       </div>
-    </div>
-
-    <!--<div id="shape_inspector">
-      <label for="type">Type: </label><input type="edit" id="type" />
-      <label for="density">Density: </label><input type="range" id="density" min="0.0001" max="10" value="0.1" step="0.0001" />
-      <label for="elasticity">Elasticity: </label><input type="range" id="elasticity" min="0" max="1" value="0" step="0.02" />
-      <label for="friction">Friction: </label><input type="range" id="friction" min="0" max="1" value="0" step="0.02" />
-    </div>-->
-  </div>    
+    </div>    
+  </div>  
+  <div id="about">
+    <h3>2D</h3>
+    <strong>2D</strong>
+    Programmed by Lee Ju Hyung (<a href="http://twitter.com/juhlnet">twitter.com/juhlnet</a>)
+  </div>
+  </div>
 </body>
 </html>

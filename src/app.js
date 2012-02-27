@@ -64,6 +64,7 @@ App = function() {
 	var domView;
 	var domCanvas;
 	var domToolbar;
+	var domSidebar;
 	var domSettings;
 
 	// canvas rendering stuffs	
@@ -100,9 +101,10 @@ App = function() {
 	var creatingBody;
 
 	// editor variables
-	var editorEnabled = false;
+	var editorEnabled = false;	
 	var editMode = EM_SELECT;
-	var selectionMode = SM_SHAPES;	
+	var editModeEventArr = [];
+	var selectionMode = SM_BODIES;
 	var snapEnabled = true;
 	var selectedFeatureArr = [];
 	var markedFeatureArr = [];
@@ -126,7 +128,7 @@ App = function() {
 	var jointHelperColor = "#80F";
 	var jointHelperColor2 = "#098";
 	var selectionPattern;
-	var highlightPattern;
+	var highlightPattern;	
 
 	// mouse & touch variables
 	var mouseDown = false;
@@ -224,6 +226,9 @@ App = function() {
 		addEvent(domToolbar.querySelector("#toggle_settings"), "click", onClickedSettings);
 		//addEvent(domToolbar.querySelector("#toggle_about"), "click", onClickedAbout);
 
+		// Setting up sidebar events
+		domSidebar = document.querySelector("#sidebar");
+
 		// Setting up settings events
 		domSettings = document.querySelector("#settings");
 		addEvent(domSettings.querySelector("#gravity"), "change", function() { onChangedGravity(this.value); });
@@ -245,6 +250,41 @@ App = function() {
 		}
 
 		updateToolbar();
+
+		// Setting up mouse event for each edit modes
+		editModeEventArr[EM_SELECT] = {};
+		editModeEventArr[EM_SELECT].mouseMove = function(ev) {
+			if (mouseDown) {
+				if (!mouseDownMoving && !ev.shiftKey && !ev.metaKey) {
+					selectedFeatureArr = [];
+				}
+
+				doSelect(canvasToWorld(mousePosition), ev.metaKey ? SF_XOR : SF_ADDITIVE);
+			}
+			else {
+				var feature = getFeatureByPoint(canvasToWorld(mousePosition));
+
+				if (isValidFeature(feature)) {
+					highlightFeatureArr[0] = feature;
+				}
+			}
+		}
+
+		editModeEventArr[EM_SELECT].mouseDown = function(ev) {
+		}
+
+		editModeEventArr[EM_SELECT].mouseUp = function(ev) {
+			if (mouseDown && !mouseDownMoving) {
+				var flag = ev.shiftKey ? SF_ADDITIVE : (ev.metaKey ? SF_XOR : SF_REPLACE);
+
+				if (!doSelect(p, flag) && flag == SF_REPLACE) {
+					selectedFeatureArr = [];
+				}
+				else {
+					resetTransformCenter();
+				}
+			}
+		}
 	}	
 
 	function onLoad() {
@@ -550,8 +590,6 @@ App = function() {
 			}
 			else {
 				if (!mouseDownMoving) {
-					processEditMode();
-
 					mouseCursor = "default";
 					domCanvas.style.cursor = mouseCursor;
 				}
@@ -571,75 +609,7 @@ App = function() {
 			fps_time -= 1.0;
 			fps_frameCount = 0;
 		}
-	}
-
-	function processEditMode() {
-		highlightFeatureArr = [];
-		transformAxis = 0;
-
-		if (editMode == EM_SELECT) {
-			var feature = getFeatureByPoint(canvasToWorld(mousePosition));
-
-			if (isValidFeature(feature)) {
-				highlightFeatureArr[0] = feature;
-			}
-		}
-		else if (editMode == EM_TRANSLATE) {
-			var center = worldToCanvas(transformCenter);
-
-			if (Math.abs(mousePosition.x - center.x) < GIZMO_INNER_RADIUS && Math.abs(mousePosition.y - center.y) < GIZMO_INNER_RADIUS) {
-				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
-			}
-			else {	
-				var dx = mousePosition.x - center.x;
-				var dy = -(mousePosition.y - center.y);
-
-				if (dx <= GIZMO_RADIUS && dx >= GIZMO_INNER_OFFSET && Math.abs(dy) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
-					transformAxis = TRANSFORM_AXIS_X;
-				}
-				else if (dy <= GIZMO_RADIUS && dy >= GIZMO_INNER_OFFSET && Math.abs(dx) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
-					transformAxis = TRANSFORM_AXIS_Y;					
-				}
-			}
-		}		
-		else if (editMode == EM_ROTATE) {
-			var dsq = vec2.distsq(mousePosition, worldToCanvas(transformCenter));
-
-			if (dsq > (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) &&
-				dsq < (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD)) {
-				transformAxis = TRANSFORM_AXIS_Z;
-			}
-		}
-		else if (editMode == EM_SCALE) {
-			var center = worldToCanvas(transformCenter);
-			var dsq = vec2.distsq(mousePosition, center);
-			var cd = GIZMO_INNER_RADIUS;// + SELECTABLE_CIRCLE_DIST_THREHOLD;
-
-			if (dsq < cd * cd) {
-				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
-			}
-			else {
-				var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + SELECTABLE_LINE_DIST_THREHOLD;
-
-				var px = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
-				var dx = Math.abs(mousePosition.x - px.x);
-				var dy = Math.abs(mousePosition.y - px.y);				
-
-				if (dx < cd && dy < cd) {
-					transformAxis = TRANSFORM_AXIS_X;
-				}
-				else {					
-					var py = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
-					var dx = Math.abs(mousePosition.x - py.x);
-					var dy = Math.abs(mousePosition.y - py.y);
-
-					if (dx < cd && dy < cd) {
-						transformAxis = TRANSFORM_AXIS_Y;
-					}
-				}
-			}
-		}
-	}
+	}	
 	
 	function updateScreen(frameTime) {	
 		var t0 = Date.now();
@@ -920,6 +890,11 @@ App = function() {
 		v.y = Math.round(p.y / scaledGridSize) * scaledGridSize;
 
 		return v;
+	}
+
+	function snapAngle(angle) {
+		var snapSize = Math.PI * 10 / 180;
+		return Math.round(angle / snapSize) * snapSize;
 	}
 
 	function drawEditorHelpers(ctx) {
@@ -1299,11 +1274,10 @@ App = function() {
 	function onResize(ev) {
 		window.scrollTo(0, 0);
 
-		fg.canvas.style.left = "0px";
-		fg.canvas.style.top = "0px";
-
 		fg.canvas.width = window.innerWidth - domView.offsetLeft;
 		fg.canvas.height = window.innerHeight - domView.offsetTop;
+
+		console.log(fg.canvas.width, fg.canvas.height);
 
 		bg.canvas.width = fg.canvas.width;
 		bg.canvas.height = fg.canvas.height;
@@ -1576,7 +1550,7 @@ App = function() {
 				mouseJoint = null;
 			}
 		}
-		else {
+		else {			
 			if (mouseDown && !mouseDownMoving) {
 				if (editMode == EM_SELECT) {
 					var flag = ev.shiftKey ? SF_ADDITIVE : (ev.metaKey ? SF_XOR : SF_REPLACE);
@@ -1615,7 +1589,75 @@ App = function() {
 		// Set dirtyBounds to full screen
 		dirtyBounds.set(canvasToWorld(new vec2(0, domCanvas.height)), canvasToWorld(new vec2(domCanvas.width, 0)));
 		bg.outdated = true;
-	}	
+	}
+
+	function processEditMode() {
+		highlightFeatureArr = [];
+		transformAxis = 0;
+
+		if (editMode == EM_SELECT) {
+			var feature = getFeatureByPoint(canvasToWorld(mousePosition));
+
+			if (isValidFeature(feature)) {
+				highlightFeatureArr[0] = feature;
+			}
+		}
+		else if (editMode == EM_TRANSLATE) {
+			var center = worldToCanvas(transformCenter);
+
+			if (Math.abs(mousePosition.x - center.x) < GIZMO_INNER_RADIUS && Math.abs(mousePosition.y - center.y) < GIZMO_INNER_RADIUS) {
+				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
+			}
+			else {	
+				var dx = mousePosition.x - center.x;
+				var dy = -(mousePosition.y - center.y);
+
+				if (dx <= GIZMO_RADIUS && dx >= GIZMO_INNER_OFFSET && Math.abs(dy) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
+					transformAxis = TRANSFORM_AXIS_X;
+				}
+				else if (dy <= GIZMO_RADIUS && dy >= GIZMO_INNER_OFFSET && Math.abs(dx) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
+					transformAxis = TRANSFORM_AXIS_Y;					
+				}
+			}
+		}		
+		else if (editMode == EM_ROTATE) {
+			var dsq = vec2.distsq(mousePosition, worldToCanvas(transformCenter));
+
+			if (dsq > (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) &&
+				dsq < (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD)) {
+				transformAxis = TRANSFORM_AXIS_Z;
+			}
+		}
+		else if (editMode == EM_SCALE) {
+			var center = worldToCanvas(transformCenter);
+			var dsq = vec2.distsq(mousePosition, center);
+			var cd = GIZMO_INNER_RADIUS;// + SELECTABLE_CIRCLE_DIST_THREHOLD;
+
+			if (dsq < cd * cd) {
+				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
+			}
+			else {
+				var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + SELECTABLE_LINE_DIST_THREHOLD;
+
+				var px = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
+				var dx = Math.abs(mousePosition.x - px.x);
+				var dy = Math.abs(mousePosition.y - px.y);				
+
+				if (dx < cd && dy < cd) {
+					transformAxis = TRANSFORM_AXIS_X;
+				}
+				else {					
+					var py = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
+					var dx = Math.abs(mousePosition.x - py.x);
+					var dy = Math.abs(mousePosition.y - py.y);
+
+					if (dx < cd && dy < cd) {
+						transformAxis = TRANSFORM_AXIS_Y;
+					}
+				}
+			}
+		}
+	}
 
 	function onMouseMove(ev) {
 		mousePosition = getMousePosition(ev);
@@ -1803,7 +1845,7 @@ App = function() {
 									if (!(transformAxis & TRANSFORM_AXIS_Y)) {
 										scale.y = 1;
 									}
-																	
+
 									if (markedVertexArr.indexOf(vertex1) == -1) {
 										markedVertexArr.push(vertex1);
 										var wv = vec2.add(vec2.scale2(vec2.sub(v1, transformCenter), scale), transformCenter);
@@ -1837,7 +1879,7 @@ App = function() {
 
 							for (var i = 0; i < selectedFeatureArr.length; i++) {
 								var shape = selectedFeatureArr[i];
-								var body = shape.body;							
+								var body = shape.body;
 
 								if (editMode == EM_TRANSLATE) {
 									var delta = new vec2(wdx, wdy);
@@ -1986,14 +2028,16 @@ App = function() {
 					}
 				}
 				else if (editMode == EM_CREATE_CIRCLE) {
-					var wmp_new = canvasToWorld(mousePosition);
-					var wmp_old = canvasToWorld(mousePositionOld);
+					var p1 = canvasToWorld(mouseDownPosition);
+					var p2 = canvasToWorld(mousePosition);
 
-					var wdx = wmp_new.x - wmp_old.x;
-					var wdy = wmp_new.y - wmp_old.y;
-
+					if (snapEnabled) {
+						p1 = snapPointByGrid(p1);
+						p2 = snapPointByGrid(p2);
+					}
+			
 					if (!mouseDownMoving) {
-						creatingBody = new Body(Body.DYNAMIC, wmp_old);						
+						creatingBody = new Body(Body.DYNAMIC, p1);
 						var shape = new ShapeCircle(0, 0, 0);
 						shape.density = DEFAULT_DENSITY;
 						shape.e = DEFAULT_RESTITUTION;
@@ -2003,14 +2047,22 @@ App = function() {
 					}
 
 					var shape = creatingBody.shapeArr[0];
-					shape.r = vec2.dist(wmp_new, creatingBody.shapeArr[0].tc);
-					shape.body.resetMassData();
-					//shape.body.syncTransform();
+					shape.r = vec2.dist(p2, p1/*creatingBody.shapeArr[0].tc*/);
+					shape.body.resetMassData();					
 					shape.body.cacheData();
 				}
 				else if (editMode == EM_CREATE_BOX) {
+					var p1 = canvasToWorld(mouseDownPosition);
+					var p2 = canvasToWorld(mousePosition);
+					
+					if (snapEnabled) {
+						p1 = snapPointByGrid(p1);
+						p2 = snapPointByGrid(p2);						
+					}
+
 					if (!mouseDownMoving) {
-						creatingBody = new Body(Body.DYNAMIC, canvasToWorld(mousePositionOld));						
+						var pos = snapPointByGrid(p1);
+						creatingBody = new Body(Body.DYNAMIC, pos);
 						var shape = new ShapeBox(0, 0, 0, 0);
 						shape.density = DEFAULT_DENSITY;
 						shape.e = DEFAULT_RESTITUTION;
@@ -2018,9 +2070,6 @@ App = function() {
 						creatingBody.addShape(shape);
 						space.addBody(creatingBody);
 					}
-
-					var p1 = canvasToWorld(mouseDownPosition);
-					var p2 = canvasToWorld(mousePosition);
 
 					var mins = new vec2(p1.x, p1.y);
 					var maxs = new vec2(p2.x, p2.y);
@@ -2048,6 +2097,9 @@ App = function() {
 					shape.body.syncTransform();
 					shape.body.cacheData();
 				}
+			}
+			else {
+				processEditMode();
 			}
 		}
 
@@ -2249,6 +2301,17 @@ App = function() {
 		}
 
 		switch (ev.keyCode) {
+		case 123: // F12
+			// TODO: Screenshot
+			var dataURL = domCanvas.toDataURL();
+			ev.preventDefault();
+			break;
+		case 32: // Space
+			if (!editorEnabled) {
+				onClickedPlayer("step");
+				ev.preventDefault();
+			}
+			break;
 		case 17: // Ctrl
 			ev.preventDefault();
 			break;
@@ -2297,19 +2360,19 @@ App = function() {
 		case 66: // 'b'
 			editMode = EM_CREATE_BOX;
 			updateToolbar();
-			ev.preventDefault();
+			ev.preventDefault();			
 			break;
 		case 67: // 'c'
 			editMode = EM_CREATE_CIRCLE;
 			updateToolbar();
 			ev.preventDefault();
 			break;
-		case 74: // 'j'
-			break;
 		case 80: // 'p'
-			// TODO: Screenshot
-			var dataURL = domCanvas.toDataURL();
-			break;
+			editMode = EM_CREATE_POLY;
+			updateToolbar();
+			ev.preventDefault();
+		case 74: // 'j'
+			break;	
 		case 49: // '1'
 		case 50: // '2'
 		case 51: // '3'
@@ -2317,12 +2380,6 @@ App = function() {
 		case 53: // '5'
 			if (editorEnabled) {
 				onClickedSelectionMode(["vertices", "edges", "shapes", "bodies", "joints"][(ev.keyCode - 48) - 1]);				
-			}
-			break;
-		case 32: // 'space'
-			if (!editorEnabled) {
-				onClickedStep();
-				ev.preventDefault();
 			}
 			break;
 		}					
