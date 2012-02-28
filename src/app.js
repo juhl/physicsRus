@@ -59,7 +59,7 @@ App = function() {
 	const SELECTABLE_CIRCLE_DIST_THREHOLD = isAppleMobileDevice() ? 10 : 5;	
 
 	// default values for creating shape
-	const DEFAULT_DENSITY = 0.1;
+	const DEFAULT_DENSITY = 0.5;
 	const DEFAULT_RESTITUTION = 0.3;
 	const DEFAULT_FRICTION = 0.8;
 
