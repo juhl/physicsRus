@@ -83,7 +83,7 @@
 
     <span class="btn_group" style="margin-left:7px">
       <button type="button" class="btn" id="toggle_settings" style="width:32px;"><i class="icon-white icon-cog"></i></button>
-      <!--<button type="button" class="btn grey" id="toggle_about" style="width:32px;"><i class="icon-info-sign"></i></button>-->
+      <button type="button" class="btn" id="toggle_help" style="width:32px;"><i class="icon-white icon-question-sign"></i></button>
     </span>
   </div>
   <div style="display:table; width:100%; height:100%">
@@ -119,6 +119,40 @@
         <button type="button" class="btn segment" name="editmode" value="scale" style="width:60px; height:30px">Scale</button>
       </div>
     </div>
+    <div id="vertex_inspector" class="pannel">
+      <span class="title">Vertex Inspector</span>
+      <ul>
+        <li>
+          <label for="index">Index</label> <input type="number" name="index" readonly="true" />
+        </li>
+        <li>
+          <label for="position_x">Position X</label> <input type="number" name="position_x" />
+        </li>
+        <li>
+          <label for="position_y">Y</label> <input type="number" name="position_y" />
+        </li>
+      </ul>
+    </div>
+    <div id="edge_inspector" class="pannel">
+      <span class="title">Edge Inspector</span>
+      <ul>
+        <li>
+          <label for="index">Index</label> <input type="number" name="index" readonly="true" />
+        </li>
+        <li>
+          <label for="v1_position_x">V1 Position X</label> <input type="number" name="v1_position_x" />
+        </li>
+        <li>
+          <label for="v1_position_y">Y</label> <input type="number" name="v1_position_y" />
+        </li>
+        <li>
+          <label for="v2_position_x">V2 Position X</label> <input type="number" name="v2_position_x" />
+        </li>
+        <li>
+          <label for="v2_position_y">Y</label> <input type="number" name="v2_position_y" />
+        </li>
+      </ul>
+    </div>
     <div id="shape_inspector" class="pannel">
       <span class="title">Shape Inspector</span>
       <ul>
@@ -129,7 +163,7 @@
           <label for="radius">Radius</label> <input type="number" name="radius" />
         </li>
         <li>
-          <label for="density">Density</label> <input type="number" name="density" min="0.001" max="1" step="0.001" />
+          <label for="density">Density</label> <input type="number" name="density" min="0.0000001" max="1" step="0.001" />
         </li>
         <li>
           <label for="restitution">Restitution</label> <input type="number" name="restitution" min="0" max="1" step="0.05" />
@@ -151,7 +185,7 @@
         </li>
         <li>
           <label for="name">Name</label> <input type="edit" name="name" />
-        </li>
+        </li>        
         <li>
           <label for="position_x">Position X</label> <input type="number" name="position_x" />
         </li>
@@ -159,7 +193,13 @@
           <label for="position_y">Y</label> <input type="number" name="position_y" />
         </li>
         <li>
-          <label for="rotation">Angle</label> <input type="number" name="angle" min="0" max="360" step="10" />
+          <label for="rotation">Angle</label> <input type="number" name="angle" step="10" />
+        </li>
+        <li>
+          <label for="mass">Mass</label> <input type="number" name="mass" min="0" step="0.1" />
+        </li>
+        <li>
+          <label for="inertia">Inertia</label> <input type="number" name="inertia" readonly="true" />
         </li>
       </ul>
     </div>
@@ -204,7 +244,7 @@
       </div>
     </div>    
   </div>  
-  <div id="about">
+  <div id="help">
     <h3>2D</h3>
     <strong>2D</strong>
     Programmed by Lee Ju Hyung (<a href="http://twitter.com/juhlnet">twitter.com/juhlnet</a>)

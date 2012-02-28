@@ -69,6 +69,8 @@ App = function() {
 	var domInfo;
 	var domToolbar;
 	var domSidebar;
+	var domVertexInspector;
+	var domEdgeInspector;
 	var domShapeInspector;
 	var domBodyInspector;
 	var domJointInspector;
@@ -96,7 +98,7 @@ App = function() {
 	var fps = 0;
 	
 	var showSettings = false;
-	var showAbout = false;
+	var showHelp = false;
 
 	var space;
 	var demoArr = [DemoCar, DemoRagDoll, DemoSeeSaw, DemoPyramid, DemoCrank, DemoRope, DemoWeb, DemoBounce];
@@ -228,7 +230,8 @@ App = function() {
 		}		
 		addEvent(domToolbar.querySelector("#toggle_snap"), "click", onClickedSnap);
 		addEvent(domToolbar.querySelector("#toggle_settings"), "click", onClickedSettings);
-		//addEvent(domToolbar.querySelector("#toggle_about"), "click", onClickedAbout);
+		addEvent(domToolbar.querySelector("#toggle_help"), "click", onClickedHelp);
+		domToolbar.querySelector("#toggle_help").style.display = "none"; //
 
 		// Setting up sidebar events
 		domSidebar = document.querySelector("#sidebar");
@@ -236,6 +239,22 @@ App = function() {
 		for (var i in elements) {
 			addEvent(elements[i], "click", function() { return onClickedEditMode(this.value); });
 		}
+		domVertexInspector = domSidebar.querySelector("#vertex_inspector");
+		addEvent(domVertexInspector.querySelector("[name=position_x]"), "change", function() { onChangedVertexPositionX(this.value); });
+		addEvent(domVertexInspector.querySelector("[name=position_x]"), "input", function() { onChangedVertexPositionX(this.value); });
+		addEvent(domVertexInspector.querySelector("[name=position_y]"), "change", function() { onChangedVertexPositionY(this.value); });
+		addEvent(domVertexInspector.querySelector("[name=position_y]"), "input", function() { onChangedVertexPositionY(this.value); });
+
+		domEdgeInspector = domSidebar.querySelector("#edge_inspector");
+		addEvent(domEdgeInspector.querySelector("[name=v1_position_x]"), "change", function() { onChangedEdgePositionX(0, this.value); });
+		addEvent(domEdgeInspector.querySelector("[name=v1_position_x]"), "input", function() { onChangedEdgePositionX(0, this.value); });
+		addEvent(domEdgeInspector.querySelector("[name=v1_position_y]"), "change", function() { onChangedEdgePositionY(0, this.value); });
+		addEvent(domEdgeInspector.querySelector("[name=v1_position_y]"), "input", function() { onChangedEdgePositionY(0, this.value); });
+		addEvent(domEdgeInspector.querySelector("[name=v2_position_x]"), "change", function() { onChangedEdgePositionX(1, this.value); });
+		addEvent(domEdgeInspector.querySelector("[name=v2_position_x]"), "input", function() { onChangedEdgePositionX(1, this.value); });
+		addEvent(domEdgeInspector.querySelector("[name=v2_position_y]"), "change", function() { onChangedEdgePositionY(1, this.value); });
+		addEvent(domEdgeInspector.querySelector("[name=v2_position_y]"), "input", function() { onChangedEdgePositionY(1, this.value); });
+
 		domShapeInspector = domSidebar.querySelector("#shape_inspector");
 		addEvent(domShapeInspector.querySelector("[name=radius]"), "change", function() { onChangedShapeRadius(this.value); });
 		addEvent(domShapeInspector.querySelector("[name=radius]"), "input", function() { onChangedShapeRadius(this.value); });
@@ -255,6 +274,8 @@ App = function() {
 		addEvent(domBodyInspector.querySelector("[name=position_y]"), "input", function() { onChangedBodyPositionY(this.value); });
 		addEvent(domBodyInspector.querySelector("[name=angle]"), "change", function() { onChangedBodyAngle(this.value); });
 		addEvent(domBodyInspector.querySelector("[name=angle]"), "input", function() { onChangedBodyAngle(this.value); });
+		addEvent(domBodyInspector.querySelector("[name=mass]"), "change", function() { onChangedBodyMass(this.value); });
+		addEvent(domBodyInspector.querySelector("[name=mass]"), "input", function() { onChangedBodyMass(this.value); });
 
 		domJointInspector = domSidebar.querySelector("#joint_inspector");
 		addEvent(domJointInspector.querySelector("[name=body1]"), "change", function() { onChangedJointBody1(this.value); });
@@ -1280,9 +1301,6 @@ App = function() {
 
 	function updateSidebar() {
 		var editModeButtons = domSidebar.querySelectorAll("[name=editmode]");
-		var shapeInspector = domSidebar.querySelector("#shape_inspector");
-		var bodyInspector = domSidebar.querySelector("#body_inspector");
-		var jointInspector = domSidebar.querySelector("#joint_inspector");
 
 		if (editorEnabled) {
 			domSidebar.style.display = "table-cell";
@@ -1305,20 +1323,69 @@ App = function() {
 				}
 			}
 
-			shapeInspector.style.display = "none";
-			bodyInspector.style.display = "none";
-			jointInspector.style.display = "none";
+			domVertexInspector.style.display = "none";
+			domEdgeInspector.style.display = "none";
+			domShapeInspector.style.display = "none";
+			domBodyInspector.style.display = "none";
+			domJointInspector.style.display = "none";
 
-			if (selectionMode == SM_SHAPES) {
+			if (selectionMode == SM_VERTICES) {
+				if (selectedFeatureArr.length == 1) {
+					var vertex = selectedFeatureArr[0];
+					var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+					var index = vertex & 0xFFFF;
+
+					domVertexInspector.style.display = "block";
+
+					var v = getShapeVertex(shape, index);
+
+					var el = domVertexInspector.querySelector("[name=index]");
+					el.value = index;
+
+					var el = domVertexInspector.querySelector("[name=position_x]");
+					el.value = v.x.toFixed(2);
+
+					var el = domVertexInspector.querySelector("[name=position_y]");
+					el.value = v.y.toFixed(2);
+				}
+			}
+			else if (selectionMode == SM_EDGES) {
+				if (selectedFeatureArr.length == 1) {
+					var edge = selectedFeatureArr[0];
+					var shape = space.shapeById((edge >> 16) & 0xFFFF);
+					var index = edge & 0xFFFF;
+
+					domEdgeInspector.style.display = "block";
+
+					var v1 = getShapeVertex(shape, index);
+					var v2 = getShapeVertex(shape, index + 1);
+
+					var el = domEdgeInspector.querySelector("[name=index]");
+					el.value = index;
+
+					var el = domEdgeInspector.querySelector("[name=v1_position_x]");
+					el.value = v1.x.toFixed(2);
+
+					var el = domEdgeInspector.querySelector("[name=v1_position_y]");
+					el.value = v1.y.toFixed(2);
+
+					var el = domEdgeInspector.querySelector("[name=v2_position_x]");
+					el.value = v2.x.toFixed(2);
+
+					var el = domEdgeInspector.querySelector("[name=v2_position_y]");
+					el.value = v2.y.toFixed(2);
+				}
+			}
+			else if (selectionMode == SM_SHAPES) {
 				if (selectedFeatureArr.length == 1) {
 					var shape = selectedFeatureArr[0];
 
-					shapeInspector.style.display = "block";
+					domShapeInspector.style.display = "block";
 
-					var el = shapeInspector.querySelector("[name=type]");
+					var el = domShapeInspector.querySelector("[name=type]");
 					el.value = ["Circle", "Segment", "Poly"][shape.type];
 
-					var el = shapeInspector.querySelector("[name=radius]");
+					var el = domShapeInspector.querySelector("[name=radius]");
 					if (shape.type == Shape.TYPE_CIRCLE || shape.type == Shape.TYPE_SEGMENT) {
 						el.parentNode.style.display = "block";
 						el.value = shape.r.toFixed(2);
@@ -1327,13 +1394,13 @@ App = function() {
 						el.parentNode.style.display = "none";
 					}
 
-					var el = shapeInspector.querySelector("[name=density]");
+					var el = domShapeInspector.querySelector("[name=density]");
 					el.value = shape.density.toFixed(6);
 
-					var el = shapeInspector.querySelector("[name=restitution]");
+					var el = domShapeInspector.querySelector("[name=restitution]");
 					el.value = shape.e.toFixed(2);
 
-					var el = shapeInspector.querySelector("[name=friction]");
+					var el = domShapeInspector.querySelector("[name=friction]");
 					el.value = shape.u.toFixed(2);					
 				}
 			}
@@ -1341,27 +1408,46 @@ App = function() {
 				if (selectedFeatureArr.length == 1) {				
 					var body = selectedFeatureArr[0];
 
-					bodyInspector.style.display = "block";
+					domBodyInspector.style.display = "block";
 
-					var el = bodyInspector.querySelector("[name=type]");
+					var el = domBodyInspector.querySelector("[name=type]");
 					el.value = ["Static", "Kinetic", "Dynamic"][body.type];
 
-					var el = bodyInspector.querySelector("[name=name]");
+					var el = domBodyInspector.querySelector("[name=name]");
 					el.value = body.name;
 
-					var el = bodyInspector.querySelector("[name=position_x]");
+					var el = domBodyInspector.querySelector("[name=position_x]");
 					el.value = body.xf.t.x.toFixed(2);
 
-					var el = bodyInspector.querySelector("[name=position_y]");
+					var el = domBodyInspector.querySelector("[name=position_y]");
 					el.value = body.xf.t.y.toFixed(2);
 
-					var el = bodyInspector.querySelector("[name=angle]");
+					var el = domBodyInspector.querySelector("[name=angle]");
 					el.value = rad2deg(body.a).toFixed(1);
+
+					if (!body.isStatic()) {
+						var el = domBodyInspector.querySelector("[name=mass]");
+						el.disabled = false;
+						el.value = body.m.toFixed(2);
+
+						var el = domBodyInspector.querySelector("[name=inertia]");
+						el.disabled = false;
+						el.value = body.i.toFixed(2);
+					}
+					else {
+						var el = domBodyInspector.querySelector("[name=mass]");
+						el.disabled = true;
+						el.value = "0"
+
+						var el = domBodyInspector.querySelector("[name=inertia]");
+						el.disabled = true;
+						el.value = "0";
+					}
 				}
 			}
 			else if (selectionMode == SM_JOINTS) {
 				if (selectedFeatureArr.length == 1) {
-					jointInspector.style.display = "block";
+					domJointInspector.style.display = "block";
 				}
 			}
 		}
@@ -2859,11 +2945,83 @@ App = function() {
 		highlightFeatureArr = [];
 	}
 
+	function onChangedVertexPositionX(value) {
+		if (selectedFeatureArr.length == 1) {		
+			var vertex = selectedFeatureArr[0];
+			var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+			var index = vertex & 0xFFFF;
+
+			var v = getShapeVertex(shape, index);
+
+			setShapeVertex(shape, index, new vec2(parseFloat(value), v.y));
+			
+			shape.finishVerts();
+			shape.body.resetMassData();
+			shape.body.syncTransform();
+			shape.body.cacheData();
+		}
+	}
+
+	function onChangedVertexPositionY(value) {
+		if (selectedFeatureArr.length == 1) {		
+			var vertex = selectedFeatureArr[0];
+			var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+			var index = vertex & 0xFFFF;
+
+			var v = getShapeVertex(shape, index);
+
+			setShapeVertex(shape, index, new vec2(v.x, parseFloat(value)));
+
+			shape.finishVerts();
+			shape.body.resetMassData();
+			shape.body.syncTransform();
+			shape.body.cacheData();
+		}
+	}
+
+	function onChangedEdgePositionX(offset, value) {
+		if (selectedFeatureArr.length == 1) {		
+			var edge = selectedFeatureArr[0];
+			var shape = space.shapeById((edge >> 16) & 0xFFFF);
+			var index = (edge & 0xFFFF) + offset;
+
+			var v = getShapeVertex(shape, index);
+
+			setShapeVertex(shape, index, new vec2(parseFloat(value), v.y));
+
+			shape.finishVerts();
+			shape.body.resetMassData();
+			shape.body.syncTransform();
+			shape.body.cacheData();			
+		}
+	}
+
+	function onChangedEdgePositionY(offset, value) {
+		if (selectedFeatureArr.length == 1) {		
+			var edge = selectedFeatureArr[0];
+			var shape = space.shapeById((edge >> 16) & 0xFFFF);
+			var index = (edge & 0xFFFF) + offset;
+
+			var v = getShapeVertex(shape, index);
+
+			setShapeVertex(shape, index, new vec2(v.x, parseFloat(value)));
+
+			shape.finishVerts();
+			shape.body.resetMassData();
+			shape.body.syncTransform();
+			shape.body.cacheData();
+		}
+	}
+
 	function onChangedShapeRadius(value) {
 		if (selectedFeatureArr.length == 1) {
 			var shape = selectedFeatureArr[0];
 			shape.r = parseFloat(value);
+
+			shape.finishVerts();
 			shape.body.resetMassData();
+			shape.body.syncTransform();
+			shape.body.cacheData();			
 		}
 	}
 
@@ -2928,6 +3086,25 @@ App = function() {
 			var body = selectedFeatureArr[0];
 			body.setTransform(body.xf.t, deg2rad(parseFloat(value)));
 			body.cacheData();
+		}
+	}
+
+	function onChangedBodyMass(value) {
+		if (selectedFeatureArr.length == 1) {
+			if (parseFloat(value) > 0) {
+				var body = selectedFeatureArr[0];
+				var fraction = parseFloat(value) / body.m;
+
+				for (var i = 0; i < body.shapeArr.length; i++) {
+					var shape = body.shapeArr[i];
+					shape.density *= fraction;
+				}
+
+				body.resetMassData();
+				body.cacheData();
+
+				updateSidebar();
+			}
 		}
 	}
 
@@ -3247,13 +3424,13 @@ App = function() {
 		return false;
 	}
 
-	function onClickedAbout() {
-		showAbout = !showAbout;	
+	function onClickedHelp() {
+		showHelp = !showHelp;	
 
-		var layout = document.getElementById("about");
-		var button = document.getElementById("toggle_about");
+		var layout = document.getElementById("help");
+		var button = document.getElementById("toggle_help");
 
-		if (showAbout) {
+		if (showHelp) {
 			layout.style.display = "block";
 
 			if (button.className.indexOf(" pushed") == -1) {
