@@ -237,6 +237,8 @@ App = function() {
 			addEvent(elements[i], "click", function() { return onClickedEditMode(this.value); });
 		}
 		domShapeInspector = domSidebar.querySelector("#shape_inspector");
+		addEvent(domShapeInspector.querySelector("[name=radius]"), "change", function() { onChangedShapeRadius(this.value); });
+		addEvent(domShapeInspector.querySelector("[name=radius]"), "input", function() { onChangedShapeRadius(this.value); });
 		addEvent(domShapeInspector.querySelector("[name=density]"), "change", function() { onChangedShapeDensity(this.value); });
 		addEvent(domShapeInspector.querySelector("[name=density]"), "input", function() { onChangedShapeDensity(this.value); });
 		addEvent(domShapeInspector.querySelector("[name=restitution]"), "change", function() { onChangedShapeRestitution(this.value); });
@@ -1316,6 +1318,15 @@ App = function() {
 					var el = shapeInspector.querySelector("[name=type]");
 					el.value = ["Circle", "Segment", "Poly"][shape.type];
 
+					var el = shapeInspector.querySelector("[name=radius]");
+					if (shape.type == Shape.TYPE_CIRCLE || shape.type == Shape.TYPE_SEGMENT) {
+						el.parentNode.style.display = "block";
+						el.value = shape.r.toFixed(2);
+					}
+					else {
+						el.parentNode.style.display = "none";
+					}
+
 					var el = shapeInspector.querySelector("[name=density]");
 					el.value = shape.density.toFixed(6);
 
@@ -1323,7 +1334,7 @@ App = function() {
 					el.value = shape.e.toFixed(2);
 
 					var el = shapeInspector.querySelector("[name=friction]");
-					el.value = shape.u.toFixed(2);
+					el.value = shape.u.toFixed(2);					
 				}
 			}
 			else if (selectionMode == SM_BODIES) {			
@@ -2846,6 +2857,14 @@ App = function() {
 		selectedFeatureArr = [];
 		markedFeatureArr = [];
 		highlightFeatureArr = [];
+	}
+
+	function onChangedShapeRadius(value) {
+		if (selectedFeatureArr.length == 1) {
+			var shape = selectedFeatureArr[0];
+			shape.r = parseFloat(value);
+			shape.body.resetMassData();
+		}
 	}
 
 	function onChangedShapeDensity(value) {
