@@ -4,7 +4,7 @@ html, body {
   width: 100%;
   height: 100%;
   font-family: Verdana, times new roman, NanumGothic, sans-serif;    
-  text-align: left;
+  text-align: left;  
   color: #ccc;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -16,7 +16,7 @@ header {
   padding-top: 0;
   line-height: 1.5;
   font-family: Lucida Grande, Verdana, sans-serif;
-  text-align: center;  
+  text-align: center;
   text-shadow: 0.1em 0.1em 0.3em gray;
 }
 footer {
@@ -26,9 +26,6 @@ footer {
   text-align: center;  
   color: #404040;
 }
-label {  
-  vertical-align: middle;
-}
 select {
   border: 1px solid #222;
   line-height: 15px;  
@@ -37,6 +34,9 @@ select {
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
+}
+label {
+  vertical-align: middle;
 }
 input {
   border: 1px solid #222;
@@ -106,6 +106,19 @@ div#sidebar > .pannel > .title {
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
   border-radius: 2px;
+}
+.pannel > ul {
+    width: 100%;
+}
+.pannel > ul > li {
+    list-style: none;
+    width: 100%;
+}
+.pannel > ul > li > label {
+  vertical-align: middle;
+  text-align: right;
+  display: inline-block;
+  width: 65px;
 }
 div#main_view {
   margin: 0;
