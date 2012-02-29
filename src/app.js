@@ -62,7 +62,7 @@ App = function() {
 
 	// default values for creating shape
 	const DEFAULT_DENSITY = 0.1;
-	const DEFAULT_RESTITUTION = 0.3;
+	const DEFAULT_RESTITUTION = 0.4;
 	const DEFAULT_FRICTION = 0.8;
 
 	// DOM objects
@@ -1340,7 +1340,7 @@ App = function() {
 					delete shape;
 					delete creatingBody;
 					creatingBody = null;
-				}
+				}				
 			}
 		}
 		editModeEventArr[EM_CREATE_POLY].mouseMove = function(ev) {
@@ -1362,7 +1362,11 @@ App = function() {
 				updateSidebar();
 			}
 		}
-		editModeEventArr[EM_CREATE_POLY].keyDown = function(keyCode) {}
+		editModeEventArr[EM_CREATE_POLY].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				creatingBody = null;
+			}	
+		}
 
 		editModeEventArr[EM_CREATE_ANGLE_JOINT] = {};
 		editModeEventArr[EM_CREATE_ANGLE_JOINT].init = function() {
@@ -1608,7 +1612,7 @@ App = function() {
 					}
 
 					for (var j in body.jointHash) {
-						var joint = body.jointHash[i];
+						var joint = body.jointHash[j];
 
 						var anchor1 = joint.getWorldAnchor1();
 						var anchor2 = joint.getWorldAnchor2();

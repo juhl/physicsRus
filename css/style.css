@@ -205,14 +205,14 @@ div#help {
   font-size: 10pt;
   font-family: tahoma, menlo;
   display: none;
-  padding: 10px;
-  border-radius: 5px; 
+  padding: 12px;
+  border-radius: 6px; 
   background: white;
-  color: #333;
-  opacity: 0.8;  
-  -webkit-box-shadow: 2px 2px 10px 0px rgba(0,0,0,0.5);
-  -moz-box-shadow: 2px 2px 10px 0px rgba(0,0,0,0.5);
-  box-shadow: 2px 2px 10px 0px rgba(0,0,0,0.5);
+  color: black;
+  opacity: 0.9;  
+  -webkit-box-shadow: 0px 0px 20px 1px rgba(0,0,0,0.5);
+  -moz-box-shadow: 0px 0px 20px 1px rgba(0,0,0,0.5);
+  box-shadow: 0px 0px 20px 1px rgba(0,0,0,0.5);
 }
 div#comments {
   margin: 0px auto; 
