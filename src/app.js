@@ -1295,7 +1295,7 @@ App = function() {
 		}
 
 		editModeEventArr[EM_CREATE_REVOLUTE_JOINT] = {};
-		editModeEventArr[EM_CREATE_REVOLUTE_JOINT].init = function = {};
+		editModeEventArr[EM_CREATE_REVOLUTE_JOINT].init = function() {};
 		editModeEventArr[EM_CREATE_REVOLUTE_JOINT].mouseDown = function(ev) {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
 				var p = canvasToWorld(mousePosition);
