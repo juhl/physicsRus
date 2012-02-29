@@ -198,7 +198,7 @@ LineJoint.prototype.solvePositionConstraints = function() {
 	var r1_d = vec2.add(r1, d);
 
 	// World line normal
-	var n = body1.getWorldVector(this.n_local);
+	var n = vec2.rotate(this.n_local, body1.a);
 
 	// Position constraint
 	var c = vec2.dot(n, d);

@@ -35,7 +35,7 @@ PrismaticJoint = function(body1, body2, anchor1, anchor2) {
 	var d = vec2.sub(anchor2, anchor1);
 
    	// Body1's local line normal
-   	this.n_local = this.body1.getLocalVector(vec2.normalize(vec2.perp(d)));	
+	this.n_local = this.body1.getLocalVector(vec2.normalize(vec2.perp(d)));	
 
 	this.da = body2.a - body1.a;
 
@@ -176,7 +176,7 @@ PrismaticJoint.prototype.solvePositionConstraints = function() {
 	var r1_d = vec2.add(r1, d);
 
 	// World line normal
-	var n = body1.getWorldVector(this.n_local);	
+	var n = vec2.rotate(this.n_local, body1.a);
 
 	// Position constraint
 	var c1 = vec2.dot(n, d);
