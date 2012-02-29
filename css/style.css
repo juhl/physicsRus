@@ -110,7 +110,7 @@ div#sidebar > .pannel > .title {
 .pannel > ul {
   width: 236px;
   padding: 0px;
-  margin: 0;
+  margin: 0;  
 }
 .pannel > ul > li {
   list-style: none;  
@@ -126,13 +126,13 @@ div#sidebar > .pannel > .title {
 }
 .pannel input[type="edit"],
 .pannel input[type="number"] {
-  width: 128px;  
+  width: 120px;
 }
 .pannel input[type="checkbox"] {
   height: 19px;
 }
 .pannel select {
-  width: 128px;  
+  width: 124px;  
 }
 .pannel input[readonly] {
   color: #333;
