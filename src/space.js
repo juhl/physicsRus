@@ -64,13 +64,13 @@ Space.prototype.create = function(text) {
 			var shape;
 
 			switch (config_shape.type) {
-				case "circle":
+				case "ShapeCircle":
 					shape = new ShapeCircle(config_shape.center.x, config_shape.center.y, config_shape.radius);                
 					break;
-				case "segment":
+				case "ShapeSegment":
 					shape = new ShapeSegment(config_shape.a, config_shape.b, config_shape.radius);
 					break;
-				case "poly":
+				case "ShapePoly":
 					shape = new ShapePoly(config_shape.verts);
 					break;
 			}
@@ -93,10 +93,10 @@ Space.prototype.create = function(text) {
 		var joint;
 
 		switch (config_joint.type) {
-		case "angle":
+		case "AngleJoint":
 			joint = new AngleJoint(body1, body2);
 			break;
-		case "revolute":
+		case "RevoluteJoint":
 			joint = new RevoluteJoint(body1, body2, config_joint.anchor);
 			joint.enableLimit(config_joint.limitEnabled);
 			joint.setLimits(config_joint.limitLowerAngle, config_joint.limitUpperAngle);
@@ -104,21 +104,21 @@ Space.prototype.create = function(text) {
 			joint.setMotorSpeed(config_joint.motorSpeed);
 			joint.setMaxMotorTorque(config_joint.maxMotorTorque);
 			break;
-		case "weld":
+		case "WeldJoint":
 			joint = new WeldJoint(body1, body2, config_joint.anchor);
 			break;
-		case "distance":                
+		case "DistanceJoint":                
 			joint = new DistanceJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
 			joint.k = config_joint.k;
 			joint.d = config_joint.d;
 			break;
-		case "line":
+		case "LineJoint":
 			joint = new LineJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
 			joint.enableMotor(config_joint.motorEnabled);
 			joint.setMotorSpeed(config_joint.motorSpeed);
 			joint.setMaxMotorTorque(config_joint.maxMotorTorque);
 			break;
-		case "prismatic":
+		case "PrismaticJoint":
 			joint = new PrismaticJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
 			break;
 		}
@@ -231,12 +231,24 @@ Space.prototype.shapeById = function(id) {
 	}
 
 	return null;
-}				
+}
 
-Space.prototype.findVertexByPoint = function(p, minDist, refVertex) {
-	var firstVertex = -1;
+// ME TOO
+Space.prototype.jointById = function(id) {	
+	for (var i in this.jointHash) {
+		var joint = this.jointHash[i];
+		if (joint.id == id) {
+			return joint;
+		}		
+	}
 
-	refVertex = refVertex || -1;
+	return null;
+}
+
+Space.prototype.findVertexByPoint = function(p, minDist, refVertexId) {
+	var firstVertexId = -1;
+
+	refVertexId = refVertexId || -1;
 
 	for (var i in this.bodyHash) {
 		var body = this.bodyHash[i];
@@ -246,28 +258,28 @@ Space.prototype.findVertexByPoint = function(p, minDist, refVertex) {
 			var index = shape.findVertexByPoint(p, minDist);
 			if (index != -1) {
 				var vertex = (shape.id << 16) | index;
-				if (refVertex == -1) {
+				if (refVertexId == -1) {
 					return vertex;
 				}
 
-				if (firstVertex == -1) {
-					firstVertex = vertex;
+				if (firstVertexId == -1) {
+					firstVertexId = vertex;
 				}
 
-				if (vertex == refVertex) {
-					refVertex = -1;
+				if (vertex == refVertexId) {
+					refVertexId = -1;
 				}		
 			}
 		}
 	}
 
-	return firstVertex;
+	return firstVertexId;
 }
 
-Space.prototype.findEdgeByPoint = function(p, minDist, refEdge) {
-	var firstEdge = -1;
+Space.prototype.findEdgeByPoint = function(p, minDist, refEdgeId) {
+	var firstEdgeId = -1;
 
-	refEdge = refEdge || -1;
+	refEdgeId = refEdgeId || -1;
 
 	for (var i in this.bodyHash) {
 		var body = this.bodyHash[i];
@@ -281,22 +293,58 @@ Space.prototype.findEdgeByPoint = function(p, minDist, refEdge) {
 			var index = shape.findEdgeByPoint(p, minDist);
 			if (index != -1) {
 				var edge = (shape.id << 16) | index;
-				if (refEdge == -1) {
+				if (refEdgeId == -1) {
 					return edge;
 				}
 
-				if (firstEdge == -1) {
-					firstEdge = edge;
+				if (firstEdgeId == -1) {
+					firstEdgeId = edge;
 				}
 
-				if (edge == refEdge) {
-					refEdge = -1;
+				if (edge == refEdgeId) {
+					refEdgeId = -1;
 				}		
 			}
 		}
 	}
 
-	return firstEdge;	
+	return firstEdgeId;	
+}
+
+Space.prototype.findJointByPoint = function(p, minDist, refJointId) {
+	var firstJointId = -1;
+
+	var dsq = minDist * minDist;
+
+	refJointId = refJointId || -1;
+
+	for (var i in this.jointHash) {
+		var joint = this.jointHash[i];
+		var jointId = -1;
+
+		if (vec2.distsq(p, joint.getWorldAnchor1()) < dsq) {
+			jointId = (joint.id << 16 | 0);
+		}
+		else if (vec2.distsq(p, joint.getWorldAnchor2()) < dsq) {
+			jointId = (joint.id << 16 | 1);
+		}
+
+		if (jointId != -1) {
+			if (refJointId == -1) {
+				return jointId;
+			}
+
+			if (firstJointId == -1) {
+				firstJointId = jointId;
+			}
+
+			if (jointId == refJointId) {
+				refJointId = -1;
+			}
+		}
+	}
+
+	return firstJointId;
 }
 
 Space.prototype.findContactSolver = function(shape1, shape2) {

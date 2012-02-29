@@ -9,7 +9,10 @@
 //-------------------------------------------------------------------------------------------------
 
 AngleJoint = function(body1, body2) {
-	Joint.call(this, body1, body2, false); // default not to collide with angle joint
+	Joint.call(this, Joint.TYPE_ANGLE, body1, body2, true);
+
+	this.anchor1 = new vec2(0, 0);
+	this.anchor2 = new vec2(0, 0);
 
 	// Initial angle difference
 	this.refAngle = body2.a - body1.a;
@@ -21,9 +24,17 @@ AngleJoint = function(body1, body2) {
 AngleJoint.prototype = new Joint;
 AngleJoint.prototype.constructor = AngleJoint;
 
+AngleJoint.prototype.setWorldAnchor1 = function(anchor1) {
+	this.anchor1 = new vec2(0, 0);
+}
+
+AngleJoint.prototype.setWorldAnchor2 = function(anchor2) {	
+	this.anchor2 = new vec2(0, 0);
+}
+
 AngleJoint.prototype.serialize = function() {
 	return {
-		"type": "angle",
+		"type": "AngleJoint",
 		"body1": this.body1.id,
 		"body2": this.body2.id,
 		"collideConnected": this.collideConnected

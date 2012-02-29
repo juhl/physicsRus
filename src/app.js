@@ -11,12 +11,12 @@ App = function() {
 	const EM_CREATE_BOX = 6;
 	const EM_CREATE_HEXAGON = 7;
 	const EM_CREATE_POLY = 8;
-	const EM_CREATE_REVOLUTE_JOINT = 9;
-	const EM_CREATE_DISTANCE_JOINT = 10;
-	const EM_CREATE_PRISMATIC_JOINT = 11;
+	const EM_CREATE_ANGLE_JOINT = 9;
+	const EM_CREATE_REVOLUTE_JOINT = 10;
+	const EM_CREATE_WELD_JOINT = 11;	
 	const EM_CREATE_LINE_JOINT = 12;
-	const EM_CREATE_WELD_JOINT = 13;
-	const EM_CREATE_ANGLE_JOINT = 14;
+	const EM_CREATE_PRISMATIC_JOINT = 13;
+	const EM_CREATE_DISTANCE_JOINT = 14;
 
 	// selection mode
 	const SM_VERTICES = 0;
@@ -46,11 +46,11 @@ App = function() {
 	// edit mode drawing value
 	const HELPER_BODY_AXIS_SIZE = 12;
 	const HELPER_VERTEX_EXTENT = 2;
-	const HELPER_JOINT_ANCHOR_EXTENT = 2.5;
-	const HELPER_ANGLE_JOINT_RADIUS = 5;
-	const HELPER_REVOLUTE_JOINT_RADIUS = 16;
+	const HELPER_JOINT_ANCHOR_RADIUS = 2.5;
+	const HELPER_ANGLE_JOINT_RADIUS = 16;
+	const HELPER_REVOLUTE_JOINT_RADIUS = 20;
 	const HELPER_PRISMATIC_JOINT_ARROW_SIZE = 12;
-	const HELPER_LINE_JOINT_RADIUS = 5;
+	const HELPER_LINE_JOINT_RADIUS = 8;
 	const HELPER_WELD_JOINT_EXTENT = 8;
 
 	// selectable feature threholds
@@ -59,7 +59,7 @@ App = function() {
 	const SELECTABLE_CIRCLE_DIST_THREHOLD = isAppleMobileDevice() ? 10 : 5;	
 
 	// default values for creating shape
-	const DEFAULT_DENSITY = 0.5;
+	const DEFAULT_DENSITY = 0.1;
 	const DEFAULT_RESTITUTION = 0.3;
 	const DEFAULT_FRICTION = 0.8;
 
@@ -108,6 +108,7 @@ App = function() {
 	var mouseBody;
 	var mouseJoint;
 	var creatingBody;
+	var creatingJoint;
 
 	// editor variables
 	var editorEnabled = false;	
@@ -129,13 +130,12 @@ App = function() {
 	var backgroundColor = "rgb(222, 222, 222)";
 	//var backgroundColor = "rgb(95, 105, 118)";
 	var gridFrameColor = "#888";
-	var gridColor = "#BBB";
+	var gridColor = "#BDBDBD";
 	var selectionColor = "rgba(255, 160, 0, 1.0)";
-	var highlightColor = "rgba(128, 255, 255, 1.0)";	
+	var highlightColor = "rgba(192, 255, 255, 1.0)";	
 	var vertexColor = "#444";
-	var jointAnchorColor = "#408";
-	var jointHelperColor = "#80F";
-	var jointHelperColor2 = "#098";
+	var jointAnchorColor = "#80F";
+	var jointHelperColor = "#F0F";
 	var selectionPattern;
 	var highlightPattern;	
 
@@ -231,7 +231,7 @@ App = function() {
 		addEvent(domToolbar.querySelector("#toggle_snap"), "click", onClickedSnap);
 		addEvent(domToolbar.querySelector("#toggle_settings"), "click", onClickedSettings);
 		addEvent(domToolbar.querySelector("#toggle_help"), "click", onClickedHelp);
-		domToolbar.querySelector("#toggle_help").style.display = "none"; //
+		//domToolbar.querySelector("#toggle_help").style.display = "none"; //
 
 		// Setting up sidebar events
 		domSidebar = document.querySelector("#sidebar");
@@ -278,9 +278,30 @@ App = function() {
 		addEvent(domBodyInspector.querySelector("[name=mass]"), "input", function() { onChangedBodyMass(this.value); });
 
 		domJointInspector = domSidebar.querySelector("#joint_inspector");
-		addEvent(domJointInspector.querySelector("[name=body1]"), "change", function() { onChangedJointBody1(this.value); });
-		addEvent(domJointInspector.querySelector("[name=body2]"), "change", function() { onChangedJointBody2(this.value); });
-		addEvent(domJointInspector.querySelector("[name=collideConnected]"), "click", onClickedJointCollideConnected);
+		addEvent(domJointInspector.querySelector("[name=body1]"), "change", function() { onChangedJointBody(0, this.value); });		
+		addEvent(domJointInspector.querySelector("[name=body2]"), "change", function() { onChangedJointBody(1, this.value); });
+		addEvent(domJointInspector.querySelector("[name=anchor_position_x]"), "change", function() { onChangedJointAnchorPositionX(this.value); });
+		addEvent(domJointInspector.querySelector("[name=anchor_position_x]"), "input", function() { onChangedJointAnchorPositionX(this.value); });
+		addEvent(domJointInspector.querySelector("[name=anchor_position_y]"), "change", function() { onChangedJointAnchorPositionY(this.value); });
+		addEvent(domJointInspector.querySelector("[name=anchor_position_y]"), "input", function() { onChangedJointAnchorPositionY(this.value); });
+		addEvent(domJointInspector.querySelector("[name=max_force]"), "change", function() { onChangedJointMaxForce(this.value); });
+		addEvent(domJointInspector.querySelector("[name=max_force]"), "input", function() { onChangedJointMaxForce(this.value); });
+		addEvent(domJointInspector.querySelector("[name=breakable]"), "click", onClickedJointBreakable);
+		addEvent(domJointInspector.querySelector("[name=collide_connected]"), "click", onClickedJointCollideConnected);
+		addEvent(domJointInspector.querySelector("[name=enable_limit]"), "click", onClickedJointEnableLimit);
+		addEvent(domJointInspector.querySelector("[name=limit_lower_angle]"), "change", function() { onChangedJointLimitLowerAngle(this.value); });
+		addEvent(domJointInspector.querySelector("[name=limit_lower_angle]"), "input", function() { onChangedJointLimitLowerAngle(this.value); });
+		addEvent(domJointInspector.querySelector("[name=limit_upper_angle]"), "change", function() { onChangedJointLimitUpperAngle(this.value); });
+		addEvent(domJointInspector.querySelector("[name=limit_upper_angle]"), "input", function() { onChangedJointLimitUpperAngle(this.value); });
+		addEvent(domJointInspector.querySelector("[name=enable_motor]"), "click", onClickedJointEnableMotor);
+		addEvent(domJointInspector.querySelector("[name=motor_speed]"), "change", function() { onChangedJointMotorSpeed(this.value); });
+		addEvent(domJointInspector.querySelector("[name=motor_speed]"), "input", function() { onChangedJointMotorSpeed(this.value); });
+		addEvent(domJointInspector.querySelector("[name=max_motor_torque]"), "change", function() { onChangedJointMaxMotorTorque(this.value); });
+		addEvent(domJointInspector.querySelector("[name=max_motor_torque]"), "input", function() { onChangedJointMaxMotorTorque(this.value); });
+		addEvent(domJointInspector.querySelector("[name=spring_frequency_hz]"), "change", function() { onChangedJointSpringFrequencyHz(this.value); });
+		addEvent(domJointInspector.querySelector("[name=spring_frequency_hz]"), "input", function() { onChangedJointSpringFrequencyHz(this.value); });
+		addEvent(domJointInspector.querySelector("[name=spring_damping_ratio]"), "change", function() { onChangedJointSpringDampingRatio(this.value); });
+		addEvent(domJointInspector.querySelector("[name=spring_damping_ratio]"), "input", function() { onChangedJointSpringDampingRatio(this.value); });
 
 		// Setting up settings events
 		domSettings = document.querySelector("#settings");
@@ -308,6 +329,7 @@ App = function() {
 		// Setting up mouse event for each edit modes
 
 		editModeEventArr[EM_SELECT] = {};
+		editModeEventArr[EM_SELECT].init = function() {}
 		editModeEventArr[EM_SELECT].mouseDown = function(ev) {}
 		editModeEventArr[EM_SELECT].mouseUp = function(ev) {
 			if (mouseDown && !mouseDownMoving) {
@@ -347,6 +369,7 @@ App = function() {
 		}		
 
 		editModeEventArr[EM_TRANSLATE] = {};
+		editModeEventArr[EM_TRANSLATE].init = function() {}
 		editModeEventArr[EM_TRANSLATE].checkTransformAxis = function() {
 			highlightFeatureArr = [];
 				transformAxis = 0;
@@ -425,10 +448,10 @@ App = function() {
 
 				if (selectionMode == SM_VERTICES) {
 					for (var i = 0; i < selectedFeatureArr.length; i++) {
-						var vertex = selectedFeatureArr[i];
-						var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+						var vertexId = selectedFeatureArr[i];
+						var shape = space.shapeById((vertexId >> 16) & 0xFFFF);
 						var body = shape.body;
-						var index = vertex & 0xFFFF;
+						var index = vertexId & 0xFFFF;
 
 						var v = getShapeVertex(shape, index);
 
@@ -436,7 +459,6 @@ App = function() {
 
 						shape.finishVerts();
 						body.resetMassData();
-						body.syncTransform();
 						body.cacheData();
 					}
 				}
@@ -444,30 +466,29 @@ App = function() {
 					var markedVertexArr = [];
 
 					for (var i = 0; i < selectedFeatureArr.length; i++) {
-						var edge = selectedFeatureArr[i];
-						var shape = space.shapeById((edge >> 16) & 0xFFFF);
+						var edgeId = selectedFeatureArr[i];
+						var shape = space.shapeById((edgeId >> 16) & 0xFFFF);
 						var body = shape.body;
-						var index = edge & 0xFFFF;
+						var index = edgeId & 0xFFFF;
 
 						var v1 = getShapeVertex(shape, index);
 						var v2 = getShapeVertex(shape, index + 1);
 
-						var vertex1 = (shape.id << 16) | index;
-						var vertex2 = (shape.id << 16) | ((index + 1) % shape.verts.length);
+						var vertexId1 = (shape.id << 16) | index;
+						var vertexId2 = (shape.id << 16) | ((index + 1) % shape.verts.length);
 					
-						if (markedVertexArr.indexOf(vertex1) == -1) {
-							markedVertexArr.push(vertex1);
+						if (markedVertexArr.indexOf(vertexId1) == -1) {
+							markedVertexArr.push(vertexId1);
 							setShapeVertex(shape, index, vec2.add(v1, delta));
 						}
 
-						if (markedVertexArr.indexOf(vertex2) == -1) {
-							markedVertexArr.push(vertex2);
+						if (markedVertexArr.indexOf(vertexId2) == -1) {
+							markedVertexArr.push(vertexId2);
 							setShapeVertex(shape, index + 1, vec2.add(v2, delta));
 						}
 
 						shape.finishVerts();
 						body.resetMassData();
-						body.syncTransform();
 						body.cacheData();
 					}
 				}
@@ -508,7 +529,6 @@ App = function() {
 
 						shape.finishVerts();
 						body.resetMassData();
-						body.syncTransform();
 						body.cacheData();
 					}
 				}
@@ -533,8 +553,27 @@ App = function() {
 						p.y += delta.y;
 
 						body.setTransform(p, a);
+						body.resetJointAnchors();
 						body.cacheData();
 					}						
+				}
+				else if (selectionMode == SM_JOINTS) {
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var jointId = selectedFeatureArr[i];
+						var joint = space.jointById((jointId >> 16) & 0xFFFF);
+						var anchorIndex = jointId & 0xFFFF;
+
+						if (anchorIndex == 0) {
+							var anchor = joint.getWorldAnchor1();
+							anchor.addself(delta);
+							joint.setWorldAnchor1(anchor);
+						}
+						else {
+							var anchor = joint.getWorldAnchor2();
+							anchor.addself(delta);
+							joint.setWorldAnchor2(anchor);
+						}
+					}
 				}
 			}
 			else {
@@ -543,6 +582,7 @@ App = function() {
 		}		
 
 		editModeEventArr[EM_ROTATE] = {};
+		editModeEventArr[EM_ROTATE].init = function() {}
 		editModeEventArr[EM_ROTATE].checkTransformAxis = function() {
 			highlightFeatureArr = [];
 			transformAxis = 0;
@@ -595,7 +635,6 @@ App = function() {
 
 						shape.finishVerts();
 						body.resetMassData();
-						body.syncTransform();
 						body.cacheData();
 					}
 				}
@@ -611,24 +650,23 @@ App = function() {
 						var v1 = getShapeVertex(shape, index);
 						var v2 = getShapeVertex(shape, index + 1);
 
-						var vertex1 = (shape.id << 16) | index;
-						var vertex2 = (shape.id << 16) | ((index + 1) % shape.verts.length);
+						var vertexId1 = (shape.id << 16) | index;
+						var vertexId2 = (shape.id << 16) | ((index + 1) % shape.verts.length);
 						
-						if (markedVertexArr.indexOf(vertex1) == -1) {
-							markedVertexArr.push(vertex1);
+						if (markedVertexArr.indexOf(vertexId1) == -1) {
+							markedVertexArr.push(vertexId1);
 							var wv = vec2.add(vec2.rotate(vec2.sub(v1, transformCenter), da), transformCenter);
 							setShapeVertex(shape, index, wv);
 						}
 
-						if (markedVertexArr.indexOf(vertex2) == -1) {
-							markedVertexArr.push(vertex2);
+						if (markedVertexArr.indexOf(vertexId2) == -1) {
+							markedVertexArr.push(vertexId2);
 							var wv = vec2.add(vec2.rotate(vec2.sub(v2, transformCenter), da), transformCenter);
 							setShapeVertex(shape, index + 1, wv);
 						}
 
 						shape.finishVerts();
 						body.resetMassData();
-						body.syncTransform();
 						body.cacheData();
 					}
 				}
@@ -670,7 +708,6 @@ App = function() {
 
 						shape.finishVerts();
 						body.resetMassData();
-						body.syncTransform();
 						body.cacheData();
 					}
 				}
@@ -696,7 +733,26 @@ App = function() {
 						a += da;
 
 						body.setTransform(p, a);
+						body.resetJointAnchors();
 						body.cacheData();
+					}
+				}
+				else if (selectionMode == SM_JOINTS) {
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var jointId = selectedFeatureArr[i];
+						var joint = space.jointById((jointId >> 16) & 0xFFFF);
+						var anchorIndex = jointId & 0xFFFF;
+
+						if (anchorIndex == 0) {
+							var anchor = joint.getWorldAnchor1();
+							anchor = vec2.add(vec2.rotate(vec2.sub(anchor, transformCenter), da), transformCenter);
+							joint.setWorldAnchor1(anchor);
+						}
+						else {
+							var anchor = joint.getWorldAnchor2();
+							anchor = vec2.add(vec2.rotate(vec2.sub(anchor, transformCenter), da), transformCenter);
+							joint.setWorldAnchor2(anchor);
+						}
 					}
 				}
 			}
@@ -706,6 +762,7 @@ App = function() {
 		}		
 
 		editModeEventArr[EM_SCALE] = {};
+		editModeEventArr[EM_SCALE].init = function() {}
 		editModeEventArr[EM_SCALE].checkTransformAxis = function() {
 			highlightFeatureArr = [];
 			transformAxis = 0;
@@ -794,10 +851,10 @@ App = function() {
 
 				if (selectionMode == SM_VERTICES) {
 					for (var i = 0; i < selectedFeatureArr.length; i++) {
-						var vertex = selectedFeatureArr[i];
-						var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+						var vertexId = selectedFeatureArr[i];
+						var shape = space.shapeById((vertexId >> 16) & 0xFFFF);
 						var body = shape.body;							
-						var index = vertex & 0xFFFF;
+						var index = vertexId & 0xFFFF;
 
 						var v = getShapeVertex(shape, index);
 
@@ -806,38 +863,36 @@ App = function() {
 
 						shape.finishVerts();
 						shape.body.resetMassData();
-						shape.body.syncTransform();
 						shape.body.cacheData();
 					}
 				}
 				else if (selectionMode == SM_EDGES) {
 					for (var i = 0; i < selectedFeatureArr.length; i++) {
-						var edge = selectedFeatureArr[i];
-						var shape = space.shapeById((edge >> 16) & 0xFFFF);
+						var edgeId = selectedFeatureArr[i];
+						var shape = space.shapeById((edgeId >> 16) & 0xFFFF);
 						var body = shape.body;							
-						var index = edge & 0xFFFF;
+						var index = edgeId & 0xFFFF;
 
 						var v1 = getShapeVertex(shape, index);
 						var v2 = getShapeVertex(shape, index + 1);
 
-						var vertex1 = (shape.id << 16) | index;
-						var vertex2 = (shape.id << 16) | ((index + 1) % shape.verts.length);					
+						var vertexId1 = (shape.id << 16) | index;
+						var vertexId2 = (shape.id << 16) | ((index + 1) % shape.verts.length);					
 
-						if (markedVertexArr.indexOf(vertex1) == -1) {
-							markedVertexArr.push(vertex1);
+						if (markedVertexArr.indexOf(vertexId1) == -1) {
+							markedVertexArr.push(vertexId1);
 							var wv = vec2.add(vec2.scale2(vec2.sub(v1, transformCenter), scale), transformCenter);
 							setShapeVertex(shape, index, wv);	
 						}
 
-						if (markedVertexArr.indexOf(vertex2) == -1) {
-							markedVertexArr.push(vertex2);
+						if (markedVertexArr.indexOf(vertexId2) == -1) {
+							markedVertexArr.push(vertexId2);
 							var wv = vec2.add(vec2.scale2(vec2.sub(v2, transformCenter), scale), transformCenter);
 							setShapeVertex(shape, index + 1, wv);
 						}
 
 						shape.finishVerts();
 						shape.body.resetMassData();
-						shape.body.syncTransform();
 						shape.body.cacheData();
 					}
 				}
@@ -869,12 +924,29 @@ App = function() {
 
 						shape.finishVerts();
 						shape.body.resetMassData();
-						shape.body.syncTransform();
 						shape.body.cacheData();
 					}
 				}
 				else if (selectionMode == SM_BODIES) {
 					// NOT AVAILABLE
+				}
+				else if (selectionMode == SM_JOINTS) {					
+					for (var i = 0; i < selectedFeatureArr.length; i++) {
+						var jointId = selectedFeatureArr[i];
+						var joint = space.jointById((jointId >> 16) & 0xFFFF);
+						var anchorIndex = jointId & 0xFFFF;
+
+						if (anchorIndex == 0) {
+							var anchor = joint.getWorldAnchor1();
+							anchor = vec2.add(vec2.scale2(vec2.sub(anchor, transformCenter), scale), transformCenter);
+							joint.setWorldAnchor1(anchor);
+						}
+						else {
+							var anchor = joint.getWorldAnchor2();
+							anchor = vec2.add(vec2.scale2(vec2.sub(anchor, transformCenter), scale), transformCenter);							
+							joint.setWorldAnchor2(anchor);
+						}
+					}				
 				}
 			}
 			else {
@@ -883,19 +955,22 @@ App = function() {
 		}	
 		
 		editModeEventArr[EM_CREATE_CIRCLE] = {};
+		editModeEventArr[EM_CREATE_CIRCLE].init = function() {}
 		editModeEventArr[EM_CREATE_CIRCLE].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
 				p = snapPointByGrid(p);
 			}
 
-			creatingBody = new Body(Body.DYNAMIC, p);
-			var shape = new ShapeCircle(0, 0, 0);
-			shape.density = DEFAULT_DENSITY;
-			shape.e = DEFAULT_RESTITUTION;
-			shape.u = DEFAULT_FRICTION;
-			creatingBody.addShape(shape);
-			space.addBody(creatingBody);
+			if (!creatingBody) {				
+				creatingBody = new Body(Body.DYNAMIC, p);
+				var shape = new ShapeCircle(0, 0, 0);
+				shape.density = DEFAULT_DENSITY;
+				shape.e = DEFAULT_RESTITUTION;
+				shape.u = DEFAULT_FRICTION;
+				creatingBody.addShape(shape);
+				space.addBody(creatingBody);						
+			}
 		}
 		editModeEventArr[EM_CREATE_CIRCLE].mouseUp = function(ev) {			
 			if (creatingBody) {
@@ -904,8 +979,9 @@ App = function() {
 					space.removeBody(creatingBody);
 					delete shape;
 					delete creatingBody;
-					creatingBody = null;
 				}
+
+				creatingBody = null;
 			}
 		}
 		editModeEventArr[EM_CREATE_CIRCLE].mouseMove = function(ev) {
@@ -916,29 +992,34 @@ App = function() {
 				if (snapEnabled) {
 					p1 = snapPointByGrid(p1);
 					p2 = snapPointByGrid(p2);
-				}				
+				}
 
 				var shape = creatingBody.shapeArr[0];
-				shape.r = vec2.dist(p2, p1/*creatingBody.shapeArr[0].tc*/);
+				shape.r = vec2.dist(p2, creatingBody.shapeArr[0].tc);
 				shape.body.resetMassData();					
 				shape.body.cacheData();
+
+				updateSidebar();
 			}
 		}
 
 		editModeEventArr[EM_CREATE_TRIANGLE] = {};
+		editModeEventArr[EM_CREATE_TRIANGLE].init = function() {}
 		editModeEventArr[EM_CREATE_TRIANGLE].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
 				p = snapPointByGrid(p);
 			}
-			
-			creatingBody = new Body(Body.DYNAMIC, p);
-			var shape = new ShapeTriangle(p, p, p);
-			shape.density = DEFAULT_DENSITY;
-			shape.e = DEFAULT_RESTITUTION;
-			shape.u = DEFAULT_FRICTION;
-			creatingBody.addShape(shape);
-			space.addBody(creatingBody);
+
+			if (!creatingBody) {
+				creatingBody = new Body(Body.DYNAMIC, p);
+				var shape = new ShapeTriangle(p, p, p);
+				shape.density = DEFAULT_DENSITY;
+				shape.e = DEFAULT_RESTITUTION;
+				shape.u = DEFAULT_FRICTION;
+				creatingBody.addShape(shape);
+				space.addBody(creatingBody);
+			}
 		}
 		editModeEventArr[EM_CREATE_TRIANGLE].mouseUp = function(ev) {
 			if (creatingBody) {
@@ -947,15 +1028,16 @@ App = function() {
 					space.removeBody(creatingBody);
 					delete shape;
 					delete creatingBody;
-					creatingBody = null;
 				}
+
+				creatingBody = null;				
 			}
 		}
 		editModeEventArr[EM_CREATE_TRIANGLE].mouseMove = function(ev) {
 			if (mouseDown && creatingBody) {
 				var p1 = canvasToWorld(mouseDownPosition);
 				var p2 = canvasToWorld(mousePosition);
-				
+
 				if (snapEnabled) {
 					p1 = snapPointByGrid(p1);
 					p2 = snapPointByGrid(p2);
@@ -986,25 +1068,29 @@ App = function() {
 
 				shape.finishVerts();
 				shape.body.resetMassData();
-				shape.body.syncTransform();
 				shape.body.cacheData();
+
+				updateSidebar();
 			}
 		}
 
 		editModeEventArr[EM_CREATE_BOX] = {};
+		editModeEventArr[EM_CREATE_BOX].init = function() {}
 		editModeEventArr[EM_CREATE_BOX].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
 				p = snapPointByGrid(p);
 			}
-			
-			creatingBody = new Body(Body.DYNAMIC, p);
-			var shape = new ShapeBox(0, 0, 0, 0);
-			shape.density = DEFAULT_DENSITY;
-			shape.e = DEFAULT_RESTITUTION;
-			shape.u = DEFAULT_FRICTION;
-			creatingBody.addShape(shape);
-			space.addBody(creatingBody);
+
+			if (!creatingBody) {						
+				creatingBody = new Body(Body.DYNAMIC, p);
+				var shape = new ShapeBox(0, 0, 0, 0);
+				shape.density = DEFAULT_DENSITY;
+				shape.e = DEFAULT_RESTITUTION;
+				shape.u = DEFAULT_FRICTION;
+				creatingBody.addShape(shape);
+				space.addBody(creatingBody);
+			}
 		}
 		editModeEventArr[EM_CREATE_BOX].mouseUp = function(ev) {
 			if (creatingBody) {
@@ -1013,8 +1099,9 @@ App = function() {
 					space.removeBody(creatingBody);
 					delete shape;
 					delete creatingBody;
-					creatingBody = null;
 				}
+
+				creatingBody = null;
 			}
 		}
 		editModeEventArr[EM_CREATE_BOX].mouseMove = function(ev) {
@@ -1025,7 +1112,7 @@ App = function() {
 				if (snapEnabled) {
 					p1 = snapPointByGrid(p1);
 					p2 = snapPointByGrid(p2);
-				}				
+				}
 
 				var mins = new vec2(p1.x, p1.y);
 				var maxs = new vec2(p2.x, p2.y);
@@ -1050,29 +1137,33 @@ App = function() {
 
 				shape.finishVerts();
 				shape.body.resetMassData();
-				shape.body.syncTransform();
 				shape.body.cacheData();
+
+				updateSidebar();
 			}
 		}
 
 		editModeEventArr[EM_CREATE_HEXAGON] = {};
+		editModeEventArr[EM_CREATE_HEXAGON].init = function() {}
 		editModeEventArr[EM_CREATE_HEXAGON].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
 				p = snapPointByGrid(p);
 			}
-			
-			creatingBody = new Body(Body.DYNAMIC, p);
-			var verts = new Array(6);
-			for (var i = 0; i < 6; i++) {
-				verts[i] = p;
+
+			if (!creatingBody) {				
+				creatingBody = new Body(Body.DYNAMIC, p);
+				var verts = new Array(6);
+				for (var i = 0; i < 6; i++) {
+					verts[i] = p;
+				}
+				var shape = new ShapePoly(verts);
+				shape.density = DEFAULT_DENSITY;
+				shape.e = DEFAULT_RESTITUTION;
+				shape.u = DEFAULT_FRICTION;
+				creatingBody.addShape(shape);
+				space.addBody(creatingBody);
 			}
-			var shape = new ShapePoly(verts);
-			shape.density = DEFAULT_DENSITY;
-			shape.e = DEFAULT_RESTITUTION;
-			shape.u = DEFAULT_FRICTION;
-			creatingBody.addShape(shape);
-			space.addBody(creatingBody);
 		}
 		editModeEventArr[EM_CREATE_HEXAGON].mouseUp = function(ev) {
 			if (creatingBody) {
@@ -1081,8 +1172,9 @@ App = function() {
 					space.removeBody(creatingBody);
 					delete shape;
 					delete creatingBody;
-					creatingBody = null;
 				}
+
+				creatingBody = null;
 			}
 		}
 		editModeEventArr[EM_CREATE_HEXAGON].mouseMove = function(ev) {
@@ -1120,12 +1212,14 @@ App = function() {
 
 				shape.finishVerts();
 				shape.body.resetMassData();
-				shape.body.syncTransform();
 				shape.body.cacheData();
+
+				updateSidebar();
 			}
 		}
 
 		editModeEventArr[EM_CREATE_POLY] = {};
+		editModeEventArr[EM_CREATE_POLY].init = function() {}
 		editModeEventArr[EM_CREATE_POLY].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
@@ -1147,7 +1241,6 @@ App = function() {
 
 			shape.finishVerts();
 			shape.body.resetMassData();
-			shape.body.syncTransform();
 			shape.body.cacheData();
 		}
 		editModeEventArr[EM_CREATE_POLY].mouseUp = function(ev) {			
@@ -1175,10 +1268,195 @@ App = function() {
 
 				shape.finishVerts();
 				shape.body.resetMassData();
-				shape.body.syncTransform();
 				shape.body.cacheData();
+
+				updateSidebar();
+			}
+		}
+
+		editModeEventArr[EM_CREATE_ANGLE_JOINT] = {};
+		editModeEventArr[EM_CREATE_ANGLE_JOINT].init = function() {
+			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {		
+				if (!creatingJoint) {
+					var body1 = selectedFeatureArr[0];
+					var body2 = selectedFeatureArr[1];
+
+					creatingJoint = new AngleJoint(body1, body2);
+					space.addJoint(creatingJoint);
+				}
+			}
+		}
+		editModeEventArr[EM_CREATE_ANGLE_JOINT].mouseDown = function(ev) {			
+		}
+		editModeEventArr[EM_CREATE_ANGLE_JOINT].mouseUp = function(ev) {
+			creatingJoint = null;
+		}
+		editModeEventArr[EM_CREATE_ANGLE_JOINT].mouseMove = function(ev) {
+		}
+
+		editModeEventArr[EM_CREATE_REVOLUTE_JOINT] = {};
+		editModeEventArr[EM_CREATE_REVOLUTE_JOINT].mouseDown = function(ev) {
+			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
+				var p = canvasToWorld(mousePosition);
+				if (snapEnabled) {
+					p = snapPointByGrid(p);
+				}
+				
+				if (!creatingJoint) {
+					var body1 = selectedFeatureArr[0];
+					var body2 = selectedFeatureArr[1];
+
+					creatingJoint = new RevoluteJoint(body1, body2, p);
+					space.addJoint(creatingJoint);
+				}
+			}
+		}
+		editModeEventArr[EM_CREATE_REVOLUTE_JOINT].mouseUp = function(ev) {
+			creatingJoint = null;
+		}
+		editModeEventArr[EM_CREATE_REVOLUTE_JOINT].mouseMove = function(ev) {
+			if (mouseDown && creatingJoint) {
+				var p = canvasToWorld(mousePosition);
+				
+				if (snapEnabled) {
+					p = snapPointByGrid(p);
+				}
+				
+				creatingJoint.setWorldAnchor1(p);
 			}
 		}		
+
+		editModeEventArr[EM_CREATE_WELD_JOINT] = {};
+		editModeEventArr[EM_CREATE_WELD_JOINT].init = function() {}
+		editModeEventArr[EM_CREATE_WELD_JOINT].mouseDown = function(ev) {
+			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
+				var p = canvasToWorld(mousePosition);
+				if (snapEnabled) {
+					p = snapPointByGrid(p);
+				}
+				
+				if (!creatingJoint) {
+					var body1 = selectedFeatureArr[0];
+					var body2 = selectedFeatureArr[1];
+
+					creatingJoint = new WeldJoint(body1, body2, p);
+					space.addJoint(creatingJoint);
+				}
+			}
+		}
+		editModeEventArr[EM_CREATE_WELD_JOINT].mouseUp = function(ev) {
+			creatingJoint = null;
+		}
+		editModeEventArr[EM_CREATE_WELD_JOINT].mouseMove = function(ev) {
+			if (mouseDown && creatingJoint) {
+				var p = canvasToWorld(mousePosition);
+				
+				if (snapEnabled) {
+					p = snapPointByGrid(p);
+				}
+				
+				creatingJoint.setWorldAnchor1(p);
+			}
+		}
+
+		editModeEventArr[EM_CREATE_LINE_JOINT] = {};
+		editModeEventArr[EM_CREATE_LINE_JOINT].init = function() {}
+		editModeEventArr[EM_CREATE_LINE_JOINT].mouseDown = function(ev) {
+			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
+				var p = canvasToWorld(mousePosition);
+				if (snapEnabled) {
+					p = snapPointByGrid(p);
+				}
+				
+				if (!creatingJoint) {
+					var body1 = selectedFeatureArr[0];
+					var body2 = selectedFeatureArr[1];
+
+					creatingJoint = new LineJoint(body1, body2, p, p);
+					space.addJoint(creatingJoint);
+				}
+			}
+		}
+		editModeEventArr[EM_CREATE_LINE_JOINT].mouseUp = function(ev) {
+			creatingJoint = null;
+		}
+		editModeEventArr[EM_CREATE_LINE_JOINT].mouseMove = function(ev) {
+			if (mouseDown && creatingJoint) {
+				var p = canvasToWorld(mousePosition);
+				
+				if (snapEnabled) {
+					p = snapPointByGrid(p);
+				}
+				
+				creatingJoint.setWorldAnchor2(p);
+			}
+		}
+
+		editModeEventArr[EM_CREATE_PRISMATIC_JOINT] = {};
+		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].init = function() {}
+		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].mouseDown = function(ev) {
+			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
+				var p = canvasToWorld(mousePosition);
+				if (snapEnabled) {
+					p = snapPointByGrid(p);
+				}
+				
+				if (!creatingJoint) {
+					var body1 = selectedFeatureArr[0];
+					var body2 = selectedFeatureArr[1];
+
+					creatingJoint = new PrismaticJoint(body1, body2, p, p);
+					space.addJoint(creatingJoint);
+				}
+			}
+		}
+		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].mouseUp = function(ev) {
+			creatingJoint = null;
+		}
+		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].mouseMove = function(ev) {
+			if (mouseDown && creatingJoint) {
+				var p = canvasToWorld(mousePosition);
+				
+				if (snapEnabled) {
+					p = snapPointByGrid(p);
+				}
+				
+				creatingJoint.setWorldAnchor2(p);
+			}
+		}
+
+		editModeEventArr[EM_CREATE_DISTANCE_JOINT] = {};
+		editModeEventArr[EM_CREATE_DISTANCE_JOINT].init = function() {}
+		editModeEventArr[EM_CREATE_DISTANCE_JOINT].mouseDown = function(ev) {
+			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
+				var p = canvasToWorld(mousePosition);
+				if (snapEnabled) {
+					p = snapPointByGrid(p);
+				}
+				
+				if (!creatingJoint) {
+					var body1 = selectedFeatureArr[0];
+					var body2 = selectedFeatureArr[1];
+
+					creatingJoint = new DistanceJoint(body1, body2, p, p);
+					space.addJoint(creatingJoint);
+				}
+			}
+		}
+		editModeEventArr[EM_CREATE_DISTANCE_JOINT].mouseUp = function(ev) {
+			creatingJoint = null;
+		}
+		editModeEventArr[EM_CREATE_DISTANCE_JOINT].mouseMove = function(ev) {
+			if (mouseDown && creatingJoint) {
+				var p = canvasToWorld(mousePosition);
+				
+				if (snapEnabled) {
+					p = snapPointByGrid(p);
+				}
+				
+				creatingJoint.setWorldAnchor2(p);
+			}
+		}
 	}	
 
 	function onLoad() {
@@ -1308,8 +1586,8 @@ App = function() {
 			// edit mode buttons
 			var value = ["select", "translate", "rotate", "scale", 
 				"create_circle", "create_triangle", "create_box", "create_hexagon", "create_poly",
-				"create_revolute_joint", "create_distance_joint", "create_prismatic_joint", "create_line_joint",
-				"create_weld_joint", "create_angle_joint"][editMode];
+				"create_angle_joint", "create_revolute_joint", "create_weld_joint", 
+				"create_line_joint", "create_prismatic_joint", "create_distance_joint"][editMode];
 			for (var i = 0; i < editModeButtons.length; i++) {
 				var e = editModeButtons[i];
 				
@@ -1331,9 +1609,9 @@ App = function() {
 
 			if (selectionMode == SM_VERTICES) {
 				if (selectedFeatureArr.length == 1) {
-					var vertex = selectedFeatureArr[0];
-					var shape = space.shapeById((vertex >> 16) & 0xFFFF);
-					var index = vertex & 0xFFFF;
+					var vertexId = selectedFeatureArr[0];
+					var shape = space.shapeById((vertexId >> 16) & 0xFFFF);
+					var index = vertexId & 0xFFFF;
 
 					domVertexInspector.style.display = "block";
 
@@ -1351,9 +1629,9 @@ App = function() {
 			}
 			else if (selectionMode == SM_EDGES) {
 				if (selectedFeatureArr.length == 1) {
-					var edge = selectedFeatureArr[0];
-					var shape = space.shapeById((edge >> 16) & 0xFFFF);
-					var index = edge & 0xFFFF;
+					var edgeId = selectedFeatureArr[0];
+					var shape = space.shapeById((edgeId >> 16) & 0xFFFF);
+					var index = edgeId & 0xFFFF;
 
 					domEdgeInspector.style.display = "block";
 
@@ -1447,7 +1725,132 @@ App = function() {
 			}
 			else if (selectionMode == SM_JOINTS) {
 				if (selectedFeatureArr.length == 1) {
+					var jointId = selectedFeatureArr[0];
+					var joint = space.jointById((jointId >> 16) & 0xFFFF);
+					var anchorIndex = jointId & 0xFFFF;
+
 					domJointInspector.style.display = "block";
+
+					var el = domJointInspector.querySelector("[name=type]");
+					el.value = ["Angle", "Revolute", "Distance", "Line", "Prismatic", "Weld", "Mouse"][joint.type];
+
+					var el = domJointInspector.querySelector("[name=body1]");
+					el.value = new String(joint.body1.name);
+
+					var el = domJointInspector.querySelector("[name=body2]");
+					el.value = new String(joint.body2.name);
+
+					if (joint.type == Joint.TYPE_ANGLE) {
+						var el = domJointInspector.querySelector("[name=anchor_position_x]");
+						el.parentNode.style.display = "none";
+
+						var el = domJointInspector.querySelector("[name=anchor_position_y]");
+						el.parentNode.style.display = "none";
+					}
+					else {
+						var el = domJointInspector.querySelector("[name=anchor_position_x]");
+						el.parentNode.style.display = "block";
+						var anchor = anchorIndex == 0 ? joint.getWorldAnchor1() : joint.getWorldAnchor2();
+						el.value = anchor.x.toFixed(2);
+
+						var el = domJointInspector.querySelector("[name=anchor_position_y]");
+						el.parentNode.style.display = "block";
+						var anchor = anchorIndex == 0 ? joint.getWorldAnchor1() : joint.getWorldAnchor2();
+						el.value = anchor.y.toFixed(2);
+					}
+
+					if (joint.type == Joint.TYPE_REVOLUTE) {
+						var el = domJointInspector.querySelector("[name=enable_limit]");
+						el.parentNode.style.display = "block";
+						el.checked = joint.limitEnabled;
+
+						if (joint.limitEnabled) {
+							var el = domJointInspector.querySelector("[name=limit_lower_angle]");
+							el.parentNode.style.display = "block";
+							el.value = rad2deg(joint.limitLowerAngle).toFixed(1);
+
+							var el = domJointInspector.querySelector("[name=limit_upper_angle]");
+							el.parentNode.style.display = "block";
+							el.value = rad2deg(joint.limitUpperAngle).toFixed(1);
+						}
+						else {
+							var el = domJointInspector.querySelector("[name=limit_lower_angle]");
+							el.parentNode.style.display = "none";
+
+							var el = domJointInspector.querySelector("[name=limit_upper_angle]");
+							el.parentNode.style.display = "none";
+						}
+					}
+					else {
+						var el = domJointInspector.querySelector("[name=enable_limit]");
+						el.parentNode.style.display = "none";
+						el.checked = false;
+
+						var el = domJointInspector.querySelector("[name=limit_lower_angle]");
+						el.parentNode.style.display = "none";
+
+						var el = domJointInspector.querySelector("[name=limit_upper_angle]");
+						el.parentNode.style.display = "none";
+					}
+
+					if (joint.type == Joint.TYPE_REVOLUTE || joint.type == Joint.TYPE_LINE) {
+						var el = domJointInspector.querySelector("[name=enable_motor]");
+						el.parentNode.style.display = "block";
+						el.checked = joint.motorEnabled;
+
+						if (joint.motorEnabled) {
+							var el = domJointInspector.querySelector("[name=motor_speed]");
+							el.parentNode.style.display = "block";
+							el.value = joint.motorSpeed.toFixed(2);
+
+							var el = domJointInspector.querySelector("[name=max_motor_torque]");
+							el.parentNode.style.display = "block";
+							el.value = joint.maxMotorTorque.toFixed(2);
+						}
+						else {
+							var el = domJointInspector.querySelector("[name=motor_speed]");
+							el.parentNode.style.display = "none";
+
+							var el = domJointInspector.querySelector("[name=max_motor_torque]");
+							el.parentNode.style.display = "none";
+						}
+					}
+					else {
+						var el = domJointInspector.querySelector("[name=enable_motor]");
+						el.parentNode.style.display = "none";
+
+						var el = domJointInspector.querySelector("[name=motor_speed]");
+						el.parentNode.style.display = "none";
+
+						var el = domJointInspector.querySelector("[name=max_motor_torque]");
+						el.parentNode.style.display = "none";
+					}
+
+					if (joint.type == Joint.TYPE_DISTANCE) {
+						var el = domJointInspector.querySelector("[name=spring_frequency_hz]");
+						el.parentNode.style.display = "block";
+						el.value = joint.frequencyHz.toFixed(0);
+
+						var el = domJointInspector.querySelector("[name=spring_damping_ratio]");
+						el.parentNode.style.display = "block";
+						el.value = joint.dampingRatio.toFixed(2);
+					}
+					else {
+						var el = domJointInspector.querySelector("[name=spring_frequency_hz]");
+						el.parentNode.style.display = "none";
+
+						var el = domJointInspector.querySelector("[name=spring_damping_ratio]");
+						el.parentNode.style.display = "none";
+					}
+					
+					var el = domJointInspector.querySelector("[name=max_force]");
+					el.value = joint.maxForce.toFixed(2);
+
+					var el = domJointInspector.querySelector("[name=collide_connected]");
+					el.checked = joint.collideConnected;
+
+					var el = domJointInspector.querySelector("[name=breakable]");
+					el.checked = joint.breakable;
 				}
 			}
 		}
@@ -1644,10 +2047,10 @@ App = function() {
 		stats.timeDrawFrame = Date.now() - t0;		
 		
 		// Show statistaics
-		if (showStats) {			
+		if (showStats) {
 			// Update info once per every 10 frames
 			if ((frameCount % 10) == 0) {
-				domInfo.innerHTML =
+				domInfo.innerHTML =					
 					["fps:", fps.toFixed(1), "tm_draw:", stats.timeDrawFrame, "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "<br />"].join(" ") +
 					["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver, "<br />"].join(" ") +
 					["bodies:", space.numBodies, "joints:", space.numJoints, "contacts:", space.numContacts, "pos_iters:", stats.positionIterations].join(" ");
@@ -1761,7 +2164,7 @@ App = function() {
 
 			if (showJoints) {
 				for (var i in space.jointHash) {
-					drawHelperJoint(fg.ctx, space.jointHash[i]);
+					drawHelperJointAnchors(fg.ctx, space.jointHash[i]);
 				}
 			}			
 		}		
@@ -1926,6 +2329,10 @@ App = function() {
 		for (var i in space.bodyHash) {
 			drawHelperBodyAxis(ctx, space.bodyHash[i]);
 		}
+		
+		for (var i in space.jointHash) {
+			drawHelperJointAnchors(ctx, space.jointHash[i]);
+		}
 
 		if (selectionMode == SM_VERTICES) {
 			// Draw vertices
@@ -1959,10 +2366,10 @@ App = function() {
 	
 			// Draw selected vertices
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
-				var vertex = selectedFeatureArr[i];
-				var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+				var vertexId = selectedFeatureArr[i];
+				var shape = space.shapeById((vertexId >> 16) & 0xFFFF);
 				if (shape && shape.visible) {
-					var index = vertex & 0xFFFF;
+					var index = vertexId & 0xFFFF;
 					var p = drawHelperShapeVertex(ctx, shape, index, selectionColor);
 					//dirtyBounds.addExtents(p, HELPER_VERTEX_EXTENT, HELPER_VERTEX_EXTENT);
 				}
@@ -1970,22 +2377,22 @@ App = function() {
 
 			// Draw highlighted vertex			
 			for (var i = 0; i < highlightFeatureArr.length; i++) {
-				var vertex = highlightFeatureArr[i];
-				var shape = space.shapeById((vertex >> 16) & 0xFFFF);
+				var vertexId = highlightFeatureArr[i];
+				var shape = space.shapeById((vertexId >> 16) & 0xFFFF);
 				if (shape && shape.visible) {
-					var index = vertex & 0xFFFF;
+					var index = vertexId & 0xFFFF;
 					var p = drawHelperShapeVertex(ctx, shape, index, highlightColor);
 					//dirtyBounds.addExtents(p, HELPER_VERTEX_EXTENT, HELPER_VERTEX_EXTENT);
-				}				
+				}
 			}
 		}
 		else if (selectionMode == SM_EDGES) {
 			// Draw selected edges
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
-				var edge = selectedFeatureArr[i];
-				var shape = space.shapeById((edge >> 16) & 0xFFFF);
+				var edgeId = selectedFeatureArr[i];
+				var shape = space.shapeById((edgeId >> 16) & 0xFFFF);
 				if (shape && shape.visible) {
-					var index1 = edge & 0xFFFF;
+					var index1 = edgeId & 0xFFFF;
 					var index2 = (index1 + 1) % shape.tverts.length;
 					var v1 = shape.tverts[index1];
 					var v2 = shape.tverts[index2];
@@ -1999,10 +2406,10 @@ App = function() {
 
 			// Draw highlighted edges
 			for (var i = 0; i < highlightFeatureArr.length; i++) {
-				var edge = highlightFeatureArr[i];
-				var shape = space.shapeById((edge >> 16) & 0xFFFF);
+				var edgeId = highlightFeatureArr[i];
+				var shape = space.shapeById((edgeId >> 16) & 0xFFFF);
 				if (shape && shape.visible) {
-					var index1 = edge & 0xFFFF;
+					var index1 = edgeId & 0xFFFF;
 					var index2 = (index1 + 1) % shape.tverts.length;
 					var v1 = shape.tverts[index1];
 					var v2 = shape.tverts[index2];
@@ -2059,8 +2466,56 @@ App = function() {
 			}
 		}
 		else if (selectionMode == SM_JOINTS) {
-			for (var i in space.jointHash) {
-				drawHelperJoint(ctx, space.jointHash[i]);
+			// Draw selected joints
+			for (var i = 0; i < selectedFeatureArr.length; i++) {
+				var jointId = selectedFeatureArr[i];
+				var joint = space.jointById((jointId >> 16) & 0xFFFF);
+				
+				if (joint) {
+					drawHelperJoint(ctx, joint);
+				}
+			}
+
+			// Draw highlighted joint
+			for (var i = 0; i < highlightFeatureArr.length; i++) {
+				var jointId = highlightFeatureArr[i];
+				var joint = space.jointById((jointId >> 16) & 0xFFFF);
+				var anchorIndex = jointId & 0xFFFF;
+
+				var body1 = joint.body1;
+				var body2 = joint.body2;
+
+				var color = Color.parse(jointHelperColor);
+				color.channels[3] = 0.2;
+
+				for (var j = 0; j < body1.shapeArr.length; j++) {
+					var shape = body1.shapeArr[j];
+					if (shape.visible) {
+						drawBodyShape(ctx, shape, 1, "", color.rgba());
+						dirtyBounds.addBounds(shape.bounds);
+					}
+				}
+
+				for (var j = 0; j < body2.shapeArr.length; j++) {
+					var shape = body2.shapeArr[j];
+					if (shape.visible) {
+						drawBodyShape(ctx, shape, 1, "", color.rgba());
+						dirtyBounds.addBounds(shape.bounds);
+					}
+				}
+
+				var p1 = joint.getWorldAnchor1();
+				var p2 = joint.getWorldAnchor2();
+				
+				renderer.drawDashLine(ctx, body1.xf.t, p1, 2, 5, jointHelperColor);
+				renderer.drawDashLine(ctx, body2.xf.t, p2, 2, 5, jointHelperColor);
+
+				var p = anchorIndex == 0 ? p1 : p2;
+				renderer.drawCircle(ctx, p, HELPER_JOINT_ANCHOR_RADIUS, undefined, 1, "", jointHelperColor);
+				dirtyBounds.addExtents(p, HELPER_JOINT_ANCHOR_RADIUS, HELPER_JOINT_ANCHOR_RADIUS);
+
+				dirtyBounds.addPoint(p1);
+				dirtyBounds.addPoint(p2);		
 			}
 		}
 
@@ -2197,6 +2652,32 @@ App = function() {
 
 		ctx.restore();
 	}
+
+	function drawHelperJointAnchors(ctx, joint) {
+		var body1 = joint.body1;
+		var body2 = joint.body2;
+
+		var bounds = new Bounds;
+
+		var p1 = joint.getWorldAnchor1();
+		var p2 = joint.getWorldAnchor2();
+
+		renderer.drawCircle(ctx, p1, HELPER_JOINT_ANCHOR_RADIUS, undefined, 1, "", jointAnchorColor);
+		renderer.drawCircle(ctx, p2, HELPER_JOINT_ANCHOR_RADIUS, undefined, 1, "", jointAnchorColor);
+
+		bounds.addExtents(p1, HELPER_JOINT_ANCHOR_RADIUS, HELPER_JOINT_ANCHOR_RADIUS);
+		bounds.addExtents(p2, HELPER_JOINT_ANCHOR_RADIUS, HELPER_JOINT_ANCHOR_RADIUS);
+
+		renderer.drawLine(ctx, p1, p2, 1, jointAnchorColor);
+
+		bounds.addPoint(p1);
+		bounds.addPoint(p2);
+
+		if (!body1.isStatic() || !body2.isStatic()) {
+			bounds.expand(2, 2);
+			dirtyBounds.addBounds(bounds);
+		}
+	}
 	
 	function drawHelperJoint(ctx, joint) {
 		var body1 = joint.body1;
@@ -2204,92 +2685,59 @@ App = function() {
 
 		var bounds = new Bounds;
 
-		if (joint instanceof AngleJoint) {
-			var color = Color.parse(jointHelperColor2);
+		var p1 = joint.getWorldAnchor1();
+		var p2 = joint.getWorldAnchor2();		
+		
+		if (joint.type == Joint.TYPE_REVOLUTE) {
+			var color = Color.parse(jointHelperColor);
 			color.channels[3] = 0.2;
 
-			renderer.drawCircle(ctx, body1.p, HELPER_ANGLE_JOINT_RADIUS, body1.a, 1, jointHelperColor2, color.rgba());
-			renderer.drawCircle(ctx, body2.p, HELPER_ANGLE_JOINT_RADIUS, body2.a, 1, jointHelperColor2, color.rgba());
+			if (joint.limitEnabled) {
+				var a1 = body1.a + joint.limitLowerAngle;
+				var a2 = body1.a + joint.limitUpperAngle;
 
-			renderer.drawCircle(ctx, body1.p, HELPER_JOINT_ANCHOR_EXTENT, undefined, 1, "", jointAnchorColor);
-			renderer.drawCircle(ctx, body2.p, HELPER_JOINT_ANCHOR_EXTENT, undefined, 1, "", jointAnchorColor);
+				renderer.drawArc(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, a1, a2, 1, jointHelperColor, color.rgba());
+			}
+			else {
+				renderer.drawCircle(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, undefined, 1, jointHelperColor, color.rgba());
+			}
 
-			bounds.addExtents(body1.p, HELPER_ANGLE_JOINT_RADIUS, HELPER_ANGLE_JOINT_RADIUS);
-			bounds.addExtents(body2.p, HELPER_ANGLE_JOINT_RADIUS, HELPER_ANGLE_JOINT_RADIUS);
+			renderer.drawLine(ctx, p1, vec2.add(p2, vec2.scale(vec2.rotation(body2.a), HELPER_REVOLUTE_JOINT_RADIUS)), 1, jointHelperColor);
+
+			bounds.addExtents(p1, HELPER_REVOLUTE_JOINT_RADIUS, HELPER_REVOLUTE_JOINT_RADIUS);
 		}
-		else if (joint instanceof MouseJoint) {
-			var p2 = body2.getWorldPoint(joint.anchor2);
-			renderer.drawLine(ctx, mouseBody.p, p2, 1, "#F28");
-			
-			bounds.addPoint(mouseBody.p);
-			bounds.addPoint(p2);
+		else if (joint.type == Joint.TYPE_WELD) {
+			var color = Color.parse(jointHelperColor);
+			color.channels[3] = 0.2;
+
+			var rvec = vec2.rotate(new vec2(HELPER_WELD_JOINT_EXTENT, 0), body1.a);
+			var uvec = vec2.rotate(new vec2(0, HELPER_WELD_JOINT_EXTENT), body1.a);
+
+			renderer.drawBox(ctx, p1, rvec, uvec, 1, jointHelperColor, color.rgba());
+
+			bounds.addExtents(p1, HELPER_WELD_JOINT_EXTENT, HELPER_WELD_JOINT_EXTENT);
 		}
-		else {
-			var p1 = body1.getWorldPoint(joint.anchor1);
-			var p2 = body2.getWorldPoint(joint.anchor2);		
+		else if (joint.type == Joint.TYPE_LINE) {
+			var color = Color.parse(jointHelperColor);
+			color.channels[3] = 0.2;
+			renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_CIRCLE, ARROW_TYPE_CIRCLE, HELPER_LINE_JOINT_RADIUS, 1, jointHelperColor, color.rgba());
 
-			if (!body1.isStatic()) {
-				renderer.drawLine(ctx, body1.xf.t, p1, 2, jointHelperColor);
-			}
+			bounds.addExtents(p1, HELPER_LINE_JOINT_RADIUS, HELPER_LINE_JOINT_RADIUS);
+			bounds.addExtents(p2, HELPER_LINE_JOINT_RADIUS, HELPER_LINE_JOINT_RADIUS);
+		}
+		else if (joint.type == Joint.TYPE_PRISMATIC) {
+			renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_NORMAL, ARROW_TYPE_NORMAL, HELPER_PRISMATIC_JOINT_ARROW_SIZE, 1, jointHelperColor, jointHelperColor);
 
-			if (!body2.isStatic()) {
-				renderer.drawLine(ctx, body2.xf.t, p2, 2, jointHelperColor);
-			}
-
-			if (joint instanceof DistanceJoint) {
-				renderer.drawLine(ctx, p1, p2, 1, jointHelperColor2);
-			}
-			else if (joint instanceof RevoluteJoint) {
-				var color = Color.parse(jointHelperColor2);
-				color.channels[3] = 0.2;
-
-				if (joint.limitEnabled) {
-					var a1 = body1.a + joint.limitLowerAngle;
-					var a2 = body1.a + joint.limitUpperAngle;
-
-					renderer.drawArc(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, a1, a2, 1, jointHelperColor2, color.rgba());
-				}
-				else {
-					renderer.drawCircle(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, undefined, 1, jointHelperColor2, color.rgba());
-				}
-
-				renderer.drawLine(ctx, p1, vec2.add(p2, vec2.scale(vec2.rotation(body2.a), HELPER_REVOLUTE_JOINT_RADIUS)), 2, "#F08");
-
-				bounds.addExtents(p1, HELPER_REVOLUTE_JOINT_RADIUS, HELPER_REVOLUTE_JOINT_RADIUS);
-			}
-			else if (joint instanceof LineJoint) {
-				var color = Color.parse(jointHelperColor2);
-				color.channels[3] = 0.2;
-				renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_CIRCLE, ARROW_TYPE_CIRCLE, HELPER_LINE_JOINT_RADIUS, 1, jointHelperColor2, color.rgba());
-
-				bounds.addExtents(p1, HELPER_LINE_JOINT_RADIUS, HELPER_LINE_JOINT_RADIUS);
-				bounds.addExtents(p2, HELPER_LINE_JOINT_RADIUS, HELPER_LINE_JOINT_RADIUS);
-			}
-			else if (joint instanceof PrismaticJoint) {
-				renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_NORMAL, ARROW_TYPE_NORMAL, HELPER_PRISMATIC_JOINT_ARROW_SIZE, 1, jointHelperColor2, jointHelperColor2);
-
-				bounds.addExtents(p1, HELPER_PRISMATIC_JOINT_ARROW_SIZE, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
-				bounds.addExtents(p2, HELPER_PRISMATIC_JOINT_ARROW_SIZE, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
-			}
-			else if (joint instanceof WeldJoint) {
-				var color = Color.parse(jointHelperColor2);
-				color.channels[3] = 0.2;
-
-				var rvec = vec2.rotate(new vec2(HELPER_WELD_JOINT_EXTENT, 0), body1.a);
-				var uvec = vec2.rotate(new vec2(0, HELPER_WELD_JOINT_EXTENT), body1.a);
-
-				renderer.drawBox(ctx, p1, rvec, uvec, 1, jointHelperColor2, color.rgba());
-
-				bounds.addExtents(p1, HELPER_WELD_JOINT_EXTENT, HELPER_WELD_JOINT_EXTENT);
-			}
-
-			renderer.drawCircle(ctx, p1, HELPER_JOINT_ANCHOR_EXTENT, undefined, 1, "", jointAnchorColor);
-			renderer.drawCircle(ctx, p2, HELPER_JOINT_ANCHOR_EXTENT, undefined, 1, "", jointAnchorColor);
-
-			bounds.addExtents(p1, HELPER_JOINT_ANCHOR_EXTENT, HELPER_JOINT_ANCHOR_EXTENT);
-			bounds.addExtents(p2, HELPER_JOINT_ANCHOR_EXTENT, HELPER_JOINT_ANCHOR_EXTENT);
+			bounds.addExtents(p1, HELPER_PRISMATIC_JOINT_ARROW_SIZE, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
+			bounds.addExtents(p2, HELPER_PRISMATIC_JOINT_ARROW_SIZE, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
 		}		
-
+		else if (joint.type == Joint.TYPE_DISTANCE) {
+			renderer.drawLine(ctx, p1, p2, 1, jointHelperColor);
+		}
+		else if (joint.type == Joint.TYPE_MOUSE) {
+			renderer.drawLine(ctx, p1, p2, 1, "#00F");
+		}		
+		
 		if (!body1.isStatic() || !body2.isStatic()) {
 			bounds.expand(2, 2);
 			dirtyBounds.addBounds(bounds);
@@ -2331,7 +2779,7 @@ App = function() {
 		case SM_BODIES:
 			return feature ? true : false;
 		case SM_JOINTS:
-			return feature ? true : false;
+			return feature != -1 ? true : false;
 		}
 
 		console.log("invalid select mode");
@@ -2354,28 +2802,10 @@ App = function() {
 				return null;
 			}
 
-			return shape.body;			
+			return shape.body;
 		}
 		else if (selectionMode == SM_JOINTS) {
-			var shape = space.findShapeByPoint(p);
-			/*if (shape) {
-				shape.body.findJointByPoint(p);
-				for (var i in shape.body.jointHash)) {
-					var joint = shape.body.jointHash[i];					
-					if (refVertex == -1) {
-						return vertex;
-					}
-
-					if (firstVertex == -1) {
-						firstVertex = vertex;
-					}
-
-					if (vertex == refVertex) {
-						refVertex = -1;
-					}		
-				}
-			}*/
-			return null;
+			return space.findJointByPoint(p, SELECTABLE_POINT_DIST_THREHOLD, selectedFeatureArr[0])
 		}
 
 		console.error("getFeatureByPoint");
@@ -2419,10 +2849,10 @@ App = function() {
 			var center = new vec2(0, 0);
 
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
-				var vertex = selectedFeatureArr[i];
-				var shape = space.shapeById((vertex >> 16) & 0xFFFF);
-				var index = vertex & 0xFFFF;
-				var v = shape.tverts[index];
+				var vertexId = selectedFeatureArr[i];
+				var shape = space.shapeById((vertexId >> 16) & 0xFFFF);
+				var index = vertexId & 0xFFFF;
+				var v = getShapeVertex(shape, index);
 
 				center.addself(v);
 			}
@@ -2434,12 +2864,11 @@ App = function() {
 			var center = new vec2(0, 0);
 
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
-				var edge = selectedFeatureArr[i];
-				var shape = space.shapeById((edge >> 16) & 0xFFFF);
-				var index1 = edge & 0xFFFF;
-				var index2 = (index1 + 1) % shape.tverts.length;
-				var v1 = shape.tverts[index1];
-				var v2 = shape.tverts[index2];
+				var edgeId = selectedFeatureArr[i];
+				var shape = space.shapeById((edgeId >> 16) & 0xFFFF);
+				var index = edgeId & 0xFFFF;
+				var v1 = getShapeVertex(shape, index);
+				var v2 = getShapeVertex(shape, index + 1);
 
 				center.addself(vec2.lerp(v1, v2, 0.5));
 			}
@@ -2467,6 +2896,25 @@ App = function() {
 				var body = selectedFeatureArr[i];
 
 				center.addself(body.xf.t);
+			}
+
+			center.scale(1 / selectedFeatureArr.length);
+			transformCenter.copy(center);
+		}
+		else if (selectionMode == SM_JOINTS) {
+			var center = new vec2(0, 0);
+
+			for (var i = 0; i < selectedFeatureArr.length; i++) {
+				var jointId = selectedFeatureArr[i];
+				var joint = space.jointById((jointId >> 16) & 0xFFFF);
+				var anchorIndex = jointId & 0xFFFF;
+
+				if (anchorIndex == 0) {
+					center.addself(joint.getWorldAnchor1());
+				}
+				else {
+					center.addself(joint.getWorldAnchor2());
+				}
 			}
 
 			center.scale(1 / selectedFeatureArr.length);
@@ -2553,6 +3001,7 @@ App = function() {
 			var shape = space.findShapeByPoint(p);
 			if (shape) {
 				mouseBody.p.copy(p);
+				mouseBody.syncTransform();
 				mouseJoint = new MouseJoint(mouseBody, shape.body, p);
 				mouseJoint.maxForce = shape.body.m * 20000;
 				space.addJoint(mouseJoint);
@@ -2613,6 +3062,7 @@ App = function() {
 			if (mouseDown) {
 				if (mouseJoint) {
 					mouseBody.p.copy(canvasToWorld(mousePosition));
+					mouseBody.syncTransform();
 				}
 				else {
 					var dx = mousePosition.x - mousePositionOld.x;
@@ -2671,8 +3121,8 @@ App = function() {
 						var shape = space.shapeById(shape_id);
 						
 						for (var i = 0; i < shape.tverts.length; i++) {
-							var vertex = (shape_id << 16) | i;
-							selectedFeatureArr.push(vertex);
+							var vertexId = (shape_id << 16) | i;
+							selectedFeatureArr.push(vertexId);
 						}
 					}
 					else if (selectionMode == SM_EDGES) {
@@ -2680,8 +3130,8 @@ App = function() {
 						var shape = space.shapeById(shape_id);
 						
 						for (var i = 0; i < shape.tverts.length; i++) {
-							var vertex = (shape_id << 16) | i;
-							selectedFeatureArr.push(vertex);
+							var vertexId = (shape_id << 16) | i;
+							selectedFeatureArr.push(vertexId);
 						}
 					}
 					else if (selectionMode == SM_SHAPES) {
@@ -2802,8 +3252,7 @@ App = function() {
 		}
 	}
 
-	function onTouchEnd(ev) {
-		
+	function onTouchEnd(ev) {		
 	}
 
 	function onGestureStart(ev) {
@@ -2855,7 +3304,7 @@ App = function() {
 				onDelete();
 				ev.preventDefault();
 			}
-			break;		
+			break;
 		case 81: // 'q'
 			if (editorEnabled) {
 				onClickedEditMode("select");
@@ -2891,25 +3340,7 @@ App = function() {
 					ev.preventDefault();
 				}
 			}
-			break;
-		case 66: // 'b'
-			if (editorEnabled) {
-				onClickedEditMode("create_box");
-				ev.preventDefault();
-			}
-			break;
-		case 67: // 'c'
-			if (editorEnabled) {
-				onClickedEditMode("create_circle");
-				ev.preventDefault();
-			}
-			break;
-		case 80: // 'p'
-		if (editorEnabled) {
-				onClickedEditMode("create_poly");
-				ev.preventDefault();
-			}
-			break;
+			break;		
 		case 74: // 'j'
 			break;	
 		case 49: // '1'
@@ -2947,9 +3378,9 @@ App = function() {
 
 	function onChangedVertexPositionX(value) {
 		if (selectedFeatureArr.length == 1) {		
-			var vertex = selectedFeatureArr[0];
-			var shape = space.shapeById((vertex >> 16) & 0xFFFF);
-			var index = vertex & 0xFFFF;
+			var vertexId = selectedFeatureArr[0];
+			var shape = space.shapeById((vertexId >> 16) & 0xFFFF);
+			var index = vertexId & 0xFFFF;
 
 			var v = getShapeVertex(shape, index);
 
@@ -2957,16 +3388,15 @@ App = function() {
 			
 			shape.finishVerts();
 			shape.body.resetMassData();
-			shape.body.syncTransform();
 			shape.body.cacheData();
 		}
 	}
 
 	function onChangedVertexPositionY(value) {
 		if (selectedFeatureArr.length == 1) {		
-			var vertex = selectedFeatureArr[0];
-			var shape = space.shapeById((vertex >> 16) & 0xFFFF);
-			var index = vertex & 0xFFFF;
+			var vertexId = selectedFeatureArr[0];
+			var shape = space.shapeById((vertexId >> 16) & 0xFFFF);
+			var index = vertexId & 0xFFFF;
 
 			var v = getShapeVertex(shape, index);
 
@@ -2974,33 +3404,31 @@ App = function() {
 
 			shape.finishVerts();
 			shape.body.resetMassData();
-			shape.body.syncTransform();
 			shape.body.cacheData();
 		}
 	}
 
 	function onChangedEdgePositionX(offset, value) {
 		if (selectedFeatureArr.length == 1) {		
-			var edge = selectedFeatureArr[0];
-			var shape = space.shapeById((edge >> 16) & 0xFFFF);
-			var index = (edge & 0xFFFF) + offset;
+			var edgeId = selectedFeatureArr[0];
+			var shape = space.shapeById((edgeId >> 16) & 0xFFFF);
+			var index = (edgeId & 0xFFFF) + offset;
 
 			var v = getShapeVertex(shape, index);
 
 			setShapeVertex(shape, index, new vec2(parseFloat(value), v.y));
 
 			shape.finishVerts();
-			shape.body.resetMassData();
-			shape.body.syncTransform();
-			shape.body.cacheData();			
+			shape.body.resetMassData();			
+			shape.body.cacheData();
 		}
 	}
 
 	function onChangedEdgePositionY(offset, value) {
 		if (selectedFeatureArr.length == 1) {		
-			var edge = selectedFeatureArr[0];
-			var shape = space.shapeById((edge >> 16) & 0xFFFF);
-			var index = (edge & 0xFFFF) + offset;
+			var edgeId = selectedFeatureArr[0];
+			var shape = space.shapeById((edgeId >> 16) & 0xFFFF);
+			var index = (edgeId & 0xFFFF) + offset;
 
 			var v = getShapeVertex(shape, index);
 
@@ -3008,7 +3436,6 @@ App = function() {
 
 			shape.finishVerts();
 			shape.body.resetMassData();
-			shape.body.syncTransform();
 			shape.body.cacheData();
 		}
 	}
@@ -3020,7 +3447,6 @@ App = function() {
 
 			shape.finishVerts();
 			shape.body.resetMassData();
-			shape.body.syncTransform();
 			shape.body.cacheData();			
 		}
 	}
@@ -3068,6 +3494,7 @@ App = function() {
 			var body = selectedFeatureArr[0];			
 			var p = new vec2(parseFloat(value), body.xf.t.y);
 			body.setTransform(p, body.a);
+			body.resetJointAnchors();
 			body.cacheData();
 		}
 	}
@@ -3077,7 +3504,8 @@ App = function() {
 			var body = selectedFeatureArr[0];			
 			var p = new vec2(body.xf.t.x, parseFloat(value));
 			body.setTransform(p, body.a);
-			body.cacheData();
+			body.resetJointAnchors();
+			body.cacheData();			
 		}
 	}
 
@@ -3085,6 +3513,7 @@ App = function() {
 		if (selectedFeatureArr.length == 1) {
 			var body = selectedFeatureArr[0];
 			body.setTransform(body.xf.t, deg2rad(parseFloat(value)));
+			body.resetJointAnchors();
 			body.cacheData();
 		}
 	}
@@ -3101,23 +3530,147 @@ App = function() {
 				}
 
 				body.resetMassData();
-				body.cacheData();
 
 				updateSidebar();
 			}
 		}
 	}
 
-	function onChangedJointBody1(value) {
-
+	function onChangedJointBody(anchorIndex, value) {
+		if (selectedFeatureArr.length == 1) {		
+			var joint = selectedFeatureArr[0];	
+		}
 	}
 
-	function onChangedJointBody2(value) {
-		
+	function onChangedJointAnchorPositionX(value) {
+		if (selectedFeatureArr.length == 1) {
+			var jointId = selectedFeatureArr[0];
+			var joint = space.jointById((jointId >> 16) & 0xFFFF);
+			var anchorIndex = jointId & 0xFFFF;
+
+			if (anchorIndex == 0) {
+				var anchor = joint.getWorldAnchor1();
+				anchor.x = parseFloat(value);
+				joint.setWorldAnchor1(anchor);
+			}
+			else {
+				var anchor = joint.getWorldAnchor2();
+				anchor.x = parseFloat(value);
+				joint.setWorldAnchor2(anchor);
+			}
+		}
+	}
+
+	function onChangedJointAnchorPositionY(value) {
+		if (selectedFeatureArr.length == 1) {		
+			var jointId = selectedFeatureArr[0];
+			var joint = space.jointById((jointId >> 16) & 0xFFFF);
+			var anchorIndex = jointId & 0xFFFF;
+
+			if (anchorIndex == 0) {
+				var anchor = joint.getWorldAnchor1();
+				anchor.y = parseFloat(value);
+				joint.setWorldAnchor1(anchor);
+			}
+			else {
+				var anchor = joint.getWorldAnchor2();
+				anchor.y = parseFloat(value);
+				joint.setWorldAnchor2(anchor);
+			}
+		}
+	}
+
+	function onChangedJointMaxForce(value) {
+		if (selectedFeatureArr.length == 1) {			
+			var jointId = selectedFeatureArr[0];
+			var joint = space.jointById((jointId >> 16) & 0xFFFF);
+			console.log(value);
+			joint.maxForce = parseFloat(value);
+		}
 	}
 
 	function onClickedJointCollideConnected() {
-		
+		if (selectedFeatureArr.length == 1) {
+			var jointId = selectedFeatureArr[0];
+			var joint = space.jointById((jointId >> 16) & 0xFFFF);
+			joint.collideConnected = !joint.collideConnected;
+		}
+	}
+
+	function onClickedJointBreakable() {
+		if (selectedFeatureArr.length == 1) {
+			var jointId = selectedFeatureArr[0];
+			var joint = space.jointById((jointId >> 16) & 0xFFFF);			
+			joint.breakable = !joint.breakable;
+		}
+	}
+
+	function onClickedJointEnableLimit() {
+		if (selectedFeatureArr.length == 1) {
+			var jointId = selectedFeatureArr[0];
+			var joint = space.jointById((jointId >> 16) & 0xFFFF);
+			joint.limitEnabled = !joint.limitEnabled;
+
+			updateSidebar();
+		}
+	}
+
+	function onChangedJointLimitLowerAngle(value) {
+		if (selectedFeatureArr.length == 1) {			
+			var jointId = selectedFeatureArr[0];
+			var joint = space.jointById((jointId >> 16) & 0xFFFF);
+			joint.limitLowerAngle = deg2rad(parseFloat(value));
+		}
+	}
+
+	function onChangedJointLimitUpperAngle(value) {
+		if (selectedFeatureArr.length == 1) {			
+			var jointId = selectedFeatureArr[0];
+			var joint = space.jointById((jointId >> 16) & 0xFFFF);
+			joint.limitUpperAngle = deg2rad(parseFloat(value));
+		}
+	}
+
+	function onClickedJointEnableMotor() {
+		if (selectedFeatureArr.length == 1) {
+			var jointId = selectedFeatureArr[0];
+			var joint = space.jointById((jointId >> 16) & 0xFFFF);
+			joint.motorEnabled = !joint.motorEnabled;
+
+			updateSidebar();
+		}
+	}
+
+	function onChangedJointMotorSpeed(value) {
+		if (selectedFeatureArr.length == 1) {			
+			var jointId = selectedFeatureArr[0];
+			var joint = space.jointById((jointId >> 16) & 0xFFFF);
+			joint.motorSpeed = parseFloat(value);
+		}
+	}
+
+	function onChangedJointMaxMotorTorque(value) {
+		if (selectedFeatureArr.length == 1) {			
+			var jointId = selectedFeatureArr[0];
+			var joint = space.jointById((jointId >> 16) & 0xFFFF);
+			joint.maxMotorTorque = parseFloat(value);
+		}
+	}
+
+	function onChangedJointSpringFrequencyHz(value) {
+		if (selectedFeatureArr.length == 1) {			
+			var jointId = selectedFeatureArr[0];
+			var joint = space.jointById((jointId >> 16) & 0xFFFF);
+			joint.setSpringFrequencyHz(parseFloat(value));
+		}
+	}
+
+	function onChangedJointSpringDampingRatio(value) {
+		if (selectedFeatureArr.length == 1) {			
+			var jointId = selectedFeatureArr[0];
+			var joint = space.jointById((jointId >> 16) & 0xFFFF);
+			joint.setSpringDampingRatio(parseFloat(value));
+		}
 	}
 
 	function onChangedGravity(value) {
@@ -3229,9 +3782,13 @@ App = function() {
 
 	function onClickedEditMode(value) {
 		editMode = { create_circle: EM_CREATE_CIRCLE, create_triangle: EM_CREATE_TRIANGLE, create_box: EM_CREATE_BOX, create_hexagon: EM_CREATE_HEXAGON, create_poly: EM_CREATE_POLY,
-			create_revolute_joint: EM_CREATE_REVOLUTE_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT, create_line_joint: EM_CREATE_LINE_JOINT,
-			create_weld_joint: EM_CREATE_WELD_JOINT, create_angle_joint: EM_CREATE_ANGLE_JOINT,
+			create_angle_joint: EM_CREATE_ANGLE_JOINT, create_revolute_joint: EM_CREATE_REVOLUTE_JOINT, create_weld_joint: EM_CREATE_WELD_JOINT, 
+			create_line_joint: EM_CREATE_LINE_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT,
 			select: EM_SELECT, translate: EM_TRANSLATE, rotate: EM_ROTATE, scale: EM_SCALE }[value];
+
+		editModeEventArr[editMode].init();
+
+		highlightFeatureArr = [];
 
 		updateSidebar();
 
@@ -3251,7 +3808,6 @@ App = function() {
 		body.removeShape(shape);
 		if (body.shapeArr.length != 0) {
 			body.resetMassData();
-			body.syncTransform();
 			body.cacheData();
 		}
 		else {
@@ -3265,16 +3821,15 @@ App = function() {
 			selectedFeatureArr.sort(function(a, b) { return (b & 0xFFFF) - (a & 0xFFFF); });
 
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
-				var vertex = selectedFeatureArr[i];
-				var shape = space.shapeById((vertex >> 16) & 0xFFFF);
-				var index = vertex & 0xFFFF;
+				var vertexId = selectedFeatureArr[i];
+				var shape = space.shapeById((vertexId >> 16) & 0xFFFF);
+				var index = vertexId & 0xFFFF;
 
 				if (shape.type == Shape.TYPE_POLY) {
 					shape.verts.splice(index, 1);
 
 					shape.finishVerts();
 					shape.body.resetMassData();
-					shape.body.syncTransform();
 					shape.body.cacheData();	
 				}
 				
@@ -3289,17 +3844,16 @@ App = function() {
 			selectedFeatureArr.sort(function(a, b) { return (b & 0xFFFF) - (a & 0xFFFF); });
 
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
-				var edge = selectedFeatureArr[i];
-				var shape = space.shapeById((edge >> 16) & 0xFFFF);				
+				var edgeId = selectedFeatureArr[i];
+				var shape = space.shapeById((edgeId >> 16) & 0xFFFF);				
 
 				if (shape.type == Shape.TYPE_POLY) {
-					var index = edge & 0xFFFF;
+					var index = edgeId & 0xFFFF;
 
 					shape.verts.splice(index, 1);
 
 					shape.finishVerts();
 					shape.body.resetMassData();
-					shape.body.syncTransform();
 					shape.body.cacheData();	
 				}
 				
@@ -3324,7 +3878,12 @@ App = function() {
 			}
 		}
 		else if (selectionMode == SM_JOINTS) {
-			
+			for (var i = 0; i < selectedFeatureArr.length; i++) {
+				var jointId = selectedFeatureArr[i];
+				var joint = space.jointById((jointId >> 16) & 0xFFFF);				
+				space.removeJoint(joint);
+				delete joint;
+			}
 		}
 
 		selectedFeatureArr = [];
@@ -3341,8 +3900,8 @@ App = function() {
 			var addedCount = 0;
 
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
-				var edge = selectedFeatureArr[i];
-				var shape_id = (edge >> 16) & 0xFFFF;
+				var edgeId = selectedFeatureArr[i];
+				var shape_id = (edgeId >> 16) & 0xFFFF;
 				var shape = space.shapeById(shape_id);
 
 				if (shape_id != prev_shape_id) {
@@ -3350,7 +3909,7 @@ App = function() {
 				}
 
 				if (shape.type == Shape.TYPE_POLY) {
-					var index1 = (edge & 0xFFFF) + addedCount;
+					var index1 = (edgeId & 0xFFFF) + addedCount;
 					var index2 = index1 + 1;
 
 					var new_vert = vec2.lerp(shape.verts[index1], shape.verts[index2 % shape.verts.length], 0.5);
@@ -3360,11 +3919,11 @@ App = function() {
 					shape.finishVerts();
 					shape.body.cacheData();
 
-					var new_edge1 = (shape.id << 16) | index1;
-					var new_edge2 = (shape.id << 16) | index2;
+					var newEdgeId1 = (shape.id << 16) | index1;
+					var newEdgeId2 = (shape.id << 16) | index2;
 
-					new_selectedFeatureArr.push(new_edge1);
-					new_selectedFeatureArr.push(new_edge2);
+					new_selectedFeatureArr.push(newEdgeId1);
+					new_selectedFeatureArr.push(newEdgeId2);
 
 					addedCount++;
 				}		

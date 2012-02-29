@@ -88,30 +88,33 @@
   </div>
   <div style="display:table; width:100%; height:100%">
   <div id="sidebar">
-    <div id="editmode_pannel" style="height:200px">      
-      <div class="btn_group">
+    <div id="editmode_pannel" style="height:230px">      
+      <span style="line-height:18px">Create Body</span>
+      <div class="btn_group">  
         <button type="button" class="btn segment" name="editmode" value="create_circle" style="width:60px; height:30px">Circle</button>
         <button type="button" class="btn segment" name="editmode" value="create_triangle" style="width:60px; height:30px">Triangle</button>
         <button type="button" class="btn segment" name="editmode" value="create_box" style="width:60px; height:30px">Box</button>
         <button type="button" class="btn segment" name="editmode" value="create_hexagon" style="width:60px; height:30px">Hexagon</button>        
       </div>
-      <div style="margin-top:3px"></div>
+      <div style="margin-top:5px"></div>
       <div class="btn_group">
         <button type="button" class="btn segment" name="editmode" value="create_poly" style="width:60px; height:30px">Polygon</button>
-      </div>
-      <div style="margin-top:3px"></div>
+      </div>      
+      <div style="margin-top:5px"></div>
+      <span style="line-height:18px">Create Joint</span>
       <div class="btn_group">
-        <button type="button" class="btn segment" name="editmode" value="create_revolute_joint" style="width:60px; height:30px">Revolute</button>
-        <button type="button" class="btn segment" name="editmode" value="create_distance_joint" style="width:60px; height:30px">Distance</button>
-        <button type="button" class="btn segment" name="editmode" value="create_prismatic_joint" style="width:60px; height:30px">Prismatic</button>
-        <button type="button" class="btn segment" name="editmode" value="create_line_joint" style="width:60px; height:30px">Line</button>
-      </div>
-      <div style="margin-top:3px"></div>
-      <div class="btn_group">
-        <button type="button" class="btn segment" name="editmode" value="create_weld_joint" style="width:60px; height:30px">Weld</button>
         <button type="button" class="btn segment" name="editmode" value="create_angle_joint" style="width:60px; height:30px">Angle</button>
+        <button type="button" class="btn segment" name="editmode" value="create_revolute_joint" style="width:60px; height:30px">Revolute</button>        
+        <button type="button" class="btn segment" name="editmode" value="create_weld_joint" style="width:60px; height:30px">Weld</button>        
       </div>
-      <div style="margin-top:3px"></div>
+      <div style="margin-top:5px"></div>
+      <div class="btn_group">
+        <button type="button" class="btn segment" name="editmode" value="create_line_joint" style="width:60px; height:30px">Line</button>
+        <button type="button" class="btn segment" name="editmode" value="create_prismatic_joint" style="width:60px; height:30px">Prismatic</button>
+        <button type="button" class="btn segment" name="editmode" value="create_distance_joint" style="width:60px; height:30px">Distance</button>        
+      </div>      
+      <div style="margin-top:5px"></div>
+      <span style="line-height:18px">Transform</span>      
       <div class="btn_group">
         <button type="button" class="btn segment" name="editmode" value="select" style="width:60px; height:30px">Select</button>
         <button type="button" class="btn segment" name="editmode" value="translate" style="width:60px; height:30px">Translate</button>
@@ -122,55 +125,29 @@
     <div id="vertex_inspector" class="pannel">
       <span class="title">Vertex Inspector</span>
       <ul>
-        <li>
-          <label for="index">Index</label> <input type="number" name="index" readonly="true" />
-        </li>
-        <li>
-          <label for="position_x">Position X</label> <input type="number" name="position_x" />
-        </li>
-        <li>
-          <label for="position_y">Y</label> <input type="number" name="position_y" />
-        </li>
+        <li><label for="index">Index</label> <input type="number" name="index" readonly="true" /></li>
+        <li><label for="position_x">Position X</label> <input type="number" name="position_x" /></li>
+        <li><label for="position_y">Y</label> <input type="number" name="position_y" /></li>
       </ul>
     </div>
     <div id="edge_inspector" class="pannel">
       <span class="title">Edge Inspector</span>
       <ul>
-        <li>
-          <label for="index">Index</label> <input type="number" name="index" readonly="true" />
-        </li>
-        <li>
-          <label for="v1_position_x">V1 Position X</label> <input type="number" name="v1_position_x" />
-        </li>
-        <li>
-          <label for="v1_position_y">Y</label> <input type="number" name="v1_position_y" />
-        </li>
-        <li>
-          <label for="v2_position_x">V2 Position X</label> <input type="number" name="v2_position_x" />
-        </li>
-        <li>
-          <label for="v2_position_y">Y</label> <input type="number" name="v2_position_y" />
-        </li>
+        <li><label for="index">Index</label> <input type="number" name="index" readonly="true" /></li>
+        <li><label for="v1_position_x">V1 Position X</label> <input type="number" name="v1_position_x" /></li>
+        <li><label for="v1_position_y">Y</label> <input type="number" name="v1_position_y" /></li>
+        <li><label for="v2_position_x">V2 Position X</label> <input type="number" name="v2_position_x" /></li>
+        <li><label for="v2_position_y">Y</label> <input type="number" name="v2_position_y" /></li>
       </ul>
     </div>
     <div id="shape_inspector" class="pannel">
       <span class="title">Shape Inspector</span>
       <ul>
-        <li>
-          <label for="type">Type</label> <input type="edit" name="type" readonly="true" />
-        </li>
-        <li>
-          <label for="radius">Radius</label> <input type="number" name="radius" />
-        </li>
-        <li>
-          <label for="density">Density</label> <input type="number" name="density" min="0.0000001" max="1" step="0.001" />
-        </li>
-        <li>
-          <label for="restitution">Restitution</label> <input type="number" name="restitution" min="0" max="1" step="0.05" />
-        </li>
-        <li>
-          <label for="friction">Friction</label> <input type="number" name="friction" min="0" max="1" step="0.05" />
-        </li>        
+        <li><label for="type">Type</label> <input type="edit" name="type" readonly="true" /></li>
+        <li><label for="radius">Radius</label> <input type="number" name="radius" /></li>
+        <li><label for="density">Density</label> <input type="number" name="density" min="0.0000001" max="1" step="0.001" /></li>
+        <li><label for="restitution">Restitution</label> <input type="number" name="restitution" min="0" max="1" step="0.05" /></li>
+        <li><label for="friction">Friction</label> <input type="number" name="friction" min="0" max="1" step="0.05" /></li>        
       </ul>
     </div>
     <div id="body_inspector" class="pannel">
@@ -183,41 +160,33 @@
             <option>Dynamic</option>
           </select>
         </li>
-        <li>
-          <label for="name">Name</label> <input type="edit" name="name" />
-        </li>        
-        <li>
-          <label for="position_x">Position X</label> <input type="number" name="position_x" />
-        </li>
-        <li>
-          <label for="position_y">Y</label> <input type="number" name="position_y" />
-        </li>
-        <li>
-          <label for="rotation">Angle</label> <input type="number" name="angle" step="10" />
-        </li>
-        <li>
-          <label for="mass">Mass</label> <input type="number" name="mass" min="0" step="0.1" />
-        </li>
-        <li>
-          <label for="inertia">Inertia</label> <input type="number" name="inertia" readonly="true" />
-        </li>
+        <li><label for="name">Name</label> <input type="edit" name="name" /></li>        
+        <li><label for="position_x">Position X</label> <input type="number" name="position_x" /></li>
+        <li><label for="position_y">Y</label> <input type="number" name="position_y" /></li>
+        <li><label for="rotation">Angle</label> <input type="number" name="angle" step="10" /></li>
+        <li><label for="mass">Mass</label> <input type="number" name="mass" min="0" step="0.1" /></li>
+        <li><label for="inertia">Inertia</label> <input type="number" name="inertia" readonly="true" /></li>
       </ul>
     </div>
     <div id="joint_inspector" class="pannel">
       <span class="title">Joint Inspector</span>
       <ul>
-        <li>
-          <label for="type">Type</label> <input type="edit" name="type" readonly="true" />
-        </li>
-        <li>
-          <label for="body1">Body1</label> <input type="edit" name="body1" />
-        </li>
-        <li>
-          <label for="body2">Body2</label> <input type="edit" name="body2" />
-        </li>
-        <li>
-          <input type="checkbox" name="collideConnected" />CollideConnected
-        </li>
+        <li><label for="type">Type</label> <input type="edit" name="type" readonly="true" /></li>
+        <li><label for="body1">Anchor1 Body</label> <input type="edit" name="body1" readonly="true" /></li>
+        <li><label for="body2">Anchor2 Body</label> <input type="edit" name="body2" readonly="true" /></li>
+        <li><label for="anchor_position_x">Anchor Position X</label> <input type="number" name="anchor_position_x" /></li>
+        <li><label for="anchor_position_y">Y</label> <input type="number" name="anchor_position_y" /></li>
+        <li><label for="max_force">Max Force</label> <input type="number" name="max_force" /></li>
+        <li><label for="breakable">Breakable</label> <input type="checkbox" name="breakable" /></li>
+        <li><label for="collide_connected">CollideConnected</label> <input type="checkbox" name="collide_connected" /></li>
+        <li><label for="enable_limit">Enable Limit</label> <input type="checkbox" name="enable_limit" /></li>
+        <li><label for="limit_lower_angle">Lower Limit Angle</label> <input type="number" name="limit_lower_angle" min="-360" max="360" step="1" /></li>
+        <li><label for="limit_upper_angle">Upper Limit Angle</label> <input type="number" name="limit_upper_angle" min="-360" max="360" step="1" /></li>
+        <li><label for="enable_motor">Enable Motor</label> <input type="checkbox" name="enable_motor" /></li>
+        <li><label for="mortor_speed">Motor Speed</label> <input type="number" name="motor_speed" /></li>
+        <li><label for="max_mortor_torque">Max Motor Torque</label> <input type="number" name="max_motor_torque" /></li>
+        <li><label for="spring_frequency_hz">Spring Frequency</label> <input type="number" name="spring_frequency_hz" min="0" /></li>
+        <li><label for="spring_damping_ratio">Spring Damping Ratio</label> <input type="number" name="spring_damping_ratio" min="0" step="0.1" /></li>
       </ul>
     </div>
   </div>
@@ -243,11 +212,23 @@
         <input type="checkbox" id="showStats" />Show statistics<br />      
       </div>
     </div>    
-  </div>  
+  </div>
   <div id="help">
-    <h3>2D</h3>
-    <strong>2D</strong>
-    Programmed by Lee Ju Hyung (<a href="http://twitter.com/juhlnet">twitter.com/juhlnet</a>)
+    <div style="text-align:center"><h3>Pecanpie</h3></div>
+    Shortcut
+    <ul>
+      <li>q : Select</li>
+      <li>w : Translate</li>
+      <li>e : Rotate</li>
+      <li>r : Scale</li>
+      <li>1 : Vertices selection mode</li>
+      <li>2 : Edges selection mode</li>
+      <li>3 : Shapes selection mode</li>
+      <li>4 : Bodies selection mode</li>
+      <li>5 : Joints selection mode</li>
+      <li>Ctrl + E : Switch editor/simulator</li>
+    </ul>
+    <div style="text-align:right">Programmed by Lee Ju Hyung (<a href="http://twitter.com/juhlnet">twitter.com/juhlnet</a>)</div>
   </div>
   </div>
 </body>

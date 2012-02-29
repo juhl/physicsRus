@@ -67,7 +67,8 @@ DemoCar = function() {
 		space.addBody(body2);
 
 		var joint = new DistanceJoint(body1, body2, new vec2(-425, 268), new vec2(-425, 245));
-		joint.setSpringCoeffs(12, 0.1);
+		joint.setSpringFrequencyHz(12);
+		joint.setSpringDampingRatio(0.1);
 		joint.collideConnected = false;
 		space.addJoint(joint);
 
@@ -89,7 +90,8 @@ DemoCar = function() {
 		space.addBody(body3);
 
 		var joint = new DistanceJoint(body1, body3, new vec2(-375, 268), new vec2(-375, 245));
-		joint.setSpringCoeffs(12, 0.1);
+		joint.setSpringFrequencyHz(12)
+		joint.setSpringDampingRatio(0.1);
 		joint.collideConnected = false;
 		space.addJoint(joint);
 

@@ -16,17 +16,17 @@
 //-------------------------------------------------------------------------------------------------
 
 LineJoint = function(body1, body2, anchor1, anchor2) {
-	Joint.call(this, body1, body2, true);
+	Joint.call(this, Joint.TYPE_LINE, body1, body2, true);
 
 	// Local anchor points
-	this.anchor1 = body1.getLocalPoint(anchor1);
-	this.anchor2 = body2.getLocalPoint(anchor2);
+	this.anchor1 = this.body1.getLocalPoint(anchor1);
+	this.anchor2 = this.body2.getLocalPoint(anchor2);
 
 	var d = vec2.sub(anchor2, anchor1);
 
-   	// Body1's local line normal
-   	this.n_local = body1.getLocalVector(vec2.normalize(vec2.perp(d)));
-
+	// Body1's local line normal
+	this.n_local = this.body1.getLocalVector(vec2.normalize(vec2.perp(d)));	
+	
    	// Accumulated impulse
 	this.lambda_acc = 0;
 	this.motorLambda_acc = 0;
@@ -40,9 +40,25 @@ LineJoint = function(body1, body2, anchor1, anchor2) {
 LineJoint.prototype = new Joint;
 LineJoint.prototype.constructor = LineJoint;
 
+LineJoint.prototype.setWorldAnchor1 = function(anchor1) {
+	this.anchor1 = this.body1.getLocalPoint(anchor1);
+
+	var d = vec2.sub(this.getWorldAnchor2(), anchor1);
+
+	this.n_local = this.body1.getLocalVector(vec2.normalize(vec2.perp(d)));
+}
+
+LineJoint.prototype.setWorldAnchor2 = function(anchor2) {
+	this.anchor2 = this.body2.getLocalPoint(anchor2);
+
+	var d = vec2.sub(anchor2, this.getWorldAnchor1());
+
+	this.n_local = this.body1.getLocalVector(vec2.normalize(vec2.perp(d)));
+}
+
 LineJoint.prototype.serialize = function() {
 	return {
-		"type": "line",
+		"type": "LineJoint",
 		"body1": this.body1.id, 
 		"body2": this.body2.id,
 		"anchor1": this.body1.getWorldPoint(this.anchor1),

@@ -20,10 +20,10 @@
 //-------------------------------------------------------------------------------------------------
 
 RevoluteJoint = function(body1, body2, anchor) {
-	Joint.call(this, body1, body2, true);
+	Joint.call(this, Joint.TYPE_REVOLUTE, body1, body2, false);	
 
-	this.anchor1 = body1.getLocalPoint(anchor);
-	this.anchor2 = body2.getLocalPoint(anchor);
+	this.anchor1 = this.body1.getLocalPoint(anchor);
+	this.anchor2 = this.body2.getLocalPoint(anchor);
 
 	// Initial angle difference
 	this.refAngle = body2.a - body1.a;
@@ -47,10 +47,20 @@ RevoluteJoint = function(body1, body2, anchor) {
 RevoluteJoint.prototype = new Joint;
 RevoluteJoint.prototype.constructor = RevoluteJoint;
 
+RevoluteJoint.prototype.setWorldAnchor1 = function(anchor1) {
+	this.anchor1 = this.body1.getLocalPoint(anchor1);
+	this.anchor2 = this.body2.getLocalPoint(anchor1);
+}
+
+RevoluteJoint.prototype.setWorldAnchor2 = function(anchor2) {
+	this.anchor1 = this.body1.getLocalPoint(anchor2);
+	this.anchor2 = this.body2.getLocalPoint(anchor2);	
+}
+
 RevoluteJoint.prototype.serialize = function() {
 	return {
-		"type": "revolute",
-		"body1": this.body1.id, 
+		"type": "RevoluteJoint",
+		"body1": this.body1.id,
 		"body2": this.body2.id,
 		"anchor": this.body1.getWorldPoint(this.anchor1),
 		"collideConnected": this.collideConnected,

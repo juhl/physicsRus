@@ -20,10 +20,10 @@
 //-------------------------------------------------------------------------------------------------
 
 WeldJoint = function(body1, body2, anchor) {
-	Joint.call(this, body1, body2, true);
-
-	this.anchor1 = body1.getLocalPoint(anchor);
-	this.anchor2 = body2.getLocalPoint(anchor);
+	Joint.call(this, Joint.TYPE_WELD, body1, body2, true);
+	
+	this.anchor1 = this.body1.getLocalPoint(anchor);
+	this.anchor2 = this.body2.getLocalPoint(anchor);
 
 	// Accumulated lambda
 	this.lambda_acc = new vec3(0, 0, 0);
@@ -32,9 +32,19 @@ WeldJoint = function(body1, body2, anchor) {
 WeldJoint.prototype = new Joint;
 WeldJoint.prototype.constructor = WeldJoint;
 
+WeldJoint.prototype.setWorldAnchor1 = function(anchor1) {
+	this.anchor1 = this.body1.getLocalPoint(anchor1);
+	this.anchor2 = this.body2.getLocalPoint(anchor1);
+}
+
+WeldJoint.prototype.setWorldAnchor2 = function(anchor2) {
+	this.anchor1 = this.body1.getLocalPoint(anchor2);
+	this.anchor2 = this.body2.getLocalPoint(anchor2);	
+}
+
 WeldJoint.prototype.serialize = function() {
 	return {
-		"type": "weld",
+		"type": "WeldJoint",
 		"body1": this.body1.id, 
 		"body2": this.body2.id,
 		"anchor1": this.body1.getWorldPoint(this.anchor1),

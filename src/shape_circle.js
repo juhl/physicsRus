@@ -25,7 +25,7 @@ ShapeCircle.prototype.duplicate = function() {
 
 ShapeCircle.prototype.serialize = function() {
 	return {
-		"type": "circle",
+		"type": "ShapeCircle",
 		"e": this.e,
 		"u": this.u,
 		"density": this.density,

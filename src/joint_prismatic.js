@@ -26,18 +26,18 @@
 //-------------------------------------------------------------------------------------------------
 
 PrismaticJoint = function(body1, body2, anchor1, anchor2) {
-	Joint.call(this, body1, body2, true);
+	Joint.call(this, Joint.TYPE_PRISMATIC, body1, body2, true);
 
 	// Local anchor points
-	this.anchor1 = body1.getLocalPoint(anchor1);
-	this.anchor2 = body2.getLocalPoint(anchor2);
-
-	this.da = body2.a - body1.a;
+	this.anchor1 = this.body1.getLocalPoint(anchor1);
+	this.anchor2 = this.body2.getLocalPoint(anchor2);
 
 	var d = vec2.sub(anchor2, anchor1);
 
    	// Body1's local line normal
-   	this.n_local = body1.getLocalVector(vec2.normalize(vec2.perp(d)));
+   	this.n_local = this.body1.getLocalVector(vec2.normalize(vec2.perp(d)));	
+
+	this.da = body2.a - body1.a;
 
    	// Accumulated lambda
 	this.lambda_acc = new vec2(0, 0);
@@ -46,9 +46,29 @@ PrismaticJoint = function(body1, body2, anchor1, anchor2) {
 PrismaticJoint.prototype = new Joint;
 PrismaticJoint.prototype.constructor = PrismaticJoint;
 
+PrismaticJoint.prototype.setWorldAnchor1 = function(anchor1) {
+	// Local anchor points
+	this.anchor1 = this.body1.getLocalPoint(anchor1);
+
+	var d = vec2.sub(this.getWorldAnchor2(), anchor1);
+
+	// Body1's local line normal
+	this.n_local = this.body1.getLocalVector(vec2.normalize(vec2.perp(d)));	
+}
+
+PrismaticJoint.prototype.setWorldAnchor2 = function(anchor2) {
+	// Local anchor points
+	this.anchor2 = this.body2.getLocalPoint(anchor2);
+
+	var d = vec2.sub(anchor2, this.getWorldAnchor1());
+
+	// Body1's local line normal
+	this.n_local = this.body1.getLocalVector(vec2.normalize(vec2.perp(d)));	
+}
+
 PrismaticJoint.prototype.serialize = function() {
 	return {
-		"type": "prismatic",
+		"type": "PrismaticJoint",
 		"body1": this.body1.id, 		
 		"body2": this.body2.id,
 		"anchor1": this.body1.getWorldPoint(this.anchor1),

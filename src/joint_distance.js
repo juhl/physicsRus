@@ -13,29 +13,45 @@
 //-------------------------------------------------------------------------------------------------
 
 DistanceJoint = function(body1, body2, anchor1, anchor2) {
-	Joint.call(this, body1, body2, true);
+	Joint.call(this, Joint.TYPE_DISTANCE, body1, body2, true);
 
 	// Local anchor points
-	this.anchor1 = body1.getLocalPoint(anchor1);
-	this.anchor2 = body2.getLocalPoint(anchor2);
+	this.anchor1 = this.body1.getLocalPoint(anchor1);
+	this.anchor2 = this.body2.getLocalPoint(anchor2);
 
 	// Rest distance
-	this.restLength = vec2.dist(anchor1, anchor2);	
-
+	this.restLength = vec2.dist(anchor1, anchor2);
+	
 	// Soft constraint coefficients
 	this.gamma = 0;
 	this.bias = 0;
 
 	// Accumulated impulse
 	this.lambda_acc = 0;
+
+	//
+	this.frequencyHz = 0;
+	this.dampingRatio = 0;
 }
 
 DistanceJoint.prototype = new Joint;
 DistanceJoint.prototype.constructor = DistanceJoint;
 
+DistanceJoint.prototype.setWorldAnchor1 = function(anchor1) {
+	this.anchor1 = this.body1.getLocalPoint(anchor1);
+
+	this.restLength = vec2.dist(anchor1, this.getWorldAnchor2());
+}
+
+DistanceJoint.prototype.setWorldAnchor2 = function(anchor2) {
+	this.anchor2 = this.body2.getLocalPoint(anchor2);
+
+	this.restLength = vec2.dist(anchor2, this.getWorldAnchor1());
+}
+
 DistanceJoint.prototype.serialize = function() {
 	return {
-		"type": "distance",
+		"type": "DistanceJoint",
 		"body1": this.body1.id,
 		"body2": this.body2.id,
 		"anchor1": this.body1.getWorldPoint(this.anchor1),
@@ -48,12 +64,21 @@ DistanceJoint.prototype.serialize = function() {
 	};
 }
 
-DistanceJoint.prototype.setSpringCoeffs = function(frequencyHz, dampingRatio) {
+DistanceJoint.prototype.setSpringFrequencyHz = function(frequencyHz) {
+	this.frequencyHz = frequencyHz;
+
 	// Frequency
-	var omega = 2 * Math.PI * frequencyHz;
+	var omega = 2 * Math.PI * this.frequencyHz;
 
 	// Spring stiffness
 	this.k = omega * omega;
+}
+
+DistanceJoint.prototype.setSpringDampingRatio = function(dampingRatio) {
+	this.dampingRatio = dampingRatio;
+
+	// Frequency
+	var omega = 2 * Math.PI * this.frequencyHz;
 
 	// Damping coefficients
 	this.d = 2 * dampingRatio * omega;
@@ -203,7 +228,7 @@ DistanceJoint.prototype.getReactionForce = function(dt_inv) {
 DistanceJoint.prototype.getReactionTorque = function(dt_inv) {
 	return 0;
 }
-
+/*
 //------------------------------------------
 // MaxDistance Joint
 //------------------------------------------
@@ -471,4 +496,4 @@ SpringJoint.prototype.getReactionForce = function(dt_inv) {
 
 SpringJoint.prototype.getReactionTorque = function(dt_inv) {
 	return 0;
-}
+}*/

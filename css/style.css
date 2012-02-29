@@ -28,7 +28,7 @@ footer {
 }
 select {
   border: 1px solid #222;
-  line-height: 15px;
+  line-height: 15px;  
   color: #333;
   vertical-align: middle;
   -webkit-border-radius: 3px;
@@ -108,25 +108,31 @@ div#sidebar > .pannel > .title {
   border-radius: 2px;
 }
 .pannel > ul {
-  width: 100%;
-  padding: 5px;
+  width: 236px;
+  padding: 0px;
   margin: 0;
 }
 .pannel > ul > li {
-  list-style: none;
+  list-style: none;  
   width: 100%;
-}
-.pannel > ul > li > label {
+  height: 23px;
   vertical-align: middle;
-  text-align: right;
-  display: inline-block;
-  width: 100px;
 }
-.pannel input {
-  width: 116px;
+.pannel > ul > li > label {    
+  display: inline-block;
+  text-align: right;
+  width: 100px;
+  vertical-align: middle;
+}
+.pannel input[type="edit"],
+.pannel input[type="number"] {
+  width: 128px;  
+}
+.pannel input[type="checkbox"] {
+  height: 19px;
 }
 .pannel select {
-  width: 120px;
+  width: 128px;  
 }
 .pannel input[readonly] {
   color: #333;
@@ -184,8 +190,8 @@ div#help {
   left: 0;
   right: 0;
   margin: auto;
-  width: 400px;
-  height: 160px;  
+  width: 480px;
+  height: 300px;  
   font-size: 10pt;
   font-family: tahoma, menlo;
   display: none;

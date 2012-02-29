@@ -72,7 +72,7 @@ ShapePoly.prototype.duplicate = function() {
 
 ShapePoly.prototype.serialize = function() {
 	return {
-		"type": "poly",
+		"type": "ShapePoly",
 		"e": this.e,
 		"u": this.u,
 		"density": this.density,

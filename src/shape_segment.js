@@ -33,7 +33,7 @@ ShapeSegment.prototype.duplicate = function() {
 
 ShapeSegment.prototype.serialize = function() {
 	return {
-		"type": "segment",
+		"type": "ShapeSegment",
 		"e": this.e,
 		"u": this.u,
 		"density": this.density,

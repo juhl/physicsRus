@@ -184,6 +184,18 @@ Body.prototype.resetMassData = function() {
 	this.v.mad(vec2.perp(vec2.sub(this.p, old_p)), this.w);	
 }
 
+Body.prototype.resetJointAnchors = function() {
+	for (var i in this.jointHash) {
+		var joint = this.jointHash[i];
+
+		var anchor1 = joint.getWorldAnchor1();
+		var anchor2 = joint.getWorldAnchor2();
+
+		joint.setWorldAnchor1(anchor1);
+		joint.setWorldAnchor2(anchor2);
+	}
+}
+
 Body.prototype.cacheData = function() {	
 	this.bounds.clear();
 	

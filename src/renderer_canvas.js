@@ -130,8 +130,9 @@ RendererCanvas = function() {
 			}
 		}
 
-		if (fillStyle) {
-			ctx.closePath();
+		ctx.closePath();
+
+		if (fillStyle) {			
 			ctx.fillStyle = fillStyle;
 			ctx.fill();
 		}
@@ -148,8 +149,9 @@ RendererCanvas = function() {
 
 		ctx.rect(mins.x, mins.y, maxs.x - mins.x, maxs.y - mins.y);
 
-		if (fillStyle) {
-			ctx.closePath();
+		ctx.closePath();
+
+		if (fillStyle) {			
 			ctx.fillStyle = fillStyle;
 			ctx.fill();
 		}
@@ -177,8 +179,9 @@ RendererCanvas = function() {
 		ctx.lineTo(lt.x, lt.y);
 		ctx.lineTo(lb.x, lb.y);
 
-		if (fillStyle) {
-			ctx.closePath();
+		ctx.closePath();
+
+		if (fillStyle) {			
 			ctx.fillStyle = fillStyle;
 			ctx.fill();
 		}
@@ -195,8 +198,9 @@ RendererCanvas = function() {
 
 		ctx.arc(center.x, center.y, radius, 0, Math.PI*2, false);
 
-		if (fillStyle) {
-			ctx.closePath();
+		ctx.closePath();
+
+		if (fillStyle) {			
 			ctx.fillStyle = fillStyle;
 			ctx.fill();
 		}
@@ -223,8 +227,9 @@ RendererCanvas = function() {
 		ctx.arc(center.x, center.y, radius, startAngle, endAngle, false);		
 		ctx.lineTo(center.x, center.y);
 
-		if (fillStyle) {
-			ctx.closePath();
+		ctx.closePath();
+
+		if (fillStyle) {			
 			ctx.fillStyle = fillStyle;
 			ctx.fill();
 		}
@@ -254,13 +259,14 @@ RendererCanvas = function() {
 		var ap = vec2.add(a, ds);
 		ctx.lineTo(ap.x, ap.y);		
 
-		if (fillStyle) {
-			ctx.closePath();
+		ctx.closePath();
+
+		if (fillStyle) {			
 			ctx.fillStyle = fillStyle;
 			ctx.fill();
 		}
 
-		if (strokeStyle) {			
+		if (strokeStyle) {
 			ctx.lineWidth = lineWidth;
 			ctx.strokeStyle = strokeStyle;
 			ctx.stroke();			
@@ -277,8 +283,9 @@ RendererCanvas = function() {
 
 		ctx.lineTo(verts[verts.length - 1].x, verts[verts.length - 1].y);
 
-		if (fillStyle) {
-			ctx.closePath();
+		ctx.closePath();
+
+		if (fillStyle) {			
 			ctx.fillStyle = fillStyle;
 			ctx.fill();
 		}
