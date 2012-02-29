@@ -96,6 +96,8 @@ div#sidebar {
 div#sidebar > .pannel {
   padding: 2px;
   display: none;
+  /*position: absolute;
+  bottom: 0;*/
 }
 div#sidebar > .pannel > .title {  
   display: block;
