@@ -13,7 +13,7 @@ App = function() {
 	const EM_CREATE_POLY = 8;
 	const EM_CREATE_ANGLE_JOINT = 9;
 	const EM_CREATE_REVOLUTE_JOINT = 10;
-	const EM_CREATE_WELD_JOINT = 11;	
+	const EM_CREATE_WELD_JOINT = 11;
 	const EM_CREATE_LINE_JOINT = 12;
 	const EM_CREATE_PRISMATIC_JOINT = 13;
 	const EM_CREATE_DISTANCE_JOINT = 14;
@@ -1733,7 +1733,7 @@ App = function() {
 					domJointInspector.style.display = "block";
 
 					var el = domJointInspector.querySelector("[name=type]");
-					el.value = ["Angle", "Revolute", "Distance", "Line", "Prismatic", "Weld", "Mouse"][joint.type];
+					el.value = ["Angle", "Revolute", "Weld", "Line", "Prismatic", "Distance", "Mouse"][joint.type];
 
 					var el = domJointInspector.querySelector("[name=body1]");
 					el.value = new String(joint.body1.name);

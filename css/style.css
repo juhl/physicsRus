@@ -139,7 +139,7 @@ div#sidebar > .pannel > .title {
 .pannel select {
   margin: 0;
   padding: 0;
-  width: 104px;  
+  width: 102px;  
   height: 20px;
 }
 .pannel input[readonly] {
