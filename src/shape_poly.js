@@ -86,6 +86,18 @@ ShapePoly.prototype.recenter = function(c) {
 	}
 }
 
+ShapePoly.prototype.transform = function(xf) {
+	for (var i = 0; i < this.verts.length; i++) {
+		this.verts[i] = xf.transform(this.verts[i]);
+	}
+}
+
+ShapePoly.prototype.untransform = function(xf) {
+	for (var i = 0; i < this.verts.length; i++) {
+		this.verts[i] = xf.untransform(this.verts[i]);
+	}
+}
+
 ShapePoly.prototype.area = function() {
 	return areaForPoly(this.verts);
 }

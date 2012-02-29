@@ -48,6 +48,16 @@ ShapeSegment.prototype.recenter = function(c) {
 	this.b.subself(c);
 }
 
+ShapeSegment.prototype.transform = function(xf) {
+	this.a = xf.transform(this.a);
+	this.b = xf.transform(this.b);
+}
+
+ShapeSegment.prototype.untransform = function(xf) {
+	this.a = xf.untransform(this.a);
+	this.b = xf.untransform(this.b);
+}
+
 ShapeSegment.prototype.area = function() {
 	return areaForSegment(this.a, this.b, this.r);
 }

@@ -150,8 +150,8 @@ Space.prototype.removeBody = function(body) {
 	}
 
 	// Remove linked joint
-	for (var j in body.jointHash) {
-		this.removeJoint(body.jointHash[j]);
+	for (var i in body.jointHash) {
+		this.removeJoint(body.jointHash[i]);
 	}
 
 	body.space = null;

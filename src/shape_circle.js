@@ -38,6 +38,14 @@ ShapeCircle.prototype.recenter = function(c) {
 	this.c.subself(c);
 }
 
+ShapeCircle.prototype.transform = function(xf) {
+	this.c = xf.transform(this.c);
+}
+
+ShapeCircle.prototype.untransform = function(xf) {
+	this.c = xf.untransform(this.c);
+}
+
 ShapeCircle.prototype.area = function() {
 	return areaForCircle(this.r, 0);
 }

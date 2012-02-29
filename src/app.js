@@ -17,6 +17,8 @@ App = function() {
 	const EM_CREATE_LINE_JOINT = 12;
 	const EM_CREATE_PRISMATIC_JOINT = 13;
 	const EM_CREATE_DISTANCE_JOINT = 14;
+	const EM_COLLAPSE_BODIES = 15;
+	const EM_EDGE_SLICE = 16;
 
 	// selection mode
 	const SM_VERTICES = 0;
@@ -329,7 +331,9 @@ App = function() {
 		// Setting up mouse event for each edit modes
 
 		editModeEventArr[EM_SELECT] = {};
-		editModeEventArr[EM_SELECT].init = function() {}
+		editModeEventArr[EM_SELECT].init = function() {
+			domCanvas.style.cursor = "default";
+		}
 		editModeEventArr[EM_SELECT].mouseDown = function(ev) {}
 		editModeEventArr[EM_SELECT].mouseUp = function(ev) {
 			if (mouseDown && !mouseDownMoving) {
@@ -366,13 +370,21 @@ App = function() {
 					highlightFeatureArr[0] = feature;
 				}
 			}
-		}		
+		}
+		editModeEventArr[EM_SELECT].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				selectedFeatureArr = [];
+				updateSidebar();
+			}
+		}
 
 		editModeEventArr[EM_TRANSLATE] = {};
-		editModeEventArr[EM_TRANSLATE].init = function() {}
+		editModeEventArr[EM_TRANSLATE].init = function() {
+			domCanvas.style.cursor = "default";
+		}
 		editModeEventArr[EM_TRANSLATE].checkTransformAxis = function() {
 			highlightFeatureArr = [];
-				transformAxis = 0;
+			transformAxis = 0;
 
 			var center = worldToCanvas(transformCenter);
 
@@ -392,10 +404,21 @@ App = function() {
 			}				
 		}
 		editModeEventArr[EM_TRANSLATE].mouseDown = function(ev) {
+			if (ev.metaKey) {
+				var pos = getMousePosition(ev);
+				var p = canvasToWorld(pos);
+
+				if (doSelect(p, SF_REPLACE)) {
+					resetTransformCenter();
+				}
+
+				updateSidebar();
+			}
+
 			this.checkTransformAxis();
 		}
 		editModeEventArr[EM_TRANSLATE].mouseUp = function(ev) {
-			if (mouseDown && !mouseDownMoving) {
+			if (!ev.metaKey && mouseDown && !mouseDownMoving) {
 				var pos = getMousePosition(ev);
 				var p = canvasToWorld(pos);
 
@@ -575,14 +598,23 @@ App = function() {
 						}
 					}
 				}
+
+				updateSidebar();
 			}
 			else {
 				this.checkTransformAxis();
-			}
+			}			
 		}		
+		editModeEventArr[EM_TRANSLATE].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				onClickedEditMode("select");
+			}
+		}
 
 		editModeEventArr[EM_ROTATE] = {};
-		editModeEventArr[EM_ROTATE].init = function() {}
+		editModeEventArr[EM_ROTATE].init = function() {
+			domCanvas.style.cursor = "default";
+		}
 		editModeEventArr[EM_ROTATE].checkTransformAxis = function() {
 			highlightFeatureArr = [];
 			transformAxis = 0;
@@ -595,10 +627,21 @@ App = function() {
 			}
 		}
 		editModeEventArr[EM_ROTATE].mouseDown = function(ev) {
+			if (ev.metaKey) {
+				var pos = getMousePosition(ev);
+				var p = canvasToWorld(pos);
+
+				if (doSelect(p, SF_REPLACE)) {
+					resetTransformCenter();
+				}
+
+				updateSidebar();
+			}
+
 			this.checkTransformAxis();
 		}
 		editModeEventArr[EM_ROTATE].mouseUp = function(ev) {
-			if (mouseDown && !mouseDownMoving) {
+			if (!ev.metaKey && mouseDown && !mouseDownMoving) {
 				var pos = getMousePosition(ev);
 				var p = canvasToWorld(pos);
 
@@ -680,7 +723,7 @@ App = function() {
 							shape.body.addShape(dup);
 							selectedFeatureArr[i] = dup;
 						}
-					} 
+					}
 
 					for (var i = 0; i < selectedFeatureArr.length; i++) {
 						var shape = selectedFeatureArr[i];
@@ -755,14 +798,23 @@ App = function() {
 						}
 					}
 				}
+
+				updateSidebar();
 			}
 			else {			
 				this.checkTransformAxis();
 			}
 		}		
+		editModeEventArr[EM_ROTATE].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				onClickedEditMode("select");
+			}
+		}
 
 		editModeEventArr[EM_SCALE] = {};
-		editModeEventArr[EM_SCALE].init = function() {}
+		editModeEventArr[EM_SCALE].init = function() {
+			domCanvas.style.cursor = "default";
+		}
 		editModeEventArr[EM_SCALE].checkTransformAxis = function() {
 			highlightFeatureArr = [];
 			transformAxis = 0;
@@ -796,10 +848,21 @@ App = function() {
 			}				
 		}
 		editModeEventArr[EM_SCALE].mouseDown = function(ev) {
+			if (ev.metaKey) {
+				var pos = getMousePosition(ev);
+				var p = canvasToWorld(pos);
+
+				if (doSelect(p, SF_REPLACE)) {
+					resetTransformCenter();
+				}
+
+				updateSidebar();
+			}
+
 			this.checkTransformAxis();
 		}
 		editModeEventArr[EM_SCALE].mouseUp = function(ev) {
-			if (mouseDown && !mouseDownMoving) {
+			if (!ev.metaKey && mouseDown && !mouseDownMoving) {
 				var pos = getMousePosition(ev);
 				var p = canvasToWorld(pos);
 
@@ -948,14 +1011,23 @@ App = function() {
 						}
 					}				
 				}
+
+				updateSidebar();
 			}
 			else {
 				this.checkTransformAxis();
 			}
 		}	
+		editModeEventArr[EM_SCALE].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				onClickedEditMode("select");
+			}
+		}
 		
 		editModeEventArr[EM_CREATE_CIRCLE] = {};
-		editModeEventArr[EM_CREATE_CIRCLE].init = function() {}
+		editModeEventArr[EM_CREATE_CIRCLE].init = function() {
+			domCanvas.style.cursor = "crosshair";
+		}
 		editModeEventArr[EM_CREATE_CIRCLE].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
@@ -978,7 +1050,7 @@ App = function() {
 				if (shape.area() < 0.0001) {
 					space.removeBody(creatingBody);
 					delete shape;
-					delete creatingBody;
+					delete creatingBody;					
 				}
 
 				creatingBody = null;
@@ -1002,9 +1074,16 @@ App = function() {
 				updateSidebar();
 			}
 		}
+		editModeEventArr[EM_CREATE_CIRCLE].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				creatingBody = null;
+			}
+		}
 
 		editModeEventArr[EM_CREATE_TRIANGLE] = {};
-		editModeEventArr[EM_CREATE_TRIANGLE].init = function() {}
+		editModeEventArr[EM_CREATE_TRIANGLE].init = function() {
+			domCanvas.style.cursor = "crosshair";
+		}
 		editModeEventArr[EM_CREATE_TRIANGLE].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
@@ -1073,9 +1152,12 @@ App = function() {
 				updateSidebar();
 			}
 		}
+		editModeEventArr[EM_CREATE_TRIANGLE].keyDown = function(keyCode) {}
 
 		editModeEventArr[EM_CREATE_BOX] = {};
-		editModeEventArr[EM_CREATE_BOX].init = function() {}
+		editModeEventArr[EM_CREATE_BOX].init = function() {
+			domCanvas.style.cursor = "crosshair";
+		}
 		editModeEventArr[EM_CREATE_BOX].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
@@ -1142,9 +1224,12 @@ App = function() {
 				updateSidebar();
 			}
 		}
+		editModeEventArr[EM_CREATE_BOX].keyDown = function(keyCode) {}
 
 		editModeEventArr[EM_CREATE_HEXAGON] = {};
-		editModeEventArr[EM_CREATE_HEXAGON].init = function() {}
+		editModeEventArr[EM_CREATE_HEXAGON].init = function() {
+			domCanvas.style.cursor = "crosshair";
+		}
 		editModeEventArr[EM_CREATE_HEXAGON].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
@@ -1217,9 +1302,12 @@ App = function() {
 				updateSidebar();
 			}
 		}
+		editModeEventArr[EM_CREATE_HEXAGON].keyDown = function(keyCode) {}
 
 		editModeEventArr[EM_CREATE_POLY] = {};
-		editModeEventArr[EM_CREATE_POLY].init = function() {}
+		editModeEventArr[EM_CREATE_POLY].init = function() {
+			domCanvas.style.cursor = "crosshair";
+		}
 		editModeEventArr[EM_CREATE_POLY].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
@@ -1273,9 +1361,12 @@ App = function() {
 				updateSidebar();
 			}
 		}
+		editModeEventArr[EM_CREATE_POLY].keyDown = function(keyCode) {}
 
 		editModeEventArr[EM_CREATE_ANGLE_JOINT] = {};
 		editModeEventArr[EM_CREATE_ANGLE_JOINT].init = function() {
+			domCanvas.style.cursor = "crosshair";
+
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {		
 				if (!creatingJoint) {
 					var body1 = selectedFeatureArr[0];
@@ -1284,18 +1375,26 @@ App = function() {
 					creatingJoint = new AngleJoint(body1, body2);
 					space.addJoint(creatingJoint);
 				}
+
+				creatingJoint = null;
 			}
 		}
 		editModeEventArr[EM_CREATE_ANGLE_JOINT].mouseDown = function(ev) {			
 		}
-		editModeEventArr[EM_CREATE_ANGLE_JOINT].mouseUp = function(ev) {
-			creatingJoint = null;
+		editModeEventArr[EM_CREATE_ANGLE_JOINT].mouseUp = function(ev) {			
 		}
 		editModeEventArr[EM_CREATE_ANGLE_JOINT].mouseMove = function(ev) {
 		}
+		editModeEventArr[EM_CREATE_ANGLE_JOINT].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				creatingJoint = null;
+			}
+		}
 
 		editModeEventArr[EM_CREATE_REVOLUTE_JOINT] = {};
-		editModeEventArr[EM_CREATE_REVOLUTE_JOINT].init = function() {};
+		editModeEventArr[EM_CREATE_REVOLUTE_JOINT].init = function() {
+			domCanvas.style.cursor = "crosshair";
+		};
 		editModeEventArr[EM_CREATE_REVOLUTE_JOINT].mouseDown = function(ev) {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
 				var p = canvasToWorld(mousePosition);
@@ -1326,9 +1425,16 @@ App = function() {
 				creatingJoint.setWorldAnchor1(p);
 			}
 		}		
+		editModeEventArr[EM_CREATE_REVOLUTE_JOINT].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				creatingJoint = null;
+			}
+		}
 
 		editModeEventArr[EM_CREATE_WELD_JOINT] = {};
-		editModeEventArr[EM_CREATE_WELD_JOINT].init = function() {}
+		editModeEventArr[EM_CREATE_WELD_JOINT].init = function() {
+			domCanvas.style.cursor = "crosshair";
+		}
 		editModeEventArr[EM_CREATE_WELD_JOINT].mouseDown = function(ev) {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
 				var p = canvasToWorld(mousePosition);
@@ -1359,9 +1465,16 @@ App = function() {
 				creatingJoint.setWorldAnchor1(p);
 			}
 		}
+		editModeEventArr[EM_CREATE_WELD_JOINT].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				creatingJoint = null;
+			}
+		}
 
 		editModeEventArr[EM_CREATE_LINE_JOINT] = {};
-		editModeEventArr[EM_CREATE_LINE_JOINT].init = function() {}
+		editModeEventArr[EM_CREATE_LINE_JOINT].init = function() {
+			domCanvas.style.cursor = "crosshair";
+		}
 		editModeEventArr[EM_CREATE_LINE_JOINT].mouseDown = function(ev) {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
 				var p = canvasToWorld(mousePosition);
@@ -1381,7 +1494,7 @@ App = function() {
 		editModeEventArr[EM_CREATE_LINE_JOINT].mouseUp = function(ev) {
 			creatingJoint = null;
 		}
-		editModeEventArr[EM_CREATE_LINE_JOINT].mouseMove = function(ev) {
+		editModeEventArr[EM_CREATE_LINE_JOINT].mouseMove = function(ev) {		
 			if (mouseDown && creatingJoint) {
 				var p = canvasToWorld(mousePosition);
 				
@@ -1392,9 +1505,16 @@ App = function() {
 				creatingJoint.setWorldAnchor2(p);
 			}
 		}
+		editModeEventArr[EM_CREATE_LINE_JOINT].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				creatingJoint = null;
+			}
+		}
 
 		editModeEventArr[EM_CREATE_PRISMATIC_JOINT] = {};
-		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].init = function() {}
+		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].init = function() {
+			domCanvas.style.cursor = "crosshair";
+		}
 		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].mouseDown = function(ev) {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
 				var p = canvasToWorld(mousePosition);
@@ -1414,7 +1534,7 @@ App = function() {
 		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].mouseUp = function(ev) {
 			creatingJoint = null;
 		}
-		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].mouseMove = function(ev) {
+		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].mouseMove = function(ev) {		
 			if (mouseDown && creatingJoint) {
 				var p = canvasToWorld(mousePosition);
 				
@@ -1425,9 +1545,16 @@ App = function() {
 				creatingJoint.setWorldAnchor2(p);
 			}
 		}
+		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				creatingJoint = null;
+			}
+		}
 
 		editModeEventArr[EM_CREATE_DISTANCE_JOINT] = {};
-		editModeEventArr[EM_CREATE_DISTANCE_JOINT].init = function() {}
+		editModeEventArr[EM_CREATE_DISTANCE_JOINT].init = function() {
+			domCanvas.style.cursor = "crosshair";
+		}
 		editModeEventArr[EM_CREATE_DISTANCE_JOINT].mouseDown = function(ev) {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
 				var p = canvasToWorld(mousePosition);
@@ -1447,7 +1574,7 @@ App = function() {
 		editModeEventArr[EM_CREATE_DISTANCE_JOINT].mouseUp = function(ev) {
 			creatingJoint = null;
 		}
-		editModeEventArr[EM_CREATE_DISTANCE_JOINT].mouseMove = function(ev) {
+		editModeEventArr[EM_CREATE_DISTANCE_JOINT].mouseMove = function(ev) {		
 			if (mouseDown && creatingJoint) {
 				var p = canvasToWorld(mousePosition);
 				
@@ -1458,6 +1585,119 @@ App = function() {
 				creatingJoint.setWorldAnchor2(p);
 			}
 		}
+		editModeEventArr[EM_CREATE_DISTANCE_JOINT].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				creatingJoint = null;
+			}
+		}
+
+		editModeEventArr[EM_COLLAPSE_BODIES] = {};
+		editModeEventArr[EM_COLLAPSE_BODIES].init = function() {
+			if (selectionMode == SM_BODIES && selectedFeatureArr.length >= 2) {
+				var primaryBody = selectedFeatureArr[0];
+
+				for (var i = 1; i < selectedFeatureArr.length; i++) {
+					var body = selectedFeatureArr[i];
+
+					for (var j = 0; j < body.shapeArr.length; j++) {
+						var shape = body.shapeArr[j];						
+						shape.transform(body.xf);
+						shape.untransform(primaryBody.xf);
+						primaryBody.addShape(shape);
+					}
+
+					for (var j in body.jointHash) {
+						var joint = body.jointHash[i];
+
+						var anchor1 = joint.getWorldAnchor1();
+						var anchor2 = joint.getWorldAnchor2();
+
+						if (joint.body1 == body) {							
+							joint.body1 = primaryBody;
+							joint.setWorldAnchor1(anchor1);
+						}
+						else if (joint.body2 == body) {
+							joint.body2 = primaryBody;
+							joint.setWorldAnchor2(anchor2);
+						}
+					}
+
+					body.jointHash = {};
+					space.removeBody(body);					
+				}
+
+				primaryBody.resetMassData();
+				primaryBody.cacheData();
+			}
+
+			onClickedEditMode("select");
+		}
+		editModeEventArr[EM_COLLAPSE_BODIES].mouseDown = function(ev) {}
+		editModeEventArr[EM_COLLAPSE_BODIES].mouseUp = function(ev) {}
+		editModeEventArr[EM_COLLAPSE_BODIES].mouseMove = function(ev) {}
+		editModeEventArr[EM_COLLAPSE_BODIES].keyDown = function(keyCode) {}
+
+		editModeEventArr[EM_EDGE_SLICE] = {};
+		editModeEventArr[EM_EDGE_SLICE].init = function() {
+			domCanvas.style.cursor = "crosshair";
+
+			if (selectionMode == SM_EDGES) {
+				// Sort by incremental order
+				selectedFeatureArr.sort(function(a, b) { return (a & 0xFFFF) - (b & 0xFFFF); });
+
+				var new_selectedFeatureArr = [];
+				var prev_shape_id = -1;
+				var addedCount = 0;
+
+				for (var i = 0; i < selectedFeatureArr.length; i++) {
+					var edgeId = selectedFeatureArr[i];
+					var shape_id = (edgeId >> 16) & 0xFFFF;
+					var shape = space.shapeById(shape_id);
+
+					if (shape_id != prev_shape_id) {
+						addedCount = 0;
+					}
+
+					if (shape.type == Shape.TYPE_POLY) {
+						var index1 = (edgeId & 0xFFFF) + addedCount;
+						var index2 = index1 + 1;
+
+						var new_vert = vec2.lerp(shape.verts[index1], shape.verts[index2 % shape.verts.length], 0.5);
+
+						shape.verts.splice(index2, 0, new_vert);
+
+						shape.finishVerts();
+						shape.body.cacheData();
+
+						var newEdgeId1 = (shape.id << 16) | index1;
+						var newEdgeId2 = (shape.id << 16) | index2;
+
+						new_selectedFeatureArr.push(newEdgeId1);
+						new_selectedFeatureArr.push(newEdgeId2);
+
+						addedCount++;
+					}		
+
+					prev_shape_id = shape_id;
+				}
+
+				selectedFeatureArr = new_selectedFeatureArr;
+			}
+		}
+		editModeEventArr[EM_EDGE_SLICE].mouseDown = function(ev) {
+			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
+				var p = canvasToWorld(mousePosition);								
+			}
+		}
+		editModeEventArr[EM_EDGE_SLICE].mouseUp = function(ev) {
+			onClickedEditMode("select");
+		}
+		editModeEventArr[EM_EDGE_SLICE].mouseMove = function(ev) {		
+			if (mouseDown) {
+				var p = canvasToWorld(mousePosition);
+			}
+		}
+		editModeEventArr[EM_EDGE_SLICE].keyDown = function(keyCode) {}
 	}	
 
 	function onLoad() {
@@ -1588,7 +1828,9 @@ App = function() {
 			var value = ["select", "translate", "rotate", "scale", 
 				"create_circle", "create_triangle", "create_box", "create_hexagon", "create_poly",
 				"create_angle_joint", "create_revolute_joint", "create_weld_joint", 
-				"create_line_joint", "create_prismatic_joint", "create_distance_joint"][editMode];
+				"create_line_joint", "create_prismatic_joint", "create_distance_joint",
+				"collapse_bodies", "edge_slice"][editMode];
+
 			for (var i = 0; i < editModeButtons.length; i++) {
 				var e = editModeButtons[i];
 				
@@ -3081,7 +3323,7 @@ App = function() {
 				}
 			}
 		}
-		else {		
+		else {
 			if (mouseDown && ev.altKey) {
 				var dx = mousePosition.x - mousePositionOld.x;
 				var dy = mousePosition.y - mousePositionOld.y;
@@ -3089,7 +3331,7 @@ App = function() {
 				scrollView(-dx, dy);
 			}
 			else {
-				editModeEventArr[editMode].mouseMove(ev);
+				editModeEventArr[editMode].mouseMove(ev);			
 			}
 		}
 
@@ -3293,6 +3535,8 @@ App = function() {
 			return;
 		}
 
+		editModeEventArr[editMode].keyDown(ev.keyCode);
+
 		switch (ev.keyCode) {
 		case 123: // F12
 			// TODO: Screenshot
@@ -3340,14 +3584,6 @@ App = function() {
 			if (editorEnabled) {
 				onClickedEditMode("scale");
 				ev.preventDefault();
-			}
-			break;	
-		case 83: // 's'
-			if (editorEnabled) {
-				if (ev.ctrlKey) {
-					sliceEdges();
-					ev.preventDefault();
-				}
 			}
 			break;		
 		case 74: // 'j'
@@ -3760,7 +3996,7 @@ App = function() {
 	function onClickedEdit() {
 		editorEnabled = !editorEnabled;
 		pause = false;
-		step = false;
+		step = false;		
 
 		selectedFeatureArr = [];
 		markedFeatureArr = [];
@@ -3770,6 +4006,8 @@ App = function() {
 		updateSidebar();
 
 		onResize();
+
+		domCanvas.style.cursor = "default";
 
 		initFrame();
 		
@@ -3793,20 +4031,14 @@ App = function() {
 		editMode = { create_circle: EM_CREATE_CIRCLE, create_triangle: EM_CREATE_TRIANGLE, create_box: EM_CREATE_BOX, create_hexagon: EM_CREATE_HEXAGON, create_poly: EM_CREATE_POLY,
 			create_angle_joint: EM_CREATE_ANGLE_JOINT, create_revolute_joint: EM_CREATE_REVOLUTE_JOINT, create_weld_joint: EM_CREATE_WELD_JOINT, 
 			create_line_joint: EM_CREATE_LINE_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT,
-			select: EM_SELECT, translate: EM_TRANSLATE, rotate: EM_ROTATE, scale: EM_SCALE }[value];
+			select: EM_SELECT, translate: EM_TRANSLATE, rotate: EM_ROTATE, scale: EM_SCALE,
+			collapse_bodies: EM_COLLAPSE_BODIES, edge_slice: EM_EDGE_SLICE }[value];
 
 		editModeEventArr[editMode].init();
 
 		highlightFeatureArr = [];
 
-		updateSidebar();
-
-		if (editMode == EM_CREATE_CIRCLE || editMode == EM_CREATE_TRIANGLE || editMode == EM_CREATE_BOX || editMode == EM_CREATE_HEXAGON || editMode == EM_CREATE_POLY) {
-			domCanvas.style.cursor = "crosshair";
-		}
-		else {
-			domCanvas.style.cursor = "default";
-		}
+		updateSidebar();		
 
 		return false;
 	}
@@ -3897,51 +4129,6 @@ App = function() {
 
 		selectedFeatureArr = [];
 		highlightFeatureArr = [];
-	}
-
-	function sliceEdges() {
-		if (selectionMode == SM_EDGES) {
-			// Sort by incremental order
-			selectedFeatureArr.sort(function(a, b) { return (a & 0xFFFF) - (b & 0xFFFF); });
-
-			var new_selectedFeatureArr = [];
-			var prev_shape_id = -1;
-			var addedCount = 0;
-
-			for (var i = 0; i < selectedFeatureArr.length; i++) {
-				var edgeId = selectedFeatureArr[i];
-				var shape_id = (edgeId >> 16) & 0xFFFF;
-				var shape = space.shapeById(shape_id);
-
-				if (shape_id != prev_shape_id) {
-					addedCount = 0;
-				}
-
-				if (shape.type == Shape.TYPE_POLY) {
-					var index1 = (edgeId & 0xFFFF) + addedCount;
-					var index2 = index1 + 1;
-
-					var new_vert = vec2.lerp(shape.verts[index1], shape.verts[index2 % shape.verts.length], 0.5);
-
-					shape.verts.splice(index2, 0, new_vert);
-
-					shape.finishVerts();
-					shape.body.cacheData();
-
-					var newEdgeId1 = (shape.id << 16) | index1;
-					var newEdgeId2 = (shape.id << 16) | index2;
-
-					new_selectedFeatureArr.push(newEdgeId1);
-					new_selectedFeatureArr.push(newEdgeId2);
-
-					addedCount++;
-				}		
-
-				prev_shape_id = shape_id;		
-			}
-
-			selectedFeatureArr = new_selectedFeatureArr;
-		}
 	}
 
 	function onClickedSnap() {

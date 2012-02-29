@@ -55,7 +55,7 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 
 	// Position constraint
 	var c = vec2.sub(vec2.add(body2.p, this.r2), body1.p);
-		
+
 	// Spring coefficients
 	var k = body2.m * this.k;
 	var d = body2.m * this.d;
