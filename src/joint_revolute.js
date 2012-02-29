@@ -20,7 +20,7 @@
 //-------------------------------------------------------------------------------------------------
 
 RevoluteJoint = function(body1, body2, anchor) {
-	Joint.call(this, Joint.TYPE_REVOLUTE, body1, body2, false);	
+	Joint.call(this, Joint.TYPE_REVOLUTE, body1, body2, true);	
 
 	this.anchor1 = this.body1.getLocalPoint(anchor);
 	this.anchor2 = this.body2.getLocalPoint(anchor);

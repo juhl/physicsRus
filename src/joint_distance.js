@@ -72,6 +72,9 @@ DistanceJoint.prototype.setSpringFrequencyHz = function(frequencyHz) {
 
 	// Spring stiffness
 	this.k = omega * omega;
+
+	// Damping coefficients
+	this.d = 0;
 }
 
 DistanceJoint.prototype.setSpringDampingRatio = function(dampingRatio) {

@@ -522,6 +522,7 @@ App = function() {
 							var shape = selectedFeatureArr[i];
 							var dup = shape.duplicate();
 
+							dup.cacheData(shape.body.xf);
 							shape.body.addShape(dup);
 							selectedFeatureArr[i] = dup;
 						}
