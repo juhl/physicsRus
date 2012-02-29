@@ -2471,10 +2471,18 @@ App = function() {
 			for (var i = 0; i < selectedFeatureArr.length; i++) {
 				var jointId = selectedFeatureArr[i];
 				var joint = space.jointById((jointId >> 16) & 0xFFFF);
+				var anchorIndex = jointId & 0xFFFF;
 				
 				if (joint) {
 					drawHelperJoint(ctx, joint);
 				}
+
+				var p1 = joint.getWorldAnchor1();
+				var p2 = joint.getWorldAnchor2();
+
+				var p = anchorIndex == 0 ? p1 : p2;
+				renderer.drawCircle(ctx, p, HELPER_JOINT_ANCHOR_RADIUS, undefined, 1, "", jointHelperColor);
+				dirtyBounds.addExtents(p, HELPER_JOINT_ANCHOR_RADIUS, HELPER_JOINT_ANCHOR_RADIUS);
 			}
 
 			// Draw highlighted joint

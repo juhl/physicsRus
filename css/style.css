@@ -99,13 +99,13 @@ div#sidebar > .pannel {
 }
 div#sidebar > .pannel > .title {  
   display: block;
-  line-height: 18px;
+  line-height: 20px;
   padding-left: 4px;
   background-color: #282828;
   vertical-align: middle;
-  -webkit-border-radius: 2px;
-  -moz-border-radius: 2px;
-  border-radius: 2px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
 }
 .pannel > ul {
   width: 236px;
@@ -116,23 +116,31 @@ div#sidebar > .pannel > .title {
   list-style: none;  
   width: 100%;
   height: 23px;
+  line-height: 20px;
   vertical-align: middle;
 }
 .pannel > ul > li > label {    
   display: inline-block;
   text-align: right;
-  width: 100px;
+  width: 120px;
   vertical-align: middle;
 }
 .pannel input[type="edit"],
 .pannel input[type="number"] {
-  width: 120px;
+  width: 100px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
 }
 .pannel input[type="checkbox"] {
-  height: 19px;
+  margin: 0;
+  padding: 0;
 }
 .pannel select {
-  width: 124px;  
+  margin: 0;
+  padding: 0;
+  width: 104px;  
+  height: 20px;
 }
 .pannel input[readonly] {
   color: #333;
