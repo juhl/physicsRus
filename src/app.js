@@ -334,6 +334,8 @@ App = function() {
 		editModeEventArr[EM_SELECT].init = function() {
 			domCanvas.style.cursor = "default";
 		}
+		editModeEventArr[EM_SELECT].shutdown = function() {
+		}
 		editModeEventArr[EM_SELECT].mouseDown = function(ev) {}
 		editModeEventArr[EM_SELECT].mouseUp = function(ev) {
 			if (mouseDown && !mouseDownMoving) {
@@ -381,6 +383,8 @@ App = function() {
 		editModeEventArr[EM_TRANSLATE] = {};
 		editModeEventArr[EM_TRANSLATE].init = function() {
 			domCanvas.style.cursor = "default";
+		}
+		editModeEventArr[EM_TRANSLATE].shutdown = function() {
 		}
 		editModeEventArr[EM_TRANSLATE].checkTransformAxis = function() {
 			highlightFeatureArr = [];
@@ -616,6 +620,8 @@ App = function() {
 		editModeEventArr[EM_ROTATE].init = function() {
 			domCanvas.style.cursor = "default";
 		}
+		editModeEventArr[EM_ROTATE].shutdown = function() {
+		}
 		editModeEventArr[EM_ROTATE].checkTransformAxis = function() {
 			highlightFeatureArr = [];
 			transformAxis = 0;
@@ -815,6 +821,8 @@ App = function() {
 		editModeEventArr[EM_SCALE] = {};
 		editModeEventArr[EM_SCALE].init = function() {
 			domCanvas.style.cursor = "default";
+		}
+		editModeEventArr[EM_SCALE].shutdown = function() {
 		}
 		editModeEventArr[EM_SCALE].checkTransformAxis = function() {
 			highlightFeatureArr = [];
@@ -1029,6 +1037,8 @@ App = function() {
 		editModeEventArr[EM_CREATE_CIRCLE].init = function() {
 			domCanvas.style.cursor = "crosshair";
 		}
+		editModeEventArr[EM_CREATE_CIRCLE].shutdown = function() {
+		}
 		editModeEventArr[EM_CREATE_CIRCLE].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
@@ -1084,6 +1094,8 @@ App = function() {
 		editModeEventArr[EM_CREATE_TRIANGLE] = {};
 		editModeEventArr[EM_CREATE_TRIANGLE].init = function() {
 			domCanvas.style.cursor = "crosshair";
+		}
+		editModeEventArr[EM_CREATE_TRIANGLE].shutdown = function() {
 		}
 		editModeEventArr[EM_CREATE_TRIANGLE].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
@@ -1159,6 +1171,8 @@ App = function() {
 		editModeEventArr[EM_CREATE_BOX].init = function() {
 			domCanvas.style.cursor = "crosshair";
 		}
+		editModeEventArr[EM_CREATE_BOX].shutdown = function() {
+		}
 		editModeEventArr[EM_CREATE_BOX].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
@@ -1230,6 +1244,8 @@ App = function() {
 		editModeEventArr[EM_CREATE_HEXAGON] = {};
 		editModeEventArr[EM_CREATE_HEXAGON].init = function() {
 			domCanvas.style.cursor = "crosshair";
+		}
+		editModeEventArr[EM_CREATE_HEXAGON].shutdown = function() {
 		}
 		editModeEventArr[EM_CREATE_HEXAGON].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
@@ -1309,6 +1325,9 @@ App = function() {
 		editModeEventArr[EM_CREATE_POLY].init = function() {
 			domCanvas.style.cursor = "crosshair";
 		}
+		editModeEventArr[EM_CREATE_POLY].shutdown = function() {
+			creatingBody = null;
+		}
 		editModeEventArr[EM_CREATE_POLY].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
@@ -1333,15 +1352,6 @@ App = function() {
 			shape.body.cacheData();
 		}
 		editModeEventArr[EM_CREATE_POLY].mouseUp = function(ev) {			
-			if (creatingBody) {
-				var shape = creatingBody.shapeArr[0];
-				if (shape.area() < 0.0001) {
-					space.removeBody(creatingBody);
-					delete shape;
-					delete creatingBody;
-					creatingBody = null;
-				}				
-			}
 		}
 		editModeEventArr[EM_CREATE_POLY].mouseMove = function(ev) {
 			if (mouseDown && creatingBody) {
@@ -1384,6 +1394,8 @@ App = function() {
 				creatingJoint = null;
 			}
 		}
+		editModeEventArr[EM_CREATE_ANGLE_JOINT].shutdown = function() {
+		}
 		editModeEventArr[EM_CREATE_ANGLE_JOINT].mouseDown = function(ev) {			
 		}
 		editModeEventArr[EM_CREATE_ANGLE_JOINT].mouseUp = function(ev) {			
@@ -1400,6 +1412,8 @@ App = function() {
 		editModeEventArr[EM_CREATE_REVOLUTE_JOINT].init = function() {
 			domCanvas.style.cursor = "crosshair";
 		};
+		editModeEventArr[EM_CREATE_REVOLUTE_JOINT].shutdown = function() {
+		}
 		editModeEventArr[EM_CREATE_REVOLUTE_JOINT].mouseDown = function(ev) {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
 				var p = canvasToWorld(mousePosition);
@@ -1439,6 +1453,8 @@ App = function() {
 		editModeEventArr[EM_CREATE_WELD_JOINT] = {};
 		editModeEventArr[EM_CREATE_WELD_JOINT].init = function() {
 			domCanvas.style.cursor = "crosshair";
+		}
+		editModeEventArr[EM_CREATE_WELD_JOINT].shutdown = function() {
 		}
 		editModeEventArr[EM_CREATE_WELD_JOINT].mouseDown = function(ev) {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
@@ -1480,6 +1496,8 @@ App = function() {
 		editModeEventArr[EM_CREATE_LINE_JOINT].init = function() {
 			domCanvas.style.cursor = "crosshair";
 		}
+		editModeEventArr[EM_CREATE_LINE_JOINT].shutdown = function() {
+		}
 		editModeEventArr[EM_CREATE_LINE_JOINT].mouseDown = function(ev) {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
 				var p = canvasToWorld(mousePosition);
@@ -1520,6 +1538,8 @@ App = function() {
 		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].init = function() {
 			domCanvas.style.cursor = "crosshair";
 		}
+		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].shutdown = function() {
+		}
 		editModeEventArr[EM_CREATE_PRISMATIC_JOINT].mouseDown = function(ev) {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
 				var p = canvasToWorld(mousePosition);
@@ -1559,6 +1579,8 @@ App = function() {
 		editModeEventArr[EM_CREATE_DISTANCE_JOINT] = {};
 		editModeEventArr[EM_CREATE_DISTANCE_JOINT].init = function() {
 			domCanvas.style.cursor = "crosshair";
+		}
+		editModeEventArr[EM_CREATE_DISTANCE_JOINT].shutdown = function() {
 		}
 		editModeEventArr[EM_CREATE_DISTANCE_JOINT].mouseDown = function(ev) {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
@@ -1637,6 +1659,8 @@ App = function() {
 
 			onClickedEditMode("select");
 		}
+		editModeEventArr[EM_COLLAPSE_BODIES].shutdown = function() {
+		}
 		editModeEventArr[EM_COLLAPSE_BODIES].mouseDown = function(ev) {}
 		editModeEventArr[EM_COLLAPSE_BODIES].mouseUp = function(ev) {}
 		editModeEventArr[EM_COLLAPSE_BODIES].mouseMove = function(ev) {}
@@ -1688,6 +1712,8 @@ App = function() {
 
 				selectedFeatureArr = new_selectedFeatureArr;
 			}
+		}
+		editModeEventArr[EM_EDGE_SLICE].shutdown = function() {
 		}
 		editModeEventArr[EM_EDGE_SLICE].mouseDown = function(ev) {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
@@ -4033,6 +4059,8 @@ App = function() {
 	}
 
 	function onClickedEditMode(value) {
+		editModeEventArr[editMode].shutdown();
+
 		editMode = { create_circle: EM_CREATE_CIRCLE, create_triangle: EM_CREATE_TRIANGLE, create_box: EM_CREATE_BOX, create_hexagon: EM_CREATE_HEXAGON, create_poly: EM_CREATE_POLY,
 			create_angle_joint: EM_CREATE_ANGLE_JOINT, create_revolute_joint: EM_CREATE_REVOLUTE_JOINT, create_weld_joint: EM_CREATE_WELD_JOINT, 
 			create_line_joint: EM_CREATE_LINE_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT,

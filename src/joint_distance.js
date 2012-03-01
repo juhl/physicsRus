@@ -59,32 +59,17 @@ DistanceJoint.prototype.serialize = function() {
 		"collideConnected": this.collideConnected,
 		"maxForce": this.maxForce,
 		"breakable": this.breakable,
-		"k": this.k,
-		"d": this.d	
+		"frequencyHz": this.frequencyHz,
+		"dampingRatio": this.dampingRatio	
 	};
 }
 
 DistanceJoint.prototype.setSpringFrequencyHz = function(frequencyHz) {
 	this.frequencyHz = frequencyHz;
-
-	// Frequency
-	var omega = 2 * Math.PI * this.frequencyHz;
-
-	// Spring stiffness
-	this.k = omega * omega;
-
-	// Damping coefficients
-	this.d = 0;
 }
 
 DistanceJoint.prototype.setSpringDampingRatio = function(dampingRatio) {
 	this.dampingRatio = dampingRatio;
-
-	// Frequency
-	var omega = 2 * Math.PI * this.frequencyHz;
-
-	// Damping coefficients
-	this.d = 2 * dampingRatio * omega;
 }
 
 DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
@@ -118,15 +103,20 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 		
 	// invEM = J * invM * JT
    	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
-	this.em = em_inv == 0 ? 0 : 1 / em_inv;
+	this.em = em_inv == 0 ? 0 : 1 / em_inv;	
 
 	// Compute soft constraint parameters
-	if (this.k > 0) {
+	if (this.frequencyHz > 0) {
 		var c = dist - this.restLength;
-		
-		// Spring coefficients
-		var k = this.em * this.k;
-		var d = this.em * this.d;
+
+		// Frequency
+		var omega = 2 * Math.PI * this.frequencyHz;
+
+		// Spring stiffness
+		var k = this.em * omega * omega;
+
+		// Damping coefficients
+		var d = this.em * 2 * this.dampingRatio * omega;
 
 		// Soft constraint formulas
 		var gamma = dt * (d + k * dt);
@@ -137,6 +127,10 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 
 		em_inv = em_inv + this.gamma;
 		this.em = em_inv == 0 ? 0 : 1 / em_inv;
+	}
+	else {
+		this.gamma = 0;
+		this.bias = 0;
 	}
 
 	if (warmStarting) {
@@ -180,7 +174,7 @@ DistanceJoint.prototype.solveVelocityConstraints = function() {
 
 DistanceJoint.prototype.solvePositionConstraints = function() {
 	// There is no position correction for soft constraints
-	if (this.k > 0) {
+	if (this.frequencyHz > 0) {
 		return true;
 	}
 

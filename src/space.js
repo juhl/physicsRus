@@ -109,8 +109,8 @@ Space.prototype.create = function(text) {
 			break;
 		case "DistanceJoint":                
 			joint = new DistanceJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
-			joint.k = config_joint.k;
-			joint.d = config_joint.d;
+			joint.setSpringFrequencyHz(config_joint.frequencyHz);
+			joint.setSpringDampingRatio(config_joint.dampingRatio);
 			break;
 		case "LineJoint":
 			joint = new LineJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);

@@ -148,7 +148,7 @@ Body.prototype.getLocalVector = function(v) {
 }
 
 Body.prototype.resetMassData = function() {
-	if (this.isStatic()) {
+	if (!this.isDynamic()) {
 		this.centroid.set(0, 0);
 		this.setMass(Infinity);
 		this.setInertia(Infinity);

@@ -20,13 +20,8 @@ MouseJoint = function(mouseBody, body, anchor) {
 	this.anchor2 = this.body2.getLocalPoint(anchor);
 	
 	// Spring stiffness
-	var frequencyHz = 6;
-	var omega = 2 * Math.PI * frequencyHz;
-	this.k = omega * omega;
-
-	// Damping coefficients
-	var dampingRatio = 0.9;
-	this.d = 2 * dampingRatio * omega;
+	this.frequencyHz = 6;
+	this.dampingRatio = 0.9;
 
 	// Accumulated impulse
 	this.lambda_acc = new vec2(0, 0);
@@ -35,6 +30,14 @@ MouseJoint = function(mouseBody, body, anchor) {
 MouseJoint.prototype = new Joint;
 MouseJoint.prototype.constructor = MouseJoint;
 
+MouseJoint.prototype.setSpringFrequencyHz = function(frequencyHz) {
+	this.frequencyHz = frequencyHz;
+}
+
+MouseJoint.prototype.setSpringDampingRatio = function(dampingRatio) {
+	this.dampingRatio = dampingRatio;
+}
+
 MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;
@@ -42,7 +45,7 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	// Max impulse
 	this.maxImpulse = this.maxForce * dt;
 		
-	// Transformed r	
+	// Transformed r
 	this.r2 = vec2.rotate(vec2.sub(this.anchor2, body2.centroid), body2.a);	
 		
 	// invEM = J * invM * JT
@@ -51,14 +54,19 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	var k11 = body2.m_inv + r2.y * r2y_i;
 	var k12 = -r2.x * r2y_i;
 	var k22 = body2.m_inv + r2.x * r2.x * body2.i_inv;
-	this.em_inv = new mat2(k11, k12, k12, k22);
+	this.em_inv = new mat2(k11, k12, k12, k22);	
 
 	// Position constraint
 	var c = vec2.sub(vec2.add(body2.p, this.r2), body1.p);
 
-	// Spring coefficients
-	var k = body2.m * this.k;
-	var d = body2.m * this.d;
+	// Frequency
+	var omega = 2 * Math.PI * this.frequencyHz;
+
+	// Spring stiffness
+	var k = body2.m * omega * omega;
+
+	// Damping coefficients
+	var d = body2.m * 2 * this.dampingRatio * omega;
 
 	// Soft constraint formulas
 	var gamma = dt * (d + k * dt);
@@ -79,7 +87,6 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 }
 
 MouseJoint.prototype.solveVelocityConstraints = function() {
-	var body1 = this.body1;
 	var body2 = this.body2;
 
 	// Compute lambda for velocity constraint
