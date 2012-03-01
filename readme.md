@@ -1,7 +1,9 @@
+## Physics"R"us ##
+
 Introduction
 --------------
 
-Simple 2D rigid body physics simulation demo written in Javascript
+Physics"R"us is 2D rigid body physics simulator and editor written in Javascript.
 
 Features
 --------------
