@@ -3,6 +3,9 @@ Math.clamp = function(v, min, max) { return v < min ? min : (v > max ? max : v);
 function deg2rad(deg) { return (deg / 180) * Math.PI; }
 function rad2deg(rad) { return (rad / Math.PI) * 180; }
 
+function pixel2meter(px) { return px * 0.02; }
+function meter2pixel(mt) { return mt * 50; }
+
 //-----------------------------------
 // 2D Vector
 //-----------------------------------

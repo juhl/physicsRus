@@ -61,9 +61,9 @@ App = function() {
 	const SELECTABLE_CIRCLE_DIST_THREHOLD = isAppleMobileDevice() ? 10 : 5;	
 
 	// default values for creating shape
-	const DEFAULT_DENSITY = 0.1;
+	const DEFAULT_DENSITY = 0.05;
 	const DEFAULT_RESTITUTION = 0.4;
-	const DEFAULT_FRICTION = 0.8;
+	const DEFAULT_FRICTION = 0.9;
 
 	// DOM objects
 	var domView;
@@ -1343,9 +1343,16 @@ App = function() {
 				creatingBody.addShape(shape);
 				space.addBody(creatingBody);
 			}
-
+		
 			var shape = creatingBody.shapeArr[0];
 			shape.verts.push(creatingBody.getLocalPoint(p));
+
+			var center = vec2.add(creatingBody.p, shape.centroid());
+			for (var i = 0; i < shape.verts.length; i++) {
+				shape.verts[i] = vec2.sub(creatingBody.getWorldPoint(shape.verts[i]), center);
+			}
+
+			creatingBody.setTransform(center, 0);
 
 			shape.finishVerts();
 			shape.body.resetMassData();
@@ -1895,10 +1902,10 @@ App = function() {
 					el.value = index;
 
 					var el = domVertexInspector.querySelector("[name=position_x]");
-					el.value = v.x.toFixed(2);
+					el.value = v.x.toFixed(1);
 
 					var el = domVertexInspector.querySelector("[name=position_y]");
-					el.value = v.y.toFixed(2);
+					el.value = v.y.toFixed(1);
 				}
 			}
 			else if (selectionMode == SM_EDGES) {
@@ -1916,16 +1923,16 @@ App = function() {
 					el.value = index;
 
 					var el = domEdgeInspector.querySelector("[name=v1_position_x]");
-					el.value = v1.x.toFixed(2);
+					el.value = v1.x.toFixed(1);
 
 					var el = domEdgeInspector.querySelector("[name=v1_position_y]");
-					el.value = v1.y.toFixed(2);
+					el.value = v1.y.toFixed(1);
 
 					var el = domEdgeInspector.querySelector("[name=v2_position_x]");
-					el.value = v2.x.toFixed(2);
+					el.value = v2.x.toFixed(1);
 
 					var el = domEdgeInspector.querySelector("[name=v2_position_y]");
-					el.value = v2.y.toFixed(2);
+					el.value = v2.y.toFixed(1);
 				}
 			}
 			else if (selectionMode == SM_SHAPES) {
@@ -1940,14 +1947,14 @@ App = function() {
 					var el = domShapeInspector.querySelector("[name=radius]");
 					if (shape.type == Shape.TYPE_CIRCLE || shape.type == Shape.TYPE_SEGMENT) {
 						el.parentNode.style.display = "block";
-						el.value = shape.r.toFixed(2);
+						el.value = shape.r.toFixed(1);
 					}
 					else {
 						el.parentNode.style.display = "none";
 					}
 
 					var el = domShapeInspector.querySelector("[name=density]");
-					el.value = shape.density.toFixed(6);
+					el.value = shape.density.toFixed(8);
 
 					var el = domShapeInspector.querySelector("[name=restitution]");
 					el.value = shape.e.toFixed(2);
@@ -1969,10 +1976,10 @@ App = function() {
 					el.value = body.name;
 
 					var el = domBodyInspector.querySelector("[name=position_x]");
-					el.value = body.xf.t.x.toFixed(2);
+					el.value = body.xf.t.x.toFixed(1);
 
 					var el = domBodyInspector.querySelector("[name=position_y]");
-					el.value = body.xf.t.y.toFixed(2);
+					el.value = body.xf.t.y.toFixed(1);
 
 					var el = domBodyInspector.querySelector("[name=angle]");
 					el.value = rad2deg(body.a).toFixed(1);
@@ -1980,7 +1987,7 @@ App = function() {
 					if (!body.isStatic()) {
 						var el = domBodyInspector.querySelector("[name=mass]");
 						el.disabled = false;
-						el.value = body.m.toFixed(2);
+						el.value = body.m.toFixed(8);
 
 						var el = domBodyInspector.querySelector("[name=inertia]");
 						el.disabled = false;
@@ -2025,12 +2032,12 @@ App = function() {
 						var el = domJointInspector.querySelector("[name=anchor_position_x]");
 						el.parentNode.style.display = "block";
 						var anchor = anchorIndex == 0 ? joint.getWorldAnchor1() : joint.getWorldAnchor2();
-						el.value = anchor.x.toFixed(2);
+						el.value = anchor.x.toFixed(1);
 
 						var el = domJointInspector.querySelector("[name=anchor_position_y]");
 						el.parentNode.style.display = "block";
 						var anchor = anchorIndex == 0 ? joint.getWorldAnchor1() : joint.getWorldAnchor2();
-						el.value = anchor.y.toFixed(2);
+						el.value = anchor.y.toFixed(1);
 					}
 
 					if (joint.type == Joint.TYPE_REVOLUTE) {
@@ -2075,11 +2082,11 @@ App = function() {
 						if (joint.motorEnabled) {
 							var el = domJointInspector.querySelector("[name=motor_speed]");
 							el.parentNode.style.display = "block";
-							el.value = joint.motorSpeed.toFixed(2);
+							el.value = joint.motorSpeed.toFixed(1);
 
 							var el = domJointInspector.querySelector("[name=max_motor_torque]");
 							el.parentNode.style.display = "block";
-							el.value = joint.maxMotorTorque.toFixed(2);
+							el.value = joint.maxMotorTorque.toFixed(1);
 						}
 						else {
 							var el = domJointInspector.querySelector("[name=motor_speed]");
@@ -2118,7 +2125,7 @@ App = function() {
 					}
 					
 					var el = domJointInspector.querySelector("[name=max_force]");
-					el.value = joint.maxForce.toFixed(2);
+					el.value = joint.maxForce.toFixed(1);
 
 					var el = domJointInspector.querySelector("[name=collide_connected]");
 					el.checked = joint.collideConnected;
@@ -4024,10 +4031,17 @@ App = function() {
 		return false;
 	}
 
-	function onClickedEdit() {
+	function onClickedEdit() {				
 		editorEnabled = !editorEnabled;
 		pause = false;
 		step = false;		
+
+		if (!editorEnabled) {
+			editModeEventArr[editMode].shutdown();
+		}
+		else {
+			editModeEventArr[editMode].init();
+		}
 
 		selectedFeatureArr = [];
 		markedFeatureArr = [];
