@@ -19,8 +19,12 @@ MouseJoint = function(mouseBody, body, anchor) {
 	this.anchor1 = this.body1.getLocalPoint(anchor);
 	this.anchor2 = this.body2.getLocalPoint(anchor);
 	
+	// Soft constraint coefficients
+	this.gamma = 0;
+	this.c_beta = 0;
+	
 	// Spring stiffness
-	this.frequencyHz = 6;
+	this.frequencyHz = 5;
 	this.dampingRatio = 0.9;
 
 	// Accumulated impulse
@@ -43,37 +47,39 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body2 = this.body2;
 
 	// Max impulse
-	this.maxImpulse = this.maxForce * dt;
-		
+	this.maxImpulse = this.maxForce * dt;		
+
+	// Frequency
+	var omega = 2 * Math.PI * this.frequencyHz;
+
+	// Spring stiffness
+	var k = body2.m * (omega * omega);
+
+	// Damping coefficients
+	var d = body2.m * 2 * this.dampingRatio * omega;
+
+	// Soft constraint formulas
+	this.gamma = dt * (d + k * dt);
+	this.gamma = this.gamma == 0 ? 0 : 1 / this.gamma;
+
+	var beta = dt * k * this.gamma;
+
 	// Transformed r
 	this.r2 = vec2.rotate(vec2.sub(this.anchor2, body2.centroid), body2.a);	
 		
 	// invEM = J * invM * JT
 	var r2 = this.r2;
 	var r2y_i = r2.y * body2.i_inv;
-	var k11 = body2.m_inv + r2.y * r2y_i;
+	var k11 = body2.m_inv + r2.y * r2y_i + this.gamma;
 	var k12 = -r2.x * r2y_i;
-	var k22 = body2.m_inv + r2.x * r2.x * body2.i_inv;
-	this.em_inv = new mat2(k11, k12, k12, k22);	
+	var k22 = body2.m_inv + r2.x * r2.x * body2.i_inv + this.gamma;
+	this.em_inv = new mat2(k11, k12, k12, k22);
 
 	// Position constraint
 	var c = vec2.sub(vec2.add(body2.p, this.r2), body1.p);
+	this.c_beta = vec2.scale(c, beta);
 
-	// Frequency
-	var omega = 2 * Math.PI * this.frequencyHz;
-
-	// Spring stiffness
-	var k = body2.m * omega * omega;
-
-	// Damping coefficients
-	var d = body2.m * 2 * this.dampingRatio * omega;
-
-	// Soft constraint formulas
-	var gamma = dt * (d + k * dt);
-	this.gamma = gamma == 0 ? 0 : 1 / gamma;
-
-	var beta = dt * k * this.gamma;
-	this.bias = vec2.scale(c, beta);
+	body2.w *= 0.98;	
 
 	if (warmStarting) {
 		// Apply cached impulses
@@ -93,7 +99,7 @@ MouseJoint.prototype.solveVelocityConstraints = function() {
 	// Solve J * invM * JT * lambda = -(J * v + beta * C/h + gamma * lambda)
 	// in 2D: cross(w, r) = perp(r) * w
    	var cdot = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
-   	var magic = vec2.mad(this.bias, this.lambda_acc, this.gamma);
+   	var magic = vec2.mad(this.c_beta, this.lambda_acc, this.gamma);
 	var lambda = this.em_inv.solve(vec2.add(cdot, magic).neg());
 
 	// Accumulate lambda for velocity constraint
@@ -106,7 +112,7 @@ MouseJoint.prototype.solveVelocityConstraints = function() {
 
 	// Apply impulse
 	// V += JT * lambda
-	body2.v.mad(lambda, body2.m_inv);
+	body2.v.mad(lambda, body2.m_inv);	
 	body2.w += vec2.cross(this.r2, lambda) * body2.i_inv;
 }
 

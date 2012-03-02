@@ -24,7 +24,7 @@ DistanceJoint = function(body1, body2, anchor1, anchor2) {
 	
 	// Soft constraint coefficients
 	this.gamma = 0;
-	this.bias = 0;
+	this.c_beta = 0;
 
 	// Accumulated impulse
 	this.lambda_acc = 0;
@@ -119,18 +119,18 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 		var d = this.em * 2 * this.dampingRatio * omega;
 
 		// Soft constraint formulas
-		var gamma = dt * (d + k * dt);
-		this.gamma = gamma == 0 ? 0 : 1 / gamma;
+		this.gamma = dt * (d + k * dt);
+		this.gamma = this.gamma == 0 ? 0 : 1 / this.gamma;
 
 		var beta = dt * k * this.gamma;
-		this.bias = c * beta;
+		this.c_beta = c * beta;
 
 		em_inv = em_inv + this.gamma;
 		this.em = em_inv == 0 ? 0 : 1 / em_inv;
 	}
 	else {
 		this.gamma = 0;
-		this.bias = 0;
+		this.c_beta = 0;
 	}
 
 	if (warmStarting) {
@@ -156,7 +156,7 @@ DistanceJoint.prototype.solveVelocityConstraints = function() {
 	// Compute lambda for velocity constraint
 	// Solve J * invM * JT * lambda = -(J * v + beta * C/h + gamma * lambda)
     var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
-	var lambda = -this.em * (cdot + this.bias + this.gamma * this.lambda_acc);
+	var lambda = -this.em * (cdot + this.c_beta + this.gamma * this.lambda_acc);
 
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc += lambda;

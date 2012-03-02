@@ -1654,6 +1654,11 @@ App = function() {
 							joint.body2 = primaryBody;
 							joint.setWorldAnchor2(anchor2);
 						}
+
+						if (joint.body1 == joint.body2) {
+							space.removeJoint(joint);
+							delete joint;
+						}
 					}
 
 					body.jointHash = {};
@@ -1964,7 +1969,7 @@ App = function() {
 				}
 			}
 			else if (selectionMode == SM_BODIES) {			
-				if (selectedFeatureArr.length == 1) {				
+				if (selectedFeatureArr.length == 1) {
 					var body = selectedFeatureArr[0];
 
 					domBodyInspector.style.display = "block";
@@ -2780,7 +2785,7 @@ App = function() {
 				for (var j = 0; j < body1.shapeArr.length; j++) {
 					var shape = body1.shapeArr[j];
 					if (shape.visible) {
-						drawBodyShape(ctx, shape, 1, "", color.rgba());
+						drawBodyShape(ctx, shape, 1, jointHelperColor, color.rgba());
 						dirtyBounds.addBounds(shape.bounds);
 					}
 				}
@@ -2788,7 +2793,7 @@ App = function() {
 				for (var j = 0; j < body2.shapeArr.length; j++) {
 					var shape = body2.shapeArr[j];
 					if (shape.visible) {
-						drawBodyShape(ctx, shape, 1, "", color.rgba());
+						drawBodyShape(ctx, shape, 1, jointHelperColor, color.rgba());
 						dirtyBounds.addBounds(shape.bounds);
 					}
 				}
@@ -3435,7 +3440,7 @@ App = function() {
 						// NOT AVAILABLE
 					}
 					else if (selectionMode == SM_JOINTS) {
-
+						
 					}
 
 					resetTransformCenter();
@@ -3929,6 +3934,7 @@ App = function() {
 			var jointId = selectedFeatureArr[0];
 			var joint = space.jointById((jointId >> 16) & 0xFFFF);
 			joint.motorSpeed = parseFloat(value);
+			console.log(joint.motorSpeed);
 		}
 	}
 
@@ -4176,6 +4182,8 @@ App = function() {
 
 		selectedFeatureArr = [];
 		highlightFeatureArr = [];
+
+		updateSidebar();
 	}
 
 	function onClickedSnap() {

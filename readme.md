@@ -3,7 +3,7 @@
 Introduction
 --------------
 
-Physics"R"us is 2D rigid body physics simulator and editor written in Javascript.
+Physics"R"us is 2D rigid body physics simulator and intergrated WYSWYG editor written in Javascript.
 
 Features
 --------------
