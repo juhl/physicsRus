@@ -54,6 +54,9 @@ Body = function(type, pos, angle) {
 	// Bounds of all shapes
 	this.bounds = new Bounds;
 
+	this.categoryBits = 0x0001;
+	this.maskBits = 0xFFFF;
+
 	this.stepCount = 0;
 }
 
@@ -304,6 +307,9 @@ Body.prototype.isCollidable = function(other) {
 		return false;
 
 	if (this.isStatic() && other.isStatic())
+		return false;
+
+	if (!(this.maskBits & other.categoryBits) || !(other.maskBits & this.categoryBits))
 		return false;
 
 	for (var i in this.jointHash) {

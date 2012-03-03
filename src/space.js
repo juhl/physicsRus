@@ -106,12 +106,7 @@ Space.prototype.create = function(text) {
 			break;
 		case "WeldJoint":
 			joint = new WeldJoint(body1, body2, config_joint.anchor);
-			break;
-		case "DistanceJoint":                
-			joint = new DistanceJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
-			joint.setSpringFrequencyHz(config_joint.frequencyHz);
-			joint.setSpringDampingRatio(config_joint.dampingRatio);
-			break;
+			break;		
 		case "LineJoint":
 			joint = new LineJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
 			joint.enableMotor(config_joint.motorEnabled);
@@ -120,6 +115,14 @@ Space.prototype.create = function(text) {
 			break;
 		case "PrismaticJoint":
 			joint = new PrismaticJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
+			break;
+		case "DistanceJoint":                
+			joint = new DistanceJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
+			joint.setSpringFrequencyHz(config_joint.frequencyHz);
+			joint.setSpringDampingRatio(config_joint.dampingRatio);
+			break;
+		case "RopeJoint":                
+			joint = new RopeJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
 			break;
 		}
 

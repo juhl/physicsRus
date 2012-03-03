@@ -82,8 +82,8 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	body2.w *= 0.98;	
 
 	if (warmStarting) {
-		// Apply cached impulses
-		// V += JT * lambda
+		// Apply cached constraint impulses
+		// V += JT * lambda * invM
 		body2.v.mad(this.lambda_acc, body2.m_inv);
 		body2.w += vec2.cross(this.r2, this.lambda_acc) * body2.i_inv;
 	}
@@ -110,8 +110,8 @@ MouseJoint.prototype.solveVelocityConstraints = function() {
 	}
 	lambda = vec2.sub(this.lambda_acc, lambda_old);
 
-	// Apply impulse
-	// V += JT * lambda
+	// Apply constraint impulse
+	// V += JT * lambda * invM
 	body2.v.mad(lambda, body2.m_inv);	
 	body2.w += vec2.cross(this.r2, lambda) * body2.i_inv;
 }

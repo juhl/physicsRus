@@ -83,8 +83,8 @@ WeldJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.em_inv = new mat3(k11, k12, k13, k12, k22, k23, k13, k23, k33);
 	
 	if (warmStarting) {
-		// Apply cached impulses
-		// V += JT * lambda
+		// Apply cached constraint impulses
+		// V += JT * lambda * invM
 		var lambda_xy = new vec2(this.lambda_acc.x, this.lambda_acc.y);
 		var lambda_z = this.lambda_acc.z;
 
@@ -116,8 +116,8 @@ WeldJoint.prototype.solveVelocityConstraints = function() {
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc.addself(lambda);
 
-	// Apply impulses
-	// V += JT * lambda
+	// Apply constrint impulses
+	// V += JT * lambda * invM
 	var lambda_xy = new vec2(lambda.x, lambda.y);
 
 	body1.v.mad(lambda_xy, -body1.m_inv);
@@ -158,8 +158,8 @@ WeldJoint.prototype.solvePositionConstraints = function() {
 	var em_inv = new mat3(k11, k12, k13, k12, k22, k23, k13, k23, k33);
 	var lambda = em_inv.solve(correction.neg());
 	
-	// Apply impulses
-	// X += JT * lambda * dt
+	// Apply constraint impulses
+	// X += JT * lambda * invM * dt
 	var lambda_xy = new vec2(lambda.x, lambda.y);
 
 	body1.p.mad(lambda_xy, -body1.m_inv);

@@ -26,12 +26,13 @@
   <script src="src/collision.js"></script>
   <script src="src/body.js"></script>
   <script src="src/joint.js"></script>
-  <script src="src/joint_angle.js"></script>
-  <script src="src/joint_distance.js"></script>
+  <script src="src/joint_angle.js"></script>  
   <script src="src/joint_revolute.js"></script>
   <script src="src/joint_weld.js"></script>
   <script src="src/joint_line.js"></script>
   <script src="src/joint_prismatic.js"></script>
+  <script src="src/joint_distance.js"></script>
+  <script src="src/joint_rope.js"></script>
   <script src="src/joint_mouse.js"></script>
   <script src="src/shape.js"></script>
   <script src="src/shape_circle.js"></script>
@@ -94,11 +95,12 @@
         <button type="button" class="btn segment" name="editmode" value="create_circle" style="width:60px; height:30px">Circle</button>
         <button type="button" class="btn segment" name="editmode" value="create_triangle" style="width:60px; height:30px">Triangle</button>
         <button type="button" class="btn segment" name="editmode" value="create_box" style="width:60px; height:30px">Box</button>
-        <button type="button" class="btn segment" name="editmode" value="create_hexagon" style="width:60px; height:30px">Hexagon</button>        
+        <button type="button" class="btn segment" name="editmode" value="create_hexagon" style="width:60px; height:30px">Hexagon</button>                
       </div>
       <div style="margin-top:3px"></div>
       <div class="btn_group">
         <button type="button" class="btn segment" name="editmode" value="create_poly" style="width:60px; height:30px">Polygon</button>
+        <button type="button" class="btn segment" name="editmode" value="collapse_bodies" style="width:60px; height:30px">Collapse Bodies</button>
       </div>      
       <div style="margin-top:5px"></div>
       <span style="line-height:18px">Create Joint</span>
@@ -111,21 +113,22 @@
       <div class="btn_group">
         <button type="button" class="btn segment" name="editmode" value="create_line_joint" style="width:60px; height:30px">Line</button>
         <button type="button" class="btn segment" name="editmode" value="create_prismatic_joint" style="width:60px; height:30px">Prismatic</button>
-        <button type="button" class="btn segment" name="editmode" value="create_distance_joint" style="width:60px; height:30px">Distance</button>        
+        <button type="button" class="btn segment" name="editmode" value="create_distance_joint" style="width:60px; height:30px">Distance</button>
+        <button type="button" class="btn segment" name="editmode" value="create_rope_joint" style="width:60px; height:30px">Rope</button>
       </div>      
       <div style="margin-top:5px"></div>
       <span style="line-height:18px">Transform</span>
       <div class="btn_group">
         <button type="button" class="btn segment" name="editmode" value="select" style="width:60px; height:30px">Select</button>
-        <button type="button" class="btn segment" name="editmode" value="translate" style="width:60px; height:30px">Translate</button>
+        <button type="button" class="btn segment" name="editmode" value="move" style="width:60px; height:30px">Move</button>
         <button type="button" class="btn segment" name="editmode" value="rotate" style="width:60px; height:30px">Rotate</button>
         <button type="button" class="btn segment" name="editmode" value="scale" style="width:60px; height:30px">Scale</button>
       </div>
       <div style="margin-top:5px"></div>
-      <span style="line-height:18px">Other Tools</span>
+      <span style="line-height:18px">Polygon Tools</span>
       <div class="btn_group">
-        <button type="button" class="btn segment" name="editmode" value="collapse_bodies" style="width:60px; height:30px">Collapse Bodies</button>
         <button type="button" class="btn segment" name="editmode" value="edge_slice" style="width:60px; height:30px">Edge Slice</button>
+        <button type="button" class="btn segment" name="editmode" value="edge_extrude" style="width:60px; height:30px">Edge Extrude</button>
       </div>
     </div>
     <div id="vertex_inspector" class="pannel">

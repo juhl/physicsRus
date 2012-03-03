@@ -34,7 +34,7 @@ LineJoint = function(body1, body2, anchor1, anchor2) {
 	// Motor
 	this.motorEnabled = false;
 	this.motorSpeed = 0;
-	this.maxMotorTorque = Infinity;
+	this.maxMotorTorque = 0;
 }
 
 LineJoint.prototype = new Joint;
@@ -126,8 +126,8 @@ LineJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.em2 = em2_inv > 0 ? 1 / em2_inv : em2_inv;
 	
 	if (warmStarting) {
-		// Apply cached impulses
-		// V += JT * lambda
+		// Apply cached constraint impulses
+		// V += JT * lambda * invM
 		var j = vec2.scale(this.n, this.lambda_acc);
 
 		body1.v.mad(j, -body1.m_inv);
@@ -168,8 +168,8 @@ LineJoint.prototype.solveVelocityConstraints = function() {
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc += lambda;
 
-	// Apply impulses
-	// V += JT * lambda
+	// Apply constraint impulses
+	// V += JT * lambda * invM
 	var j = vec2.scale(this.n, lambda);
 
 	body1.v.mad(j, -body1.m_inv);
@@ -212,8 +212,8 @@ LineJoint.prototype.solvePositionConstraints = function() {
 	var k_inv = em_inv == 0 ? 0 : 1 / em_inv;
 	var lambda = k_inv * (-correction);
 
-	// Apply impulses
-	// X += JT * lambda * dt
+	// Apply constraint impulses
+	// X += JT * lambda * invM * dt
 	var j = vec2.scale(n, lambda);
 
 	body1.p.mad(j, -body1.m_inv);

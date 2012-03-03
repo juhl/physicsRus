@@ -41,7 +41,7 @@ RevoluteJoint = function(body1, body2, anchor) {
 	// Motor
 	this.motorEnabled = false;
 	this.motorSpeed = 0;
-	this.maxMotorTorque = Infinity;
+	this.maxMotorTorque = 0;
 }
 
 RevoluteJoint.prototype = new Joint;
@@ -161,7 +161,7 @@ RevoluteJoint.prototype.initSolver = function(dt, warmStarting) {
 	}
 	
 	if (warmStarting) {
-		// Apply cached impulses
+		// Apply cached constraint impulses
 		// V += JT * lambda
 		var lambda_xy = new vec2(this.lambda_acc.x, this.lambda_acc.y);
 		var lambda_z = this.lambda_acc.z + this.motorLambda_acc;
@@ -191,7 +191,7 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 		this.motorLambda_acc = Math.clamp(this.motorLambda_acc + lambda, -this.maxMotorImpulse, this.maxMotorImpulse);
 		lambda = this.motorLambda_acc - motorLambdaOld;
 
-		// Apply motor impulses
+		// Apply motor constraint impulses
 		body1.w -= lambda * body1.i_inv;
 		body2.w += lambda * body2.i_inv;
 	}
@@ -241,8 +241,8 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 			}
 		}
 
-		// Apply impulses
-		// V += JT * lambda		
+		// Apply constraint impulses
+		// V += JT * lambda * invM
 		var lambda_xy = new vec2(lambda.x, lambda.y);
 
 		body1.v.mad(lambda_xy, -body1.m_inv);
@@ -264,8 +264,8 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 		// Accumulate lambda for velocity constraint
 		this.lambda_acc.addself(vec3.fromVec2(lambda, 0));
 
-		// Apply impulses
-		// V += J1T * lambda
+		// Apply constraint impulses
+		// V += J1T * lambda * invM
 		body1.v.mad(lambda, -body1.m_inv);
 		body1.w -= vec2.cross(this.r1, lambda) * body1.i_inv;
 
@@ -326,15 +326,15 @@ RevoluteJoint.prototype.solvePositionConstraints = function() {
 		// Solve J1 * invM * J1T * lambda = -C
 		var sum_m_inv = body1.m_inv + body2.m_inv;
 		var r1y_i = r1.y * body1.i_inv;
-		var r2y_i = r2.y * body2.i_inv;	
+		var r2y_i = r2.y * body2.i_inv;
 		var k11 = sum_m_inv + r1.y * r1y_i + r2.y * r2y_i;
 		var k12 = -r1.x * r1y_i - r2.x * r2y_i;
 		var k22 = sum_m_inv + r1.x * r1.x * body1.i_inv + r2.x * r2.x * body2.i_inv;
 		var em_inv = new mat2(k11, k12, k12, k22);
 		var lambda = em_inv.solve(correction.neg());
 	
-		// Apply impulses
-		// X += J1T * lambda * dt
+		// Apply constraint impulses
+		// X += J1T * lambda * invM * dt
 		body1.p.mad(lambda, -body1.m_inv);
 		body1.a -= vec2.cross(r1, lambda) * body1.i_inv;
 

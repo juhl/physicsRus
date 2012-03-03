@@ -53,8 +53,8 @@ AngleJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.em = em_inv == 0 ? 0 : 1 / em_inv;
 
 	if (warmStarting) {
-		// Apply cached impulses
-		// V += JT * lambda		
+		// Apply cached constraint impulses
+		// V += JT * lambda	* invM	
 		body1.w -= this.lambda_acc * body1.i_inv;
 		body2.w += this.lambda_acc * body2.i_inv;
 	}
@@ -75,8 +75,8 @@ AngleJoint.prototype.solveVelocityConstraints = function() {
 	// Accumulate lambda for angular velocity constraint
 	this.lambda_acc += lambda;
 
-	// Apply impulses
-	// V += JT * lambda
+	// Apply constraint impulses
+	// V += JT * lambda * invM
 	body1.w -= lambda * body1.i_inv;
 	body2.w += lambda * body2.i_inv;
 }
@@ -93,8 +93,8 @@ AngleJoint.prototype.solvePositionConstraints = function() {
 	// Solve J * invM * JT * lambda = -C
 	var lambda = this.em * (-correction);
 
-	// Apply impulses
-	// X += JT * lambda * dt
+	// Apply constraint impulses
+	// X += JT * lambda * invM * dt
 	body1.a -= lambda * body1.i_inv;
 	body2.a += lambda * body2.i_inv;
 

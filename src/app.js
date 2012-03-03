@@ -3,7 +3,7 @@ var stats = {};
 App = function() {
 	// edit mode
 	const EM_SELECT = 0;
-	const EM_TRANSLATE = 1;
+	const EM_MOVE = 1;
 	const EM_ROTATE = 2;
 	const EM_SCALE = 3;
 	const EM_CREATE_CIRCLE = 4;
@@ -17,8 +17,9 @@ App = function() {
 	const EM_CREATE_LINE_JOINT = 12;
 	const EM_CREATE_PRISMATIC_JOINT = 13;
 	const EM_CREATE_DISTANCE_JOINT = 14;
-	const EM_COLLAPSE_BODIES = 15;
-	const EM_EDGE_SLICE = 16;
+	const EM_CREATE_ROPE_JOINT = 15;
+	const EM_COLLAPSE_BODIES = 16;
+	const EM_EDGE_SLICE = 17;
 
 	// selection mode
 	const SM_VERTICES = 0;
@@ -380,13 +381,13 @@ App = function() {
 			}
 		}
 
-		editModeEventArr[EM_TRANSLATE] = {};
-		editModeEventArr[EM_TRANSLATE].init = function() {
+		editModeEventArr[EM_MOVE] = {};
+		editModeEventArr[EM_MOVE].init = function() {
 			domCanvas.style.cursor = "default";
 		}
-		editModeEventArr[EM_TRANSLATE].shutdown = function() {
+		editModeEventArr[EM_MOVE].shutdown = function() {
 		}
-		editModeEventArr[EM_TRANSLATE].checkTransformAxis = function() {
+		editModeEventArr[EM_MOVE].checkTransformAxis = function() {
 			highlightFeatureArr = [];
 			transformAxis = 0;
 
@@ -407,7 +408,7 @@ App = function() {
 				}
 			}				
 		}
-		editModeEventArr[EM_TRANSLATE].mouseDown = function(ev) {
+		editModeEventArr[EM_MOVE].mouseDown = function(ev) {
 			if (ev.metaKey) {
 				var pos = getMousePosition(ev);
 				var p = canvasToWorld(pos);
@@ -421,7 +422,7 @@ App = function() {
 
 			this.checkTransformAxis();
 		}
-		editModeEventArr[EM_TRANSLATE].mouseUp = function(ev) {
+		editModeEventArr[EM_MOVE].mouseUp = function(ev) {
 			if (!ev.metaKey && mouseDown && !mouseDownMoving) {
 				var pos = getMousePosition(ev);
 				var p = canvasToWorld(pos);
@@ -433,7 +434,7 @@ App = function() {
 				transformScale.set(1, 1);
 			}
 		}		
-		editModeEventArr[EM_TRANSLATE].mouseMove = function(ev) {			
+		editModeEventArr[EM_MOVE].mouseMove = function(ev) {			
 			if (mouseDown && transformAxis) {
 				var wmp_new = canvasToWorld(mousePosition);
 				var wmp_old = canvasToWorld(mousePositionOld);
@@ -610,7 +611,7 @@ App = function() {
 				this.checkTransformAxis();
 			}			
 		}		
-		editModeEventArr[EM_TRANSLATE].keyDown = function(keyCode) {
+		editModeEventArr[EM_MOVE].keyDown = function(keyCode) {
 			if (keyCode == 27) {
 				onClickedEditMode("select");
 			}
@@ -1625,6 +1626,48 @@ App = function() {
 			}
 		}
 
+		editModeEventArr[EM_CREATE_ROPE_JOINT] = {};
+		editModeEventArr[EM_CREATE_ROPE_JOINT].init = function() {
+			domCanvas.style.cursor = "crosshair";
+		}
+		editModeEventArr[EM_CREATE_ROPE_JOINT].shutdown = function() {
+		}
+		editModeEventArr[EM_CREATE_ROPE_JOINT].mouseDown = function(ev) {
+			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
+				var p = canvasToWorld(mousePosition);
+				if (snapEnabled) {
+					p = snapPointByGrid(p);
+				}
+				
+				if (!creatingJoint) {
+					var body1 = selectedFeatureArr[0];
+					var body2 = selectedFeatureArr[1];
+
+					creatingJoint = new RopeJoint(body1, body2, p, p);
+					space.addJoint(creatingJoint);
+				}
+			}
+		}
+		editModeEventArr[EM_CREATE_ROPE_JOINT].mouseUp = function(ev) {
+			creatingJoint = null;
+		}
+		editModeEventArr[EM_CREATE_ROPE_JOINT].mouseMove = function(ev) {		
+			if (mouseDown && creatingJoint) {
+				var p = canvasToWorld(mousePosition);
+				
+				if (snapEnabled) {
+					p = snapPointByGrid(p);
+				}
+				
+				creatingJoint.setWorldAnchor2(p);
+			}
+		}
+		editModeEventArr[EM_CREATE_ROPE_JOINT].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				creatingJoint = null;
+			}
+		}
+
 		editModeEventArr[EM_COLLAPSE_BODIES] = {};
 		editModeEventArr[EM_COLLAPSE_BODIES].init = function() {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length >= 2) {
@@ -1868,10 +1911,10 @@ App = function() {
 			domSidebar.style.display = "table-cell";
 
 			// edit mode buttons
-			var value = ["select", "translate", "rotate", "scale", 
+			var value = ["select", "move", "rotate", "scale", 
 				"create_circle", "create_triangle", "create_box", "create_hexagon", "create_poly",
 				"create_angle_joint", "create_revolute_joint", "create_weld_joint", 
-				"create_line_joint", "create_prismatic_joint", "create_distance_joint",
+				"create_line_joint", "create_prismatic_joint", "create_distance_joint", "create_rope_joint",
 				"collapse_bodies", "edge_slice"][editMode];
 
 			for (var i = 0; i < editModeButtons.length; i++) {
@@ -2506,7 +2549,7 @@ App = function() {
 			}
 
 			if (editorEnabled || (!editorEnabled && !body.isStatic())) {
-				var expand = showBounds ? 2 : 1;
+				var expand = showBounds ? 4 : 3;
 				var bounds = Bounds.expand(shape.bounds, expand, expand);
 				dirtyBounds.addBounds(bounds);
 			}
@@ -2713,7 +2756,7 @@ App = function() {
 				var shape = selectedFeatureArr[i];
 				if (shape.visible) {
 					drawCanvasTransformedBodyShape(ctx, shape, 1, selectionColor, selectionPattern);
-					dirtyBounds.addBounds(Bounds.expand(shape.bounds, 2, 2));
+					dirtyBounds.addBounds(Bounds.expand(shape.bounds, 3, 3));
 				}
 			}
 
@@ -2734,7 +2777,7 @@ App = function() {
 					var shape = body.shapeArr[j];
 					if (shape.visible) {
 						drawCanvasTransformedBodyShape(ctx, shape, 1, selectionColor, selectionPattern);
-						dirtyBounds.addBounds(Bounds.expand(shape.bounds, 2, 2));
+						dirtyBounds.addBounds(Bounds.expand(shape.bounds, 3, 3));
 					}
 				}
 			}
@@ -2883,7 +2926,7 @@ App = function() {
 		var bounds = new Bounds(mins, maxs);
 		bounds.expand(4, 4); // expand for outline
 
-		if (editMode == EM_TRANSLATE) {
+		if (editMode == EM_MOVE) {
 			var p1 = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
 			var p2 = vec2.add(center, new vec2(0, -GIZMO_RADIUS));
 
@@ -3025,7 +3068,7 @@ App = function() {
 			bounds.addExtents(p1, HELPER_PRISMATIC_JOINT_ARROW_SIZE, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
 			bounds.addExtents(p2, HELPER_PRISMATIC_JOINT_ARROW_SIZE, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
 		}		
-		else if (joint.type == Joint.TYPE_DISTANCE) {
+		else if (joint.type == Joint.TYPE_DISTANCE || joint.type == Joint.TYPE_ROPE) {
 			renderer.drawLine(ctx, p1, p2, 1, jointHelperColor);
 		}
 		else if (joint.type == Joint.TYPE_MOUSE) {
@@ -3609,7 +3652,7 @@ App = function() {
 			break;
 		case 87: // 'w'
 			if (editorEnabled) {
-				onClickedEditMode("translate");
+				onClickedEditMode("move");
 				ev.preventDefault();
 			}			
 			break;
@@ -4083,8 +4126,8 @@ App = function() {
 
 		editMode = { create_circle: EM_CREATE_CIRCLE, create_triangle: EM_CREATE_TRIANGLE, create_box: EM_CREATE_BOX, create_hexagon: EM_CREATE_HEXAGON, create_poly: EM_CREATE_POLY,
 			create_angle_joint: EM_CREATE_ANGLE_JOINT, create_revolute_joint: EM_CREATE_REVOLUTE_JOINT, create_weld_joint: EM_CREATE_WELD_JOINT, 
-			create_line_joint: EM_CREATE_LINE_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT,
-			select: EM_SELECT, translate: EM_TRANSLATE, rotate: EM_ROTATE, scale: EM_SCALE,
+			create_line_joint: EM_CREATE_LINE_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT, create_rope_joint: EM_CREATE_ROPE_JOINT,
+			select: EM_SELECT, move: EM_MOVE, rotate: EM_ROTATE, scale: EM_SCALE,
 			collapse_bodies: EM_COLLAPSE_BODIES, edge_slice: EM_EDGE_SLICE }[value];
 
 		editModeEventArr[editMode].init();

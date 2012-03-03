@@ -134,8 +134,8 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	}
 
 	if (warmStarting) {
-		// Apply cached impulses
-		// V += JT * lambda
+		// Apply cached constraint impulses
+		// V += JT * lambda * invM
 		var j = vec2.scale(this.u, this.lambda_acc);
 
 		body1.v.mad(j, -body1.m_inv);
@@ -161,8 +161,8 @@ DistanceJoint.prototype.solveVelocityConstraints = function() {
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc += lambda;
 
-	// Apply impulses
-	// V += JT * lambda
+	// Apply constraint impulses
+	// V += JT * lambda * invM
 	var j = vec2.scale(this.u, lambda);
 
 	body1.v.mad(j, -body1.m_inv);
@@ -205,8 +205,8 @@ DistanceJoint.prototype.solvePositionConstraints = function() {
     var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;
 	var lambda = em_inv == 0 ? 0 : -correction / em_inv;
 
-	// Apply impulses
-	// X += JT * lambda * dt
+	// Apply constraint impulses
+	// X += JT * lambda * invM * dt
 	var j = vec2.scale(u, lambda);
 
 	body1.p.mad(j, -body1.m_inv);
