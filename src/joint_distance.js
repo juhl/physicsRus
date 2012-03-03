@@ -65,6 +65,7 @@ DistanceJoint.prototype.serialize = function() {
 }
 
 DistanceJoint.prototype.setSpringFrequencyHz = function(frequencyHz) {
+	// NOTE: frequencyHz should be limited to under 4 times time steps
 	this.frequencyHz = frequencyHz;
 }
 
@@ -115,11 +116,11 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 		// Spring stiffness
 		var k = this.em * omega * omega;
 
-		// Damping coefficients
+		// Damping coefficient
 		var d = this.em * 2 * this.dampingRatio * omega;
 
 		// Soft constraint formulas
-		this.gamma = dt * (d + k * dt);
+		this.gamma = (d + k * dt) * dt;
 		this.gamma = this.gamma == 0 ? 0 : 1 / this.gamma;
 
 		var beta = dt * k * this.gamma;

@@ -3340,8 +3340,8 @@ App = function() {
 				mouseBody.p.copy(p);
 				mouseBody.syncTransform();
 				mouseJoint = new MouseJoint(mouseBody, shape.body, p);
-				mouseJoint.maxForce = shape.body.m * 20000;
-				space.addJoint(mouseJoint);
+				mouseJoint.maxForce = shape.body.m * 18000;
+				space.addJoint(mouseJoint);				
 			}
 		}
 		else {

@@ -6,7 +6,7 @@
 // Cdot = v + cross(w, r)
 // J = [ I, -skew(r) ]
 //
-// JT * lambda = [ lambda_xy, cross(r2, lambda_xy) ]
+// JT * lambda = [ lambda, cross(r2, lambda) ]
 //-------------------------------------------------------------------------------------------------
 
 MouseJoint = function(mouseBody, body, anchor) {
@@ -55,11 +55,11 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	// Spring stiffness
 	var k = body2.m * (omega * omega);
 
-	// Damping coefficients
+	// Damping coefficient
 	var d = body2.m * 2 * this.dampingRatio * omega;
 
 	// Soft constraint formulas
-	this.gamma = dt * (d + k * dt);
+	this.gamma = (d + k * dt) * dt;
 	this.gamma = this.gamma == 0 ? 0 : 1 / this.gamma;
 
 	var beta = dt * k * this.gamma;
@@ -82,10 +82,10 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	body2.w *= 0.98;	
 
 	if (warmStarting) {
-		// Apply cached constraint impulses
+		// Apply cached constraint impulse
 		// V += JT * lambda * invM
 		body2.v.mad(this.lambda_acc, body2.m_inv);
-		body2.w += vec2.cross(this.r2, this.lambda_acc) * body2.i_inv;
+		body2.w += vec2.cross(this.r2, this.lambda_acc) * body2.i_inv;		
 	}
 	else {
 		this.lambda_acc.set(0, 0);
@@ -100,15 +100,16 @@ MouseJoint.prototype.solveVelocityConstraints = function() {
 	// in 2D: cross(w, r) = perp(r) * w
    	var cdot = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
    	var magic = vec2.mad(this.c_beta, this.lambda_acc, this.gamma);
-	var lambda = this.em_inv.solve(vec2.add(cdot, magic).neg());
+	var lambda = this.em_inv.solve(vec2.add(cdot, magic).neg());	
 
 	// Accumulate lambda for velocity constraint
-	var lambda_old = this.lambda_acc;
+	var lambda_old = this.lambda_acc.duplicate();
 	this.lambda_acc.addself(lambda);
-	if (this.lambda_acc.lengthsq() > this.maxImpulse * this.maxImpulse) {
-		this.lambda_acc.scale(this.maxImpulse / this.lambda_acc.length());
+	var lsq = this.lambda_acc.lengthsq();
+	if (lsq > this.maxImpulse * this.maxImpulse) {
+		this.lambda_acc.scale(this.maxImpulse / Math.sqrt(lsq));
 	}
-	lambda = vec2.sub(this.lambda_acc, lambda_old);
+	lambda = vec2.sub(this.lambda_acc, lambda_old);	
 
 	// Apply constraint impulse
 	// V += JT * lambda * invM
