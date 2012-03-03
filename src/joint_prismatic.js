@@ -138,7 +138,7 @@ PrismaticJoint.prototype.solveVelocityConstraints = function() {
 	var body2 = this.body2;
 
 	// Compute lambda for velocity constraint	
-	// Solve J * invM * JT * lambda = -J * v
+	// Solve J * invM * JT * lambda = -J * V
 	var cdot1 = this.n.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
 	var cdot2 = body2.w - body1.w;
 	var lambda = this.em_inv.solve(new vec2(-cdot1, -cdot2));

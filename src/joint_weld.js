@@ -104,7 +104,7 @@ WeldJoint.prototype.solveVelocityConstraints = function() {
 	var body2 = this.body2;
 
 	// Compute lambda for velocity constraint
-	// Solve J * invM * JT * lambda = -J * v
+	// Solve J * invM * JT * lambda = -J * V
 	// in 2D: cross(w, r) = perp(r) * w
 	var v1 = vec2.mad(body1.v, vec2.perp(this.r1), body1.w);
    	var v2 = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);

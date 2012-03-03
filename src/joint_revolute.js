@@ -199,7 +199,7 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 	// Solve point-to-point constraint with angular limit
 	if (this.limitEnabled && this.limitState != Joint.LIMIT_STATE_INACTIVE) {
 		// Compute lambda for velocity constraint
-		// Solve J * invM * JT * lambda = -J * v
+		// Solve J * invM * JT * lambda = -J * V
 		// in 2D: cross(w, r) = perp(r) * w
 		var v1 = vec2.mad(body1.v, vec2.perp(this.r1), body1.w);
    		var v2 = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
@@ -222,7 +222,7 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 			if (lowerLimited || upperLimited) {
 				// Modify last equation to get lambda_acc.z to 0
 				// That is, lambda.z have to be equal -lambda_acc.z
-				// rhs = -J * v - (K_13, K_23, K_33) * (lambda.z + lambda_acc.z)
+				// rhs = -J * V - (K_13, K_23, K_33) * (lambda.z + lambda_acc.z)
 				// Solve J * invM * JT * reduced_lambda = rhs				
 				var rhs = vec2.add(cdot1, vec2.scale(new vec2(this.em_inv._13, this.em_inv._23), newLambda_z));
 				var reduced = this.em_inv.solve2x2(rhs.neg());
@@ -254,7 +254,7 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 	// Solve point-to-point constraint
 	else {
 		// Compute lambda for velocity constraint
-		// Solve J1 * invM * J1T * lambda = -J1 * v
+		// Solve J1 * invM * J1T * lambda = -J1 * V
 		// in 2D: cross(w, r) = perp(r) * w
 		var v1 = vec2.mad(body1.v, vec2.perp(this.r1), body1.w);
    		var v2 = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);   		

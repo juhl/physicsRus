@@ -388,7 +388,7 @@ Space.prototype.genTemporalContactSolvers = function() {
 						
 			if (!body1.isCollidable(body2)) {
 				continue;
-			}			
+			}
 		
 			if (!body1.bounds.intersectsBounds(body2.bounds)) {
 				continue;
