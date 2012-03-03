@@ -13,7 +13,7 @@
 //-------------------------------------------------------------------------------------------------
 
 RopeJoint = function(body1, body2, anchor1, anchor2) {
-	Joint.call(this, Joint.TYPE_DISTANCE, body1, body2, true);
+	Joint.call(this, Joint.TYPE_ROPE, body1, body2, true);
 
 	// Local anchor points
 	this.anchor1 = this.body1.getLocalPoint(anchor1);

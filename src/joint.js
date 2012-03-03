@@ -27,7 +27,8 @@ Joint.TYPE_WELD = 2;
 Joint.TYPE_LINE = 3;
 Joint.TYPE_PRISMATIC = 4;
 Joint.TYPE_DISTANCE = 5;
-Joint.TYPE_MOUSE = 6;
+Joint.TYPE_ROPE = 6;
+Joint.TYPE_MOUSE = 7;
 
 Joint.LINEAR_SLOP = 0.04;
 Joint.ANGULAR_SLOP = deg2rad(2);

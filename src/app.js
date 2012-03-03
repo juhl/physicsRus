@@ -2061,7 +2061,7 @@ App = function() {
 					domJointInspector.style.display = "block";
 
 					var el = domJointInspector.querySelector("[name=type]");
-					el.value = ["Angle", "Revolute", "Weld", "Line", "Prismatic", "Distance", "Mouse"][joint.type];
+					el.value = ["Angle", "Revolute", "Weld", "Line", "Prismatic", "Distance", "Rope", "Mouse"][joint.type];
 
 					var el = domJointInspector.querySelector("[name=body1]");
 					el.value = new String(joint.body1.name);
