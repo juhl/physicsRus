@@ -98,6 +98,10 @@ Body.prototype.isDynamic = function() {
 	return this.type == Body.DYNAMIC ? true : false;
 }
 
+Body.prototype.isKinetic = function() {
+	return this.type == Body.KINETIC ? true : false;
+}
+
 Body.prototype.addShape = function(shape) {
 	shape.body = this;
 	this.shapeArr.push(shape);
@@ -228,7 +232,7 @@ Body.prototype.resetForce = function() {
 }
 
 Body.prototype.applyForce = function(force, p) {
-	if (this.isStatic())
+	if (!this.isDynamic())
 		return;
 
 	if (!this.isAwake())
@@ -239,7 +243,7 @@ Body.prototype.applyForce = function(force, p) {
 }
 
 Body.prototype.applyForceToCenter = function(force) {
-	if (this.isStatic())
+	if (!this.isDynamic())
 		return;
 
 	if (!this.isAwake())
@@ -249,7 +253,7 @@ Body.prototype.applyForceToCenter = function(force) {
 }
 
 Body.prototype.applyTorque = function(torque) {
-	if (this.isStatic())
+	if (!this.isDynamic())
 		return;
 
 	if (!this.isAwake())
@@ -259,7 +263,7 @@ Body.prototype.applyTorque = function(torque) {
 }
 
 Body.prototype.applyLinearImpulse = function(impulse, p) {
-	if (this.isStatic())
+	if (!this.isDynamic())
 		return;
 
 	if (!this.isAwake()) 
@@ -270,7 +274,7 @@ Body.prototype.applyLinearImpulse = function(impulse, p) {
 }
 
 Body.prototype.applyAngularImpulse = function(impulse) {
-	if (this.isStatic())
+	if (!this.isDynamic())
 		return;
 
 	if (!this.isAwake()) 
@@ -306,7 +310,7 @@ Body.prototype.isCollidable = function(other) {
 	if (this == other)
 		return false;
 
-	if (this.isStatic() && other.isStatic())
+	if (!this.isDynamic() && !other.isDynamic())
 		return false;
 
 	if (!(this.maskBits & other.categoryBits) || !(other.maskBits & this.categoryBits))

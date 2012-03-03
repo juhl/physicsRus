@@ -2293,7 +2293,7 @@ App = function() {
 	}
 
 	function bodyColor(body) {
-		if (body.isStatic()) {
+		if (!body.isDynamic()) {
 			return "#777";
 		}
 
@@ -2448,6 +2448,8 @@ App = function() {
 				var y = Math.max(Math.floor(maxs.y), 0);
 				var w = Math.min(Math.ceil(maxs.x + 1), domCanvas.width) - x;
 				var h = Math.min(Math.ceil(mins.y + 1), domCanvas.height) - y;
+				// FIXME !!
+				console.log(x, y, w, h);
 				
 				if (x >= 0 && y >= 0 && w > 0 && h > 0) {
 					// void drawImage(HTMLVideoElement image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh);
