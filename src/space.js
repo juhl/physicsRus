@@ -11,7 +11,7 @@ function Space() {
 	this.postSolve = function(arb) {};
 
 	this.gravity = new vec2(0, 0);
-	this.damping = 1.0;
+	this.damping = 0;
 }
 
 Space.TIME_TO_SLEEP = 0.5;
@@ -523,11 +523,10 @@ Space.prototype.step = function(dt, vel_iteration, pos_iteration, warmStarting, 
 	this.initSolver(dt, dt_inv, warmStarting);    
 
 	// Intergrate velocity
-	var damping = this.damping < 1 ? Math.pow(this.damping, dt) : 1;
 	for (var i in this.bodyHash) {
 		var body = this.bodyHash[i];
 		if (body.isDynamic() && body.isAwake()) {
-			body.updateVelocity(this.gravity, damping, dt);
+			body.updateVelocity(this.gravity, dt, this.damping);
 		}
 	}
 

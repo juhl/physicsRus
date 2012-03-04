@@ -39,6 +39,12 @@ Body = function(type, pos, angle) {
 	// Torque
 	this.t = 0;
 
+	// Linear damping
+	this.linearDamping = 0;
+
+	// Angular damping
+	this.angularDamping = 0;
+
 	// Sleep time
 	this.sleepTime = 0;
 
@@ -213,9 +219,19 @@ Body.prototype.cacheData = function() {
 	}
 }
 
-Body.prototype.updateVelocity = function(gravity, damping, dt) {
-	this.v = vec2.mad(vec2.scale(this.v, damping), vec2.mad(gravity, this.f, this.m_inv), dt);
-	this.w = this.w * damping + this.t * this.i_inv * dt;
+Body.prototype.updateVelocity = function(gravity, dt, damping) {
+	this.v = vec2.mad(this.v, vec2.mad(gravity, this.f, this.m_inv), dt);		
+	this.w = this.w + this.t * this.i_inv * dt;	
+
+	// Apply damping.
+	// ODE: dv/dt + c * v = 0
+	// Solution: v(t) = v0 * exp(-c * t)
+	// Time step: v(t + dt) = v0 * exp(-c * (t + dt)) = v0 * exp(-c * t) * exp(-c * dt) = v * exp(-c * dt)
+	// v2 = exp(-c * dt) * v1
+	// Taylor expansion:
+	// v2 = (1.0f - c * dt) * v1
+	this.v.scale(Math.clamp(1 - dt * (damping + this.linearDamping), 0, 1));
+	this.w *= Math.clamp(1 - dt * (damping + this.angularDamping), 0, 1);
 
 	this.f.set(0, 0);
 	this.t = 0;
