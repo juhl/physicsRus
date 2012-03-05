@@ -15,7 +15,7 @@ Shape = function(type) {
 	this.u = 1.0;
 
 	// Mass density
-	this.density = 0.1;
+	this.density = 1;
 
 	// Axis-aligned bounding box
 	this.bounds = new Bounds;    

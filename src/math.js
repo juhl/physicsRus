@@ -1,4 +1,5 @@
 Math.clamp = function(v, min, max) { return v < min ? min : (v > max ? max : v); }
+Math.log2 = function(a) { return Math.log(a) / Math.log(2); }
 
 function deg2rad(deg) { return (deg / 180) * Math.PI; }
 function rad2deg(rad) { return (rad / Math.PI) * 180; }

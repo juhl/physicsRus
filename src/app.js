@@ -42,32 +42,34 @@ App = function() {
 	const TRANSFORM_AXIS_XY = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
 	const TRANSFORM_AXIS_XYZ = TRANSFORM_AXIS_XY | TRANSFORM_AXIS_Z;
 
-	// gizmo value
+	// gizmo value (pixel unit)
 	const GIZMO_RADIUS = 120;
 	const GIZMO_INNER_OFFSET = 32;
 	const GIZMO_INNER_RADIUS = 15;
 	const GIZMO_SCALE_AXIS_BOX_EXTENT = 6;	
 
 	// edit mode drawing value
-	const HELPER_BODY_AXIS_SIZE = 12;
-	const HELPER_VERTEX_EXTENT = 2;
-	const HELPER_JOINT_ANCHOR_RADIUS = 2.5;
-	const HELPER_ANGLE_JOINT_RADIUS = 16;
-	const HELPER_REVOLUTE_JOINT_RADIUS = 20;
-	const HELPER_PRISMATIC_JOINT_ARROW_SIZE = 12;
-	const HELPER_LINE_JOINT_RADIUS = 8;
-	const HELPER_WELD_JOINT_EXTENT = 8;
+	const HELPER_BODY_AXIS_SIZE = pixel2meter(12);
+	const HELPER_VERTEX_EXTENT = pixel2meter(2);
+	const HELPER_JOINT_ANCHOR_RADIUS = pixel2meter(2.5);
+	const HELPER_ANGLE_JOINT_RADIUS = pixel2meter(16);
+	const HELPER_REVOLUTE_JOINT_RADIUS = pixel2meter(20);
+	const HELPER_PRISMATIC_JOINT_ARROW_SIZE = pixel2meter(12);
+	const HELPER_LINE_JOINT_RADIUS = pixel2meter(8);
+	const HELPER_WELD_JOINT_EXTENT = pixel2meter(8);
 
 	// selectable feature threholds
-	const SELECTABLE_POINT_DIST_THREHOLD = isAppleMobileDevice() ? 15 : 5;
-	const SELECTABLE_LINE_DIST_THREHOLD = isAppleMobileDevice() ? 8 : 4;
-	const SELECTABLE_CIRCLE_DIST_THREHOLD = isAppleMobileDevice() ? 10 : 5;	
+	const SELECTABLE_POINT_DIST_THREHOLD = pixel2meter(isAppleMobileDevice() ? 15 : 5);
+	const SELECTABLE_LINE_DIST_THREHOLD = pixel2meter(isAppleMobileDevice() ? 8 : 4);
+	const SELECTABLE_CIRCLE_DIST_THREHOLD = pixel2meter(isAppleMobileDevice() ? 10 : 5);	
 
 	// default values for creating shape
-	const DEFAULT_SEGMENT_RADIUS = 10;
-	const DEFAULT_DENSITY = 0.05;
+	const DEFAULT_SEGMENT_RADIUS = 0.2;
+	const DEFAULT_DENSITY = 1;
 	const DEFAULT_RESTITUTION = 0.4;
 	const DEFAULT_FRICTION = 0.9;
+
+	const PIXEL_UNIT = pixel2meter(1);
 
 	// DOM objects
 	var domView;
@@ -127,16 +129,16 @@ App = function() {
 	var highlightFeatureArr = [];
 	var transformCenter = new vec2(0, 0);
 	var transformAxis = 0;
-	var transformScale = new vec2;
-	var gridFrameSize = 256;
-	var gridSize = 32;
+	var transformScale = new vec2;	
+	var gridSize = 0.6;
+	var gridFrameSize = 6;
 	var scaledGridSize;
 	var snapCenterOffset = new vec2;
 	var snapOffset = new vec2;
 	var backgroundColor = "rgb(222, 222, 222)";
 	//var backgroundColor = "rgb(95, 105, 118)";
-	var gridFrameColor = "#888";
-	var gridColor = "#BDBDBD";
+	var gridFrameColor = "#999";
+	var gridColor = "#C6C6C6";
 	var selectionColor = "rgba(255, 160, 0, 1.0)";
 	var highlightColor = "rgba(192, 255, 255, 1.0)";	
 	var vertexColor = "#444";
@@ -156,7 +158,7 @@ App = function() {
 	var gestureScale;
 
 	// settings variables	
-	var gravity = new vec2(0, -627.2);
+	var gravity = new vec2(0, -12.544);
 	var frameRateHz = 60;
 	var velocityIterations = 8;
 	var positionIterations = 4;
@@ -407,10 +409,10 @@ App = function() {
 				var dx = mousePosition.x - center.x;
 				var dy = -(mousePosition.y - center.y);
 
-				if (dx <= GIZMO_RADIUS && dx >= GIZMO_INNER_OFFSET && Math.abs(dy) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
+				if (dx <= GIZMO_RADIUS && dx >= GIZMO_INNER_OFFSET && Math.abs(dy) < 6 + meter2pixel(SELECTABLE_LINE_DIST_THREHOLD)) {
 					transformAxis = TRANSFORM_AXIS_X;
 				}
-				else if (dy <= GIZMO_RADIUS && dy >= GIZMO_INNER_OFFSET && Math.abs(dx) < 6 + SELECTABLE_LINE_DIST_THREHOLD) {
+				else if (dy <= GIZMO_RADIUS && dy >= GIZMO_INNER_OFFSET && Math.abs(dx) < 6 + meter2pixel(SELECTABLE_LINE_DIST_THREHOLD)) {
 					transformAxis = TRANSFORM_AXIS_Y;					
 				}
 			}				
@@ -636,8 +638,8 @@ App = function() {
 
 			var dsq = vec2.distsq(mousePosition, worldToCanvas(transformCenter));
 
-			if (dsq > (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS - SELECTABLE_CIRCLE_DIST_THREHOLD) &&
-				dsq < (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD) * (GIZMO_RADIUS + SELECTABLE_CIRCLE_DIST_THREHOLD)) {
+			if (dsq > (GIZMO_RADIUS - meter2pixel(SELECTABLE_CIRCLE_DIST_THREHOLD)) * (GIZMO_RADIUS - meter2pixel(SELECTABLE_CIRCLE_DIST_THREHOLD)) &&
+				dsq < (GIZMO_RADIUS + meter2pixel(SELECTABLE_CIRCLE_DIST_THREHOLD)) * (GIZMO_RADIUS + meter2pixel(SELECTABLE_CIRCLE_DIST_THREHOLD))) {
 				transformAxis = TRANSFORM_AXIS_Z;
 			}
 		}
@@ -844,7 +846,7 @@ App = function() {
 				transformAxis = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
 			}
 			else {
-				var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + SELECTABLE_LINE_DIST_THREHOLD;
+				var cd = GIZMO_SCALE_AXIS_BOX_EXTENT + meter2pixel(SELECTABLE_LINE_DIST_THREHOLD);
 
 				var px = vec2.add(center, new vec2(GIZMO_RADIUS, 0));
 				var dx = Math.abs(mousePosition.x - px.x);
@@ -2349,14 +2351,14 @@ App = function() {
 
 	function worldToCanvas(p) {
 		return new vec2(
-			domCanvas.width * 0.5 + (p.x * camera.scale - camera.origin.x),
-			domCanvas.height - (p.y * camera.scale - camera.origin.y));
+			domCanvas.width * 0.5 + (p.x * (camera.scale * meter2pixel(1)) - camera.origin.x),
+			domCanvas.height - (p.y * (camera.scale * meter2pixel(1)) - camera.origin.y));
 	}
 
 	function canvasToWorld(p) {
 		return new vec2(
-			(camera.origin.x + (p.x - domCanvas.width * 0.5)) / camera.scale,
-			(camera.origin.y - (p.y - domCanvas.height)) / camera.scale);
+			(camera.origin.x + (p.x - domCanvas.width * 0.5)) / (camera.scale * meter2pixel(1)),
+			(camera.origin.y - (p.y - domCanvas.height)) / (camera.scale * meter2pixel(1)));
 	}
 
 	function screenAlign(bounds) {
@@ -2504,7 +2506,7 @@ App = function() {
 			bg.ctx.fillRect(0, 0, domCanvas.width, domCanvas.height);
 
 			bg.ctx.save();
-			bg.ctx.setTransform(camera.scale, 0, 0, -camera.scale, domCanvas.width * 0.5 - camera.origin.x, domCanvas.height + camera.origin.y);
+			bg.ctx.setTransform(camera.scale * meter2pixel(1), 0, 0, -(camera.scale * meter2pixel(1)), domCanvas.width * 0.5 - camera.origin.x, domCanvas.height + camera.origin.y);
 			
 			if (editorEnabled) {
 				scaledGridSize = computeScaledGridSize(gridSize);
@@ -2515,7 +2517,7 @@ App = function() {
 				for (var i in space.bodyHash) {
 					var body = space.bodyHash[i];
 					if (body.isStatic()) {
-						drawBody(bg.ctx, body, 1, "#000", bodyColor(body));
+						drawBody(bg.ctx, body, PIXEL_UNIT, "#000", bodyColor(body));
 					}
 				}
 			}
@@ -2555,7 +2557,7 @@ App = function() {
 		fg.ctx.translate(-camera.origin.x, -camera.origin.y);
 		fg.ctx.scale(camera.scale, camera.scale);*/
 
-		fg.ctx.setTransform(camera.scale, 0, 0, -camera.scale, domCanvas.width * 0.5 - camera.origin.x, domCanvas.height + camera.origin.y);
+		fg.ctx.setTransform(camera.scale * meter2pixel(1), 0, 0, -(camera.scale * meter2pixel(1)), domCanvas.width * 0.5 - camera.origin.x, domCanvas.height + camera.origin.y);
 
 		dirtyBounds.clear();
 
@@ -2564,7 +2566,7 @@ App = function() {
 			var body = space.bodyHash[i];
 			if (body.visible) {
 				if (editorEnabled || (!editorEnabled && !body.isStatic())) {				
-					drawBody(fg.ctx, body, 1, "#000", bodyColor(body));					
+					drawBody(fg.ctx, body, PIXEL_UNIT, "#000", bodyColor(body));					
 				}
 			}
 		}
@@ -2593,11 +2595,11 @@ App = function() {
 				var contactSolver = space.contactSolverArr[i];
 				for (var j = 0; j < contactSolver.contactArr.length; j++) {
 					var con = contactSolver.contactArr[j];
-					var offset = new vec2(2, 2);					
+					var offset = new vec2(PIXEL_UNIT * 2, PIXEL_UNIT * 2);
 					var mins = vec2.sub(con.p, offset);
 					var maxs = vec2.add(con.p, offset);
 					
-					renderer.drawRect(fg.ctx, mins, maxs, 1, "", "#F00");
+					renderer.drawRect(fg.ctx, mins, maxs, PIXEL_UNIT, "", "#F00");
 					dirtyBounds.addBounds2(mins, maxs);					
 					//renderer.drawArrow(fg.ctx, con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), ARROW_TYPE_NONE, ARROW_TYPE_NORMAL, 8, 1, "#F00");
 					//dirtyBounds.addBounds2();
@@ -2606,8 +2608,8 @@ App = function() {
 		}		
 
 		if (showDirtyBounds) {
-			renderer.drawRect(fg.ctx, dirtyBounds.mins, dirtyBounds.maxs, 1, "#00F");
-			dirtyBounds.expand(1, 1);
+			renderer.drawRect(fg.ctx, dirtyBounds.mins, dirtyBounds.maxs, PIXEL_UNIT, "#00F");
+			dirtyBounds.expand(PIXEL_UNIT, PIXEL_UNIT);
 		}
 
 		fg.ctx.restore();
@@ -2629,13 +2631,13 @@ App = function() {
 
 			if (showBounds) {
 				var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
-				bounds.expand(1, 1);
+				bounds.expand(PIXEL_UNIT, PIXEL_UNIT);
 				renderer.drawRect(ctx, bounds.mins, bounds.maxs, lineWidth, "#0A0");
 				dirtyBounds.addBounds(bounds);
 			}
 
 			if (editorEnabled || (!editorEnabled && !body.isStatic())) {
-				var expand = showBounds ? 4 : 3;
+				var expand = showBounds ? PIXEL_UNIT * 4 : PIXEL_UNIT * 3;
 				var bounds = Bounds.expand(shape.bounds, expand, expand);
 				dirtyBounds.addBounds(bounds);
 			}
@@ -2652,7 +2654,7 @@ App = function() {
 			break;
 		case Shape.TYPE_POLY:
 			if (shape.convexity) renderer.drawPolygon(ctx, shape.tverts, lineWidth, outlineColor, fillColor);
-			else renderer.drawPolygon(ctx, shape.tverts, 2, "#F00", fillColor);
+			else renderer.drawPolygon(ctx, shape.tverts, lineWidth * 2, "#F00", fillColor);
 			break;
 		}
 	}
@@ -2661,14 +2663,14 @@ App = function() {
 		ctx.save();
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-		ctx.lineWidth = camera.scale;
+		lineWidth *= camera.scale;
 
 		switch (shape.type) {
 		case Shape.TYPE_CIRCLE:
-			renderer.drawCircle(ctx, worldToCanvas(shape.tc), shape.r * camera.scale, -shape.body.a, lineWidth, outlineColor, fillColor);
+			renderer.drawCircle(ctx, worldToCanvas(shape.tc), shape.r * camera.scale * meter2pixel(1), -shape.body.a, lineWidth, outlineColor, fillColor);
 			break;
 		case Shape.TYPE_SEGMENT:
-			renderer.drawSegment(ctx, worldToCanvas(shape.ta), worldToCanvas(shape.tb), shape.r * camera.scale, lineWidth, outlineColor, fillColor);
+			renderer.drawSegment(ctx, worldToCanvas(shape.ta), worldToCanvas(shape.tb), shape.r * camera.scale * meter2pixel(1), lineWidth, outlineColor, fillColor);
 			break;
 		case Shape.TYPE_POLY:
 			var ctverts = new Array(shape.tverts.length);
@@ -2683,16 +2685,7 @@ App = function() {
 	}
 
 	function computeScaledGridSize(gridSize) {
-		var n = gridSize * camera.scale;
-		
-		// previous power of two
-		var p = 1; 
-		while (p <= n) {
-			p <<= 1;
-		}
-		p >>= 1;
-
-		return gridSize * gridSize / p;
+		return gridSize / Math.pow(2, Math.floor(Math.log2(camera.scale)));
 	}
 
 	function drawGrids(ctx) {
@@ -2711,7 +2704,7 @@ App = function() {
 		for (var x = start_x; x <= end_x; x += scaledGridSize) {
 			v1.x = x;
 			v2.x = x;
-			renderer.drawLine(ctx, worldToCanvas(v1), worldToCanvas(v2), 1, x % gridFrameSize == 0 ? gridFrameColor : gridColor);
+			renderer.drawLine(ctx, worldToCanvas(v1), worldToCanvas(v2), 1, gridColor);
 		}
 
 		v1.set(start_x, start_y);
@@ -2721,7 +2714,7 @@ App = function() {
 		for (var y = start_y; y <= end_y; y += scaledGridSize) {
 			v1.y = y;
 			v2.y = y;
-			renderer.drawLine(ctx, worldToCanvas(v1), worldToCanvas(v2), 1, y % gridFrameSize == 0 ? gridFrameColor : gridColor);
+			renderer.drawLine(ctx, worldToCanvas(v1), worldToCanvas(v2), 1, gridColor);
 		}
 
 		ctx.restore();
@@ -2812,7 +2805,7 @@ App = function() {
 					var v1 = shape.tverts[index1];
 					var v2 = shape.tverts[index2];
 
-			 		renderer.drawLine(ctx, v1, v2, 2, selectionColor);
+			 		renderer.drawLine(ctx, v1, v2, pixel2meter(2), selectionColor);
 			 	
 					dirtyBounds.addPoint(v1);
 					dirtyBounds.addPoint(v2);
@@ -2829,7 +2822,7 @@ App = function() {
 					var v1 = shape.tverts[index1];
 					var v2 = shape.tverts[index2];
 
-			 		renderer.drawLine(ctx, v1, v2, 2, highlightColor);			 
+			 		renderer.drawLine(ctx, v1, v2, pixel2meter(2), highlightColor);			 
 					
 					dirtyBounds.addPoint(v1);
 					dirtyBounds.addPoint(v2);
@@ -2842,7 +2835,7 @@ App = function() {
 				var shape = selectedFeatureArr[i];
 				if (shape.visible) {
 					drawCanvasTransformedBodyShape(ctx, shape, 1, selectionColor, selectionPattern);
-					dirtyBounds.addBounds(Bounds.expand(shape.bounds, 3, 3));
+					dirtyBounds.addBounds(Bounds.expand(shape.bounds, pixel2meter(3), pixel2meter(3)));
 				}
 			}
 
@@ -2863,7 +2856,7 @@ App = function() {
 					var shape = body.shapeArr[j];
 					if (shape.visible) {
 						drawCanvasTransformedBodyShape(ctx, shape, 1, selectionColor, selectionPattern);
-						dirtyBounds.addBounds(Bounds.expand(shape.bounds, 3, 3));
+						dirtyBounds.addBounds(Bounds.expand(shape.bounds, pixel2meter(3), pixel2meter(3)));
 					}
 				}
 			}
@@ -2895,7 +2888,7 @@ App = function() {
 				var p2 = joint.getWorldAnchor2();
 
 				var p = anchorIndex == 0 ? p1 : p2;
-				renderer.drawCircle(ctx, p, HELPER_JOINT_ANCHOR_RADIUS, undefined, 1, "", jointHelperColor);
+				renderer.drawCircle(ctx, p, HELPER_JOINT_ANCHOR_RADIUS, undefined, pixel2meter(1), "", jointHelperColor);
 				dirtyBounds.addExtents(p, HELPER_JOINT_ANCHOR_RADIUS, HELPER_JOINT_ANCHOR_RADIUS);
 			}
 
@@ -2914,7 +2907,7 @@ App = function() {
 				for (var j = 0; j < body1.shapeArr.length; j++) {
 					var shape = body1.shapeArr[j];
 					if (shape.visible) {
-						drawBodyShape(ctx, shape, 1, jointHelperColor, color.rgba());
+						drawBodyShape(ctx, shape, pixel2meter(1), jointHelperColor, color.rgba());
 						dirtyBounds.addBounds(shape.bounds);
 					}
 				}
@@ -2922,7 +2915,7 @@ App = function() {
 				for (var j = 0; j < body2.shapeArr.length; j++) {
 					var shape = body2.shapeArr[j];
 					if (shape.visible) {
-						drawBodyShape(ctx, shape, 1, jointHelperColor, color.rgba());
+						drawBodyShape(ctx, shape, pixel2meter(1), jointHelperColor, color.rgba());
 						dirtyBounds.addBounds(shape.bounds);
 					}
 				}
@@ -2930,11 +2923,11 @@ App = function() {
 				var p1 = joint.getWorldAnchor1();
 				var p2 = joint.getWorldAnchor2();
 				
-				renderer.drawDashLine(ctx, body1.xf.t, p1, 2, 5, jointHelperColor);
-				renderer.drawDashLine(ctx, body2.xf.t, p2, 2, 5, jointHelperColor);
+				renderer.drawDashLine(ctx, body1.xf.t, p1, pixel2meter(2), pixel2meter(5), jointHelperColor);
+				renderer.drawDashLine(ctx, body2.xf.t, p2, pixel2meter(2), pixel2meter(5), jointHelperColor);
 
 				var p = anchorIndex == 0 ? p1 : p2;
-				renderer.drawCircle(ctx, p, HELPER_JOINT_ANCHOR_RADIUS, undefined, 1, "", jointHelperColor);
+				renderer.drawCircle(ctx, p, HELPER_JOINT_ANCHOR_RADIUS, undefined, pixel2meter(1), "", jointHelperColor);
 				dirtyBounds.addExtents(p, HELPER_JOINT_ANCHOR_RADIUS, HELPER_JOINT_ANCHOR_RADIUS);
 
 				dirtyBounds.addPoint(p1);
@@ -2952,7 +2945,7 @@ App = function() {
 		var mins = vec2.sub(p, extent);
 		var maxs = vec2.add(p, extent);
 
-		renderer.drawRect(ctx, mins, maxs, 1, "", color);
+		renderer.drawRect(ctx, mins, maxs, 0, "", color);
 	}
 
 	function drawHelperShapeVertex(ctx, shape, index, color) {
@@ -2982,7 +2975,7 @@ App = function() {
 		ctx.save();
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-		var rvec = body.xf.rotate(new vec2(HELPER_BODY_AXIS_SIZE, 0));
+		var rvec = body.xf.rotate(new vec2(pixel2meter(HELPER_BODY_AXIS_SIZE), 0));
 		var origin = body.xf.t;
 		var px = vec2.add(origin, rvec);
 		var py = vec2.add(origin, vec2.perp(rvec));
@@ -2994,7 +2987,7 @@ App = function() {
 		bounds.addPoint(origin);
 		bounds.addPoint(px);
 		bounds.addPoint(py);
-		bounds.expand(1, 1);
+		bounds.expand(PIXEL_UNIT, PIXEL_UNIT);
 		dirtyBounds.addBounds(bounds);
 		
 		ctx.restore();
@@ -3091,13 +3084,13 @@ App = function() {
 		bounds.addExtents(p1, HELPER_JOINT_ANCHOR_RADIUS, HELPER_JOINT_ANCHOR_RADIUS);
 		bounds.addExtents(p2, HELPER_JOINT_ANCHOR_RADIUS, HELPER_JOINT_ANCHOR_RADIUS);
 
-		renderer.drawLine(ctx, p1, p2, 1, jointAnchorColor);
+		renderer.drawLine(ctx, p1, p2, PIXEL_UNIT, jointAnchorColor);
 
 		bounds.addPoint(p1);
 		bounds.addPoint(p2);
 
 		if (!body1.isStatic() || !body2.isStatic()) {
-			bounds.expand(2, 2);
+			bounds.expand(PIXEL_UNIT * 2, PIXEL_UNIT * 2);
 			dirtyBounds.addBounds(bounds);
 		}
 	}
@@ -3119,13 +3112,13 @@ App = function() {
 				var a1 = body1.a + joint.limitLowerAngle;
 				var a2 = body1.a + joint.limitUpperAngle;
 
-				renderer.drawArc(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, a1, a2, 1, jointHelperColor, color.rgba());
+				renderer.drawArc(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, a1, a2, PIXEL_UNIT, jointHelperColor, color.rgba());
 			}
 			else {
-				renderer.drawCircle(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, undefined, 1, jointHelperColor, color.rgba());
+				renderer.drawCircle(ctx, p1, HELPER_REVOLUTE_JOINT_RADIUS, undefined, PIXEL_UNIT, jointHelperColor, color.rgba());
 			}
 
-			renderer.drawLine(ctx, p1, vec2.add(p2, vec2.scale(vec2.rotation(body2.a), HELPER_REVOLUTE_JOINT_RADIUS)), 1, jointHelperColor);
+			renderer.drawLine(ctx, p1, vec2.add(p2, vec2.scale(vec2.rotation(body2.a), HELPER_REVOLUTE_JOINT_RADIUS)), PIXEL_UNIT, jointHelperColor);
 
 			bounds.addExtents(p1, HELPER_REVOLUTE_JOINT_RADIUS, HELPER_REVOLUTE_JOINT_RADIUS);
 		}
@@ -3136,33 +3129,33 @@ App = function() {
 			var rvec = vec2.rotate(new vec2(HELPER_WELD_JOINT_EXTENT, 0), body1.a);
 			var uvec = vec2.rotate(new vec2(0, HELPER_WELD_JOINT_EXTENT), body1.a);
 
-			renderer.drawBox(ctx, p1, rvec, uvec, 1, jointHelperColor, color.rgba());
+			renderer.drawBox(ctx, p1, rvec, uvec, PIXEL_UNIT, jointHelperColor, color.rgba());
 
 			bounds.addExtents(p1, HELPER_WELD_JOINT_EXTENT, HELPER_WELD_JOINT_EXTENT);
 		}
 		else if (joint.type == Joint.TYPE_LINE) {
 			var color = Color.parse(jointHelperColor);
 			color.channels[3] = 0.2;
-			renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_CIRCLE, ARROW_TYPE_CIRCLE, HELPER_LINE_JOINT_RADIUS, 1, jointHelperColor, color.rgba());
+			renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_CIRCLE, ARROW_TYPE_CIRCLE, HELPER_LINE_JOINT_RADIUS, PIXEL_UNIT, jointHelperColor, color.rgba());
 
 			bounds.addExtents(p1, HELPER_LINE_JOINT_RADIUS, HELPER_LINE_JOINT_RADIUS);
 			bounds.addExtents(p2, HELPER_LINE_JOINT_RADIUS, HELPER_LINE_JOINT_RADIUS);
 		}
 		else if (joint.type == Joint.TYPE_PRISMATIC) {
-			renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_NORMAL, ARROW_TYPE_NORMAL, HELPER_PRISMATIC_JOINT_ARROW_SIZE, 1, jointHelperColor, jointHelperColor);
+			renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_NORMAL, ARROW_TYPE_NORMAL, HELPER_PRISMATIC_JOINT_ARROW_SIZE, PIXEL_UNIT, jointHelperColor, jointHelperColor);
 
 			bounds.addExtents(p1, HELPER_PRISMATIC_JOINT_ARROW_SIZE, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
 			bounds.addExtents(p2, HELPER_PRISMATIC_JOINT_ARROW_SIZE, HELPER_PRISMATIC_JOINT_ARROW_SIZE);
 		}		
 		else if (joint.type == Joint.TYPE_DISTANCE || joint.type == Joint.TYPE_ROPE) {
-			renderer.drawLine(ctx, p1, p2, 1, jointHelperColor);
+			renderer.drawLine(ctx, p1, p2, PIXEL_UNIT, jointHelperColor);
 		}
 		else if (joint.type == Joint.TYPE_MOUSE) {
-			renderer.drawLine(ctx, p1, p2, 1, "#00F");
+			renderer.drawLine(ctx, p1, p2, PIXEL_UNIT, "#00F");
 		}		
 		
 		if (!body1.isStatic() || !body2.isStatic()) {
-			bounds.expand(2, 2);
+			bounds.expand(PIXEL_UNIT * 2, PIXEL_UNIT * 2);
 			dirtyBounds.addBounds(bounds);
 		}
 	}
@@ -3434,7 +3427,7 @@ App = function() {
 				mouseBody.p.copy(p);
 				mouseBody.syncTransform();
 				mouseJoint = new MouseJoint(mouseBody, body, p);
-				mouseJoint.maxForce = body.m * 15000;
+				mouseJoint.maxForce = body.m * 1500;
 				space.addJoint(mouseJoint);				
 			}
 		}
@@ -3592,6 +3585,7 @@ App = function() {
 		var oldViewScale = camera.scale;
 		camera.scale = Math.clamp(oldViewScale + ds, camera.minScale, camera.maxScale);
 		ds = camera.scale - oldViewScale;
+		ds *= meter2pixel(1);
 
 		// Adjust view origin for focused zoom in and out
 		// p = (1 + ds) * p - ds * p

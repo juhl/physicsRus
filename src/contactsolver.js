@@ -13,9 +13,9 @@ function ContactSolver(shape1, shape2) {
 	this.u = 1;
 }
 
-ContactSolver.COLLISION_SLOP = 0.04;
+ContactSolver.COLLISION_SLOP = 0.0008;
 ContactSolver.BAUMGARTE = 0.28;
-ContactSolver.MAX_LINEAR_CORRECTION = 50;//Infinity;
+ContactSolver.MAX_LINEAR_CORRECTION = 1;//Infinity;
 
 ContactSolver.prototype.update = function(newContactArr) {
 	for (var i = 0; i < newContactArr.length; i++) {

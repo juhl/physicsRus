@@ -3,52 +3,51 @@ DemoSeeSaw = function() {
 	function init(s) {
 		space = s;
 		var staticBody = new Body(Body.STATIC);
-		staticBody.addShape(new ShapeBox(0, 10, 1024, 20));
-		staticBody.addShape(new ShapeBox(-502, 384, 20, 728));
-		staticBody.addShape(new ShapeBox(502, 384, 20, 728));
+		staticBody.addShape(new ShapeBox(0, 0.2, 20.48, 0.4));		
+		staticBody.addShape(new ShapeBox(-10.04, 7.68, 0.4, 14.56));
+		staticBody.addShape(new ShapeBox(10.04, 7.68, 0.4, 14.56));
 		staticBody.resetMassData();
 		space.addBody(staticBody);
 
-		var body = new Body(Body.DYNAMIC, new vec2(-150, 80));
-		var shape = new ShapeBox(0, 0, 140, 80);
+		var body = new Body(Body.DYNAMIC, new vec2(-3, 1.6));
+		var shape = new ShapeBox(0, 0, 2.8, 1.6);
 		shape.e = 0.1;
 		shape.u = 1.0;
-		shape.density = 0.6;
+		shape.density = 2;
 		body.addShape(shape);
 		body.resetMassData();        
 		space.addBody(body);
 
-		var body = new Body(Body.DYNAMIC, new vec2(0, 140));
-		var shape = new ShapeBox(0, 0, 600, 10);
+		var body = new Body(Body.DYNAMIC, new vec2(0, 2.8));
+		var shape = new ShapeBox(0, 0, 12, 0.2);
 		shape.e = 0.4;
 		shape.u = 0.7;
-		shape.density = 0.4;
+		shape.density = 1.2;
 		body.addShape(shape);
 		body.resetMassData();
 		space.addBody(body);
 
 		for (var i = 0; i < 5; i++) {
 			for (var j = 0; j <= i; j++) {                
-				var body = new Body(Body.DYNAMIC, new vec2((j - i * 0.5) * 44 - 150, 350 - i * 44));
-				var shape = new ShapeBox(0, 0, 40, 40);
+				var body = new Body(Body.DYNAMIC, new vec2((j - i * 0.5) * 0.88 - 3, 7 - i * 0.88));
+				var shape = new ShapeBox(0, 0, 0.8, 0.8);
 				shape.e = 0.3;
 				shape.u = 0.8;
-				shape.density = 0.3;
+				shape.density = 1;
 				body.addShape(shape);
 				body.resetMassData();
 				space.addBody(body);
 			}
 		}        
 
-		var body = new Body(Body.DYNAMIC, new vec2(250, 1500));
-		var shape = new ShapePoly([new vec2(-48, 35), new vec2(-38, 0), new vec2(38, 0), new vec2(48, 35), new vec2(0, 74)]);
+		var body = new Body(Body.DYNAMIC, new vec2(5, 30));
+		var shape = new ShapePoly([new vec2(-0.96, 0.7), new vec2(-0.76, 0), new vec2(0.76, 0), new vec2(0.96, 0.7), new vec2(0, 1.48)]);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 0.5;
+		shape.density = 2;
 		body.addShape(shape);
 		body.resetMassData();
 		space.addBody(body);
-		body.applyForce(new vec2(0, 100), new vec2(0, 100));
 	}
 
 	function runFrame() {
