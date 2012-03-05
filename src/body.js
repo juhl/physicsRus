@@ -60,6 +60,8 @@ Body = function(type, pos, angle) {
 	// Bounds of all shapes
 	this.bounds = new Bounds;
 
+	this.fixedRotation = false;
+
 	this.categoryBits = 0x0001;
 	this.maskBits = 0xFFFF;
 
@@ -174,11 +176,19 @@ Body.prototype.getLocalVector = function(v) {
 	return this.xf.unrotate(v);
 }
 
+Body.prototype.setFixedRotation = function(flag) {
+	this.fixedRotation = flag;
+	this.resetMassData();
+}
+
 Body.prototype.resetMassData = function() {
+	this.centroid.set(0, 0);
+	this.m = 0;
+	this.m_inv = 0;
+	this.i = 0;
+	this.i_inv = 0;
+
 	if (!this.isDynamic()) {
-		this.centroid.set(0, 0);
-		this.setMass(Infinity);
-		this.setInertia(Infinity);
 		this.p = this.xf.transform(this.centroid);
 		return;
 	}
@@ -200,7 +210,11 @@ Body.prototype.resetMassData = function() {
 	
 	this.centroid.copy(vec2.scale(totalMassCentroid, 1 / totalMass));
 	this.setMass(totalMass);
-	this.setInertia(totalInertia - totalMass * vec2.dot(this.centroid, this.centroid));
+
+	if (!this.fixedRotation) {	
+		this.setInertia(totalInertia - totalMass * vec2.dot(this.centroid, this.centroid));
+	}
+
 	//console.log("mass = " + this.m + " inertia = " + this.i);
 
 	// Move center of mass

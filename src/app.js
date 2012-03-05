@@ -281,6 +281,7 @@ App = function() {
 		addEvent(domBodyInspector.querySelector("[name=angle]"), "input", function() { onChangedBodyAngle(this.value); });
 		addEvent(domBodyInspector.querySelector("[name=mass]"), "change", function() { onChangedBodyMass(this.value); });
 		addEvent(domBodyInspector.querySelector("[name=mass]"), "input", function() { onChangedBodyMass(this.value); });
+		addEvent(domBodyInspector.querySelector("[name=fixed_rotation]"), "click", onClickedBodyFixedRotation);
 
 		domJointInspector = domSidebar.querySelector("#joint_inspector");
 		addEvent(domJointInspector.querySelector("[name=body1]"), "change", function() { onChangedJointBody(0, this.value); });		
@@ -3926,6 +3927,13 @@ App = function() {
 
 				updateSidebar();
 			}
+		}
+	}
+
+	function onClickedBodyFixedRotation() {
+		if (selectedFeatureArr.length == 1) {
+			var body = selectedFeatureArr[0];
+			body.setFixedRotation(!body.fixedRotation);
 		}
 	}
 

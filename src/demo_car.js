@@ -41,7 +41,7 @@ DemoCar = function() {
 		space.addJoint(joint);
 
 		// Car body        
-		var body1 = new Body(Body.DYNAMIC, new vec2(-400, 250));
+		var body1 = new Body(Body.DYNAMIC, new vec2(-400, 250));		
 		//var shape = new ShapeBox(0, 10, 75, 20);
 		var shape = new ShapePoly([new vec2(-40, 24), new vec2(-40, 0), new vec2(40, 0), new vec2(40, 16), new vec2(0, 42), new vec2(-28, 42)]);
 		shape.e = 0.5;
@@ -53,7 +53,7 @@ DemoCar = function() {
 		//shape.u = 1.0;
 		//shape.density = 0.001;
 		//body1.addShape(shape);
-		body1.resetMassData();
+		body1.resetMassData();		
 		space.addBody(body1);
 
 		// Wheel 1        
