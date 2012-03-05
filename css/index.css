@@ -4,10 +4,10 @@ html, body {
   width: 640px;
   height: 100%;
   font-family: Verdana, times new roman, NanumGothic, sans-serif;    
-  text-align: center;
 }
 header {
   padding-top: 0;
+  text-align: center;  
   line-height: 1.5;
   font-family: Cambria, serif;
   text-shadow: 0.1em 0.1em 0.3em gray;
@@ -22,6 +22,7 @@ footer, .dsq-brlink {
   color: #404040;
 }
 div#content {
+  text-align: center;
   margin: 10px;
   padding: 0;
   width: 100%;  
@@ -42,12 +43,14 @@ div#intro {
 }
 div#comments {
   margin: 0px auto; 
+  text-align: center;
   padding: 4px;
   width: 640px;
 }
 div#share {
   margin: 0px auto; 
   margin-top: 5px;
+  text-align: center;
   padding: 4px;    
   width: 640px;
 }
