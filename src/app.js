@@ -2101,6 +2101,10 @@ App = function() {
 						var el = domBodyInspector.querySelector("[name=inertia]");
 						el.disabled = false;
 						el.value = body.i.toFixed(2);
+
+						var el = domBodyInspector.querySelector("[name=fixed_rotation]");
+						el.disabled = false;
+						el.checked = body.fixedRotation;
 					}
 					else {
 						var el = domBodyInspector.querySelector("[name=mass]");
@@ -2110,6 +2114,10 @@ App = function() {
 						var el = domBodyInspector.querySelector("[name=inertia]");
 						el.disabled = true;
 						el.value = "0";
+
+						var el = domBodyInspector.querySelector("[name=fixed_rotation]");
+						el.disabled = true;
+						el.checked = false;
 					}
 				}
 			}
