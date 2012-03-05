@@ -370,9 +370,9 @@ App = function() {
 				updateSidebar();
 			}
 			else {
-				highlightFeatureArr = [];
 				transformAxis = 0;
 
+				highlightFeatureArr = [];
 				var feature = getFeatureByPoint(canvasToWorld(mousePosition));
 				if (isValidFeature(feature)) {
 					highlightFeatureArr[0] = feature;
@@ -2207,7 +2207,7 @@ App = function() {
 						if (joint.motorEnabled) {
 							var el = domJointInspector.querySelector("[name=motor_speed]");
 							el.parentNode.style.display = "block";
-							el.value = joint.motorSpeed.toFixed(1);
+							el.value = rad2deg(joint.motorSpeed).toFixed(1);
 
 							var el = domJointInspector.querySelector("[name=max_motor_torque]");
 							el.parentNode.style.display = "block";
@@ -2394,8 +2394,8 @@ App = function() {
 			if (!editorEnabled) {
 				if (!mouseDown) {
 					var p = canvasToWorld(mousePosition);
-					var shape = space.findShapeByPoint(p);
-					domCanvas.style.cursor = shape ? "pointer" : "default";
+					var body = space.findBodyByPoint(p);
+					domCanvas.style.cursor = body ? "pointer" : "default";
 				}
 
 				if (!pause || step) {
@@ -2429,7 +2429,7 @@ App = function() {
 					updateScreen(frameTime);
 				}
 			}
-			else {			
+			else {
 				updateScreen(frameTime);
 			}
 		}
@@ -3198,7 +3198,7 @@ App = function() {
 			return feature != -1 ? true : false;
 		}
 
-		console.log("invalid select mode");
+		console.error("invalid select mode");
 		return false;
 	}
 
@@ -3213,12 +3213,7 @@ App = function() {
 			return space.findShapeByPoint(p, selectedFeatureArr[0]);
 		}
 		else if (selectionMode == SM_BODIES) {
-			var shape = space.findShapeByPoint(p, selectedFeatureArr[0]);
-			if (!shape) {
-				return null;
-			}
-
-			return shape.body;
+			return space.findBodyByPoint(p, selectedFeatureArr[0]);
 		}
 		else if (selectionMode == SM_JOINTS) {
 			return space.findJointByPoint(p, SELECTABLE_POINT_DIST_THREHOLD, selectedFeatureArr[0])
@@ -3414,12 +3409,12 @@ App = function() {
 			var p = canvasToWorld(pos);
 
 			// If we picked shape then create mouse joint
-			var shape = space.findShapeByPoint(p);
-			if (shape) {
+			var body = space.findBodyByPoint(p);
+			if (body) {
 				mouseBody.p.copy(p);
 				mouseBody.syncTransform();
-				mouseJoint = new MouseJoint(mouseBody, shape.body, p);
-				mouseJoint.maxForce = shape.body.m * 18000;
+				mouseJoint = new MouseJoint(mouseBody, body, p);
+				mouseJoint.maxForce = body.m * 15000;
 				space.addJoint(mouseJoint);				
 			}
 		}
@@ -4076,8 +4071,7 @@ App = function() {
 		if (selectedFeatureArr.length == 1) {			
 			var jointId = selectedFeatureArr[0];
 			var joint = space.jointById((jointId >> 16) & 0xFFFF);
-			joint.motorSpeed = parseFloat(value);
-			console.log(joint.motorSpeed);
+			joint.motorSpeed = deg2rad(parseFloat(value));
 		}
 	}
 

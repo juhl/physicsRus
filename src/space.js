@@ -220,6 +220,36 @@ Space.prototype.findShapeByPoint = function(p, refShape) {
 	return firstShape;
 }
 
+Space.prototype.findBodyByPoint = function(p, refBody) {
+	var firstBody;
+
+	for (var i in this.bodyHash) {
+		var body = this.bodyHash[i];
+
+		for (var j = 0; j < body.shapeArr.length; j++) {
+			var shape = body.shapeArr[j];
+
+			if (shape.pointQuery(p)) {
+				if (!refBody) {
+					return shape.body;
+				}
+
+				if (!firstBody) {
+					firstBody = shape.body;
+				}			
+
+				if (shape.body == refBody) {
+					refBody = null;
+				}			
+
+				break;
+			}
+		}
+	}
+
+	return firstBody;
+}
+
 // TODO: Replace this function to hashing
 Space.prototype.shapeById = function(id) {
 	var shape;
