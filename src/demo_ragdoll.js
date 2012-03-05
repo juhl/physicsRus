@@ -8,17 +8,7 @@ DemoRagDoll = function() {
 		staticBody.addShape(new ShapeBox(-10.04, 7.68, 0.4, 14.56));
 		staticBody.addShape(new ShapeBox(10.04, 7.68, 0.4, 14.56));
 		staticBody.resetMassData();
-		space.addBody(staticBody);
-
-		// Tube
-		var body = new Body(Body.DYNAMIC, new vec2(-4, 4));
-		var shape = new ShapeSegment(new vec2(-0.6, 0), new vec2(0.6, 0), 0.8);
-		shape.e = 0.4;
-		shape.u = 0.7;
-		shape.density = 8;
-		body.addShape(shape);
-		body.resetMassData();
-		space.addBody(body);
+		space.addBody(staticBody);		
 			
 		// Head
 		var bodyHead = new Body(Body.DYNAMIC, new vec2(0, 7.34));

@@ -90,7 +90,7 @@ App = function() {
 	var renderer;
 	var activeWindow = true;
 	var camera = { origin: new vec2(0, 0), 
-		scale: 1, minScale: 0.5, maxScale: 4.0, 
+		scale: 1, minScale: 0.5, maxScale: 5.0, 
 		bounds: new Bounds, 
 		scroll: new vec2(0, 0) 
 	};
@@ -158,7 +158,7 @@ App = function() {
 	var gestureScale;
 
 	// settings variables	
-	var gravity = new vec2(0, -12.544);
+	var gravity = new vec2(0, -10);
 	var frameRateHz = 60;
 	var velocityIterations = 8;
 	var positionIterations = 4;
@@ -3427,8 +3427,8 @@ App = function() {
 				mouseBody.p.copy(p);
 				mouseBody.syncTransform();
 				mouseJoint = new MouseJoint(mouseBody, body, p);
-				mouseJoint.maxForce = body.m * 1500;
-				space.addJoint(mouseJoint);				
+				mouseJoint.maxForce = body.m * 1000;
+				space.addJoint(mouseJoint);
 			}
 		}
 		else {
