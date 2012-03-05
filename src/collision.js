@@ -19,7 +19,7 @@ var collision = {};
 		var dist = Math.sqrt(distsq);
 
 		var p = vec2.mad(c1, t, 0.5 + (r1 - r2) * 0.5 / dist);
-		var n = (dist != 0) ? vec2.scale(t, 1/dist) : vec2.zero;
+		var n = (dist != 0) ? vec2.scale(t, 1 / dist) : vec2.zero;
 		var d = dist - rmax;
 
 		contactArr.push(new Contact(p, n, d, 0));

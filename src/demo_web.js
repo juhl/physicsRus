@@ -86,6 +86,9 @@ DemoWeb = function() {
 	function runFrame() {
 	}
 
+	function keyDown(ev) {
+	}
+
 	function name() {
 		return "Web";
 	}
@@ -93,6 +96,7 @@ DemoWeb = function() {
 	return {
 		init: init,
 		runFrame: runFrame,
+		keyDown: keyDown,
 		name: name
 	};
 }();

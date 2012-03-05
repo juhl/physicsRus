@@ -54,6 +54,9 @@ DemoSeeSaw = function() {
 	function runFrame() {
 	}
 
+	function keyDown(ev) {
+	}
+
 	function name() {
 		return "See-saw";
 	}
@@ -61,6 +64,7 @@ DemoSeeSaw = function() {
 	return {
 		init: init,
 		runFrame: runFrame,
+		keyDown: keyDown,
 		name: name
 	};
 }();

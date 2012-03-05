@@ -36,6 +36,9 @@ DemoPyramid = function() {
 	function runFrame() {
 	}
 
+	function keyDown(ev) {
+	}
+
 	function name() {
 		return "Pyramid";
 	}
@@ -43,6 +46,7 @@ DemoPyramid = function() {
 	return {
 		init: init,
 		runFrame: runFrame,
+		keyDown: keyDown,
 		name: name
 	};
 }();

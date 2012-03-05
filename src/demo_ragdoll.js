@@ -225,6 +225,9 @@ DemoRagDoll = function() {
 	function runFrame() {
 	}
 
+	function keyDown(ev) {
+	}
+
 	function name() {
 		return "Rag-doll";
 	}
@@ -232,6 +235,7 @@ DemoRagDoll = function() {
 	return {
 		init: init,
 		runFrame: runFrame,
+		keyDown: keyDown,
 		name: name
 	};
 }();

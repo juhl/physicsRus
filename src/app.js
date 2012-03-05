@@ -1,4 +1,5 @@
 var stats = {};
+//var keyDownArr = [];
 
 App = function() {
 	// edit mode
@@ -142,7 +143,7 @@ App = function() {
 	var jointAnchorColor = "#80F";
 	var jointHelperColor = "#F0F";
 	var selectionPattern;
-	var highlightPattern;	
+	var highlightPattern;
 
 	// mouse & touch variables
 	var mouseDown = false;
@@ -238,6 +239,8 @@ App = function() {
 		addEvent(domToolbar.querySelector("#toggle_help"), "click", onClickedHelp);
 		//domToolbar.querySelector("#toggle_help").style.display = "none"; //
 
+		updateToolbar();
+
 		// Setting up sidebar events
 		domSidebar = document.querySelector("#sidebar");
 		var elements = domSidebar.querySelectorAll("[name=editmode]");
@@ -331,7 +334,6 @@ App = function() {
 			addEvent(elements[i], "blur", function() { window.scrollTo(0, 0); });
 		}
 
-		updateToolbar();
 		updateSidebar();
 
 		// Setting up mouse event for each edit modes
@@ -2423,7 +2425,12 @@ App = function() {
 					if (timeDelta > h) {
 						timeDelta = 0;
 					}
-				}
+
+					if (sceneIndex < demoArr.length) {
+						demo = demoArr[sceneIndex];
+						demo.runFrame();
+					}
+				}				
 
 				if (stats.stepCount > 0) {
 					updateScreen(frameTime);
@@ -3160,30 +3167,6 @@ App = function() {
 		}
 	}
 
-	function onResize(ev) {
-		window.scrollTo(0, 0);
-
-		fg.canvas.width = window.innerWidth - domView.offsetLeft;
-		fg.canvas.height = window.innerHeight - domView.offsetTop;
-
-		//console.log(fg.canvas.width, fg.canvas.height);
-
-		bg.canvas.width = fg.canvas.width;
-		bg.canvas.height = fg.canvas.height;
-
-		//console.log([domView.offsetLeft, domView.offsetTop, domView.clientWidth, domView.clientHeight].join(" "));
-
-		// Set dirtyBounds to full screen
-		dirtyBounds.set(canvasToWorld(new vec2(0, domCanvas.height)), canvasToWorld(new vec2(domCanvas.width, 0)));		
-		bg.outdated = true;		
-	}
-
-	function getMousePosition(ev) {
-		return new vec2(
-			ev.clientX + document.body.scrollLeft - domView.offsetLeft, 
-			ev.clientY + document.body.scrollTop - domView.offsetTop);
-	}
-
 	function isValidFeature(feature) {
 		switch (selectionMode) {
 		case SM_VERTICES:
@@ -3386,6 +3369,43 @@ App = function() {
 
 		console.log("invalid vertex index: " + index);
 	}
+
+	function deleteShape(shape) {
+		var body = shape.body;
+
+		body.removeShape(shape);
+		if (body.shapeArr.length != 0) {
+			body.resetMassData();
+			body.cacheData();
+		}
+		else {
+			space.removeBody(body);
+		}
+	}
+
+	function onResize(ev) {
+		window.scrollTo(0, 0);
+
+		fg.canvas.width = window.innerWidth - domView.offsetLeft;
+		fg.canvas.height = window.innerHeight - domView.offsetTop;
+
+		//console.log(fg.canvas.width, fg.canvas.height);
+
+		bg.canvas.width = fg.canvas.width;
+		bg.canvas.height = fg.canvas.height;
+
+		//console.log([domView.offsetLeft, domView.offsetTop, domView.clientWidth, domView.clientHeight].join(" "));
+
+		// Set dirtyBounds to full screen
+		dirtyBounds.set(canvasToWorld(new vec2(0, domCanvas.height)), canvasToWorld(new vec2(domCanvas.width, 0)));		
+		bg.outdated = true;		
+	}
+
+	function getMousePosition(ev) {
+		return new vec2(
+			ev.clientX + document.body.scrollLeft - domView.offsetLeft, 
+			ev.clientY + document.body.scrollTop - domView.offsetTop);
+	}	
 		
 	function onMouseDown(ev) {
 		mouseDown = true;
@@ -3695,7 +3715,13 @@ App = function() {
 			return;
 		}
 
-		editModeEventArr[editMode].keyDown(ev.keyCode);
+		if (editorEnabled) {
+			editModeEventArr[editMode].keyDown(ev.keyCode);
+		}
+		else if (sceneIndex < demoArr.length) {
+			demo = demoArr[sceneIndex];
+			demo.keyDown(ev);
+		}
 
 		switch (ev.keyCode) {
 		case 123: // F12
@@ -3757,13 +3783,17 @@ App = function() {
 				onClickedSelectionMode(["vertices", "edges", "shapes", "bodies", "joints"][(ev.keyCode - 48) - 1]);				
 			}
 			break;
-		}					
+		}
+
+		//keyDownArr[ev.keyCode] = true;
 	}
 
 	function onKeyUp(ev) {
 		if (!ev) {
 			ev = event;
 		}
+
+		//keyDownArr[ev.keyCode] = false;
 	}
 
 	function onKeyPress(ev) {
@@ -4099,81 +4129,6 @@ App = function() {
 		}
 	}
 
-	function onChangedGravity(value) {
-		gravity.y = parseFloat(value);
-		space.gravity.copy(gravity);
-	}
-
-	function onChangedFrameRateHz(value) {
-		frameRateHz = parseInt(value);
-	}
-
-	function onChangedVelocityIterations(value) {
-		velocityIterations = parseInt(value);
-	}
-
-	function onChangedPositionIterations(value) {
-		positionIterations = parseInt(value);
-	}
-
-	function onClickedWarmStarting() {
-		warmStarting = !warmStarting;
-	}
-
-	function onClickedAllowSleep() {
-		allowSleep = !allowSleep;
-	}
-
-	function onClickedEnableDirtyRect() {
-		enableDirtyBounds = !enableDirtyBounds;
-	}
-
-	function onClickedShowDirtyRect() {
-		showDirtyBounds = !showDirtyBounds;
-	}
-	
-	function onClickedShowAxis() {
-		showAxis = !showAxis;
-	}
-
-	function onClickedShowJoints() {
-		showJoints = !showJoints;
-	}
-
-	function onClickedShowBounds() {
-		showBounds = !showBounds;
-	}
-
-	function onClickedShowContacts() {
-		showContacts = !showContacts;
-	}
-
-	function onClickedShowStats() {
-		showStats = !showStats;
-
-		domInfo.style.display = showStats ? "block" : "none";
-	}	
-
-	function onClickedPlayer(value) {
-		switch (value) {
-		case "restart":
-			resetScene();
-			pause = false;
-			break;
-		case "pause":
-			pause = !pause;
-			break;
-		case "step":
-			pause = true;
-			step = true;
-			break;
-		}
-		
-		updatePauseButton();
-
-		return false;
-	}
-
 	function onClickedEdit() {				
 		editorEnabled = !editorEnabled;
 		pause = false;
@@ -4228,23 +4183,10 @@ App = function() {
 
 		highlightFeatureArr = [];
 
-		updateSidebar();		
+		updateSidebar();
 
 		return false;
-	}
-
-	function deleteShape(shape) {
-		var body = shape.body;
-
-		body.removeShape(shape);
-		if (body.shapeArr.length != 0) {
-			body.resetMassData();
-			body.cacheData();
-		}
-		else {
-			space.removeBody(body);
-		}
-	}
+	}	
 
 	function onDelete() {
 		if (selectionMode == SM_VERTICES) {
@@ -4367,6 +4309,81 @@ App = function() {
 
 			button.innerHTML = "<i class='icon-white icon-cog'></i>";
 		}
+
+		return false;
+	}
+
+	function onChangedGravity(value) {
+		gravity.y = parseFloat(value);
+		space.gravity.copy(gravity);
+	}
+
+	function onChangedFrameRateHz(value) {
+		frameRateHz = parseInt(value);
+	}
+
+	function onChangedVelocityIterations(value) {
+		velocityIterations = parseInt(value);
+	}
+
+	function onChangedPositionIterations(value) {
+		positionIterations = parseInt(value);
+	}
+
+	function onClickedWarmStarting() {
+		warmStarting = !warmStarting;
+	}
+
+	function onClickedAllowSleep() {
+		allowSleep = !allowSleep;
+	}
+
+	function onClickedEnableDirtyRect() {
+		enableDirtyBounds = !enableDirtyBounds;
+	}
+
+	function onClickedShowDirtyRect() {
+		showDirtyBounds = !showDirtyBounds;
+	}
+	
+	function onClickedShowAxis() {
+		showAxis = !showAxis;
+	}
+
+	function onClickedShowJoints() {
+		showJoints = !showJoints;
+	}
+
+	function onClickedShowBounds() {
+		showBounds = !showBounds;
+	}
+
+	function onClickedShowContacts() {
+		showContacts = !showContacts;
+	}
+
+	function onClickedShowStats() {
+		showStats = !showStats;
+
+		domInfo.style.display = showStats ? "block" : "none";
+	}	
+
+	function onClickedPlayer(value) {
+		switch (value) {
+		case "restart":
+			resetScene();
+			pause = false;
+			break;
+		case "pause":
+			pause = !pause;
+			break;
+		case "step":
+			pause = true;
+			step = true;
+			break;
+		}
+		
+		updatePauseButton();
 
 		return false;
 	}

@@ -55,6 +55,9 @@ DemoRope = function() {
 	function runFrame() {
 	}
 
+	function keyDown(ev) {
+	}
+
 	function name() {
 		return "Rope";
 	}
@@ -62,6 +65,7 @@ DemoRope = function() {
 	return {
 		init: init,
 		runFrame: runFrame,
+		keyDown: keyDown,
 		name: name
 	};
 }();

@@ -109,6 +109,10 @@ DemoCar = function() {
 	function runFrame() {
 	}
 
+	function keyDown(ev) {
+
+	}
+
 	function name() {
 		return "Car";
 	}
@@ -116,6 +120,7 @@ DemoCar = function() {
 	return {
 		init: init,
 		runFrame: runFrame,
+		keyDown: keyDown,
 		name: name
 	};
 }();

@@ -1,5 +1,6 @@
 DemoCrank = function() {
 	var space;
+
 	function init(s) {
 		space = s;
 		var staticBody = new Body(Body.STATIC);
@@ -84,8 +85,11 @@ DemoCrank = function() {
 		space.addBody(body);      
 	}
 
-	function runFrame() {
+	function runFrame() {		
 	}
+
+	function keyDown(ev) {
+	}	
 
 	function name() {
 		return "Crank";
@@ -94,6 +98,7 @@ DemoCrank = function() {
 	return {
 		init: init,
 		runFrame: runFrame,
+		keyDown: keyDown,
 		name: name
 	};
 }();	
