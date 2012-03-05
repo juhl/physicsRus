@@ -282,6 +282,8 @@ App = function() {
 		addEvent(domBodyInspector.querySelector("[name=mass]"), "change", function() { onChangedBodyMass(this.value); });
 		addEvent(domBodyInspector.querySelector("[name=mass]"), "input", function() { onChangedBodyMass(this.value); });
 		addEvent(domBodyInspector.querySelector("[name=fixed_rotation]"), "click", onClickedBodyFixedRotation);
+		addEvent(domBodyInspector.querySelector("[name=category_bits]"), "change", function() { onChangedBodyCategoryBits(this.value); });	
+		addEvent(domBodyInspector.querySelector("[name=mask_bits]"), "change", function() { onChangedBodyMaskBits(this.value); });
 
 		domJointInspector = domSidebar.querySelector("#joint_inspector");
 		addEvent(domJointInspector.querySelector("[name=body1]"), "change", function() { onChangedJointBody(0, this.value); });		
@@ -2119,6 +2121,12 @@ App = function() {
 						el.disabled = true;
 						el.checked = false;
 					}
+
+					var el = domBodyInspector.querySelector("[name=category_bits]");
+					el.value = "0x" + body.categoryBits.toString(16).toUpperCase();
+
+					var el = domBodyInspector.querySelector("[name=mask_bits]");
+					el.value = "0x" + body.maskBits.toString(16).toUpperCase();
 				}
 			}
 			else if (selectionMode == SM_JOINTS) {
@@ -3942,6 +3950,20 @@ App = function() {
 		if (selectedFeatureArr.length == 1) {
 			var body = selectedFeatureArr[0];
 			body.setFixedRotation(!body.fixedRotation);
+		}
+	}
+
+	function onChangedBodyCategoryBits(value) {
+		if (selectedFeatureArr.length == 1) {
+			var body = selectedFeatureArr[0];
+			body.categoryBits = parseInt(value, 16);
+		}
+	}
+
+	function onChangedBodyMaskBits(value) {
+		if (selectedFeatureArr.length == 1) {
+			var body = selectedFeatureArr[0];
+			body.maskBits = parseInt(value, 16);
 		}
 	}
 
