@@ -10,7 +10,17 @@ DemoRagDoll = function() {
 		staticBody.resetMassData();
 		space.addBody(staticBody);
 
-		// Head       
+		// Tube
+		var body = new Body(Body.DYNAMIC, new vec2(-200, 200));
+		var shape = new ShapeSegment(new vec2(-30, 0), new vec2(30, 0), 40);
+		shape.e = 0.4;
+		shape.u = 0.7;
+		shape.density = 1;
+		body.addShape(shape);
+		body.resetMassData();
+		space.addBody(body);
+			
+		// Head
 		var bodyHead = new Body(Body.DYNAMIC, new vec2(0, 367));
 		var shape = new ShapeCircle(0, 0, 23);
 		shape.e = 0.4;

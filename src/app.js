@@ -7,19 +7,20 @@ App = function() {
 	const EM_ROTATE = 2;
 	const EM_SCALE = 3;
 	const EM_CREATE_CIRCLE = 4;
-	const EM_CREATE_TRIANGLE = 5;
-	const EM_CREATE_BOX = 6;
-	const EM_CREATE_HEXAGON = 7;
-	const EM_CREATE_POLY = 8;
-	const EM_CREATE_ANGLE_JOINT = 9;
-	const EM_CREATE_REVOLUTE_JOINT = 10;
-	const EM_CREATE_WELD_JOINT = 11;
-	const EM_CREATE_LINE_JOINT = 12;
-	const EM_CREATE_PRISMATIC_JOINT = 13;
-	const EM_CREATE_DISTANCE_JOINT = 14;
-	const EM_CREATE_ROPE_JOINT = 15;
-	const EM_COLLAPSE_BODIES = 16;
-	const EM_EDGE_SLICE = 17;
+	const EM_CREATE_SEGMENT = 5;
+	const EM_CREATE_TRIANGLE = 6;
+	const EM_CREATE_BOX = 7;
+	const EM_CREATE_HEXAGON = 8;
+	const EM_CREATE_POLY = 9;
+	const EM_CREATE_ANGLE_JOINT = 10;
+	const EM_CREATE_REVOLUTE_JOINT = 11;
+	const EM_CREATE_WELD_JOINT = 12;
+	const EM_CREATE_LINE_JOINT = 13;
+	const EM_CREATE_PRISMATIC_JOINT = 14;
+	const EM_CREATE_DISTANCE_JOINT = 15;
+	const EM_CREATE_ROPE_JOINT = 16;
+	const EM_COLLAPSE_BODIES = 17;
+	const EM_EDGE_SLICE = 18;
 
 	// selection mode
 	const SM_VERTICES = 0;
@@ -62,6 +63,7 @@ App = function() {
 	const SELECTABLE_CIRCLE_DIST_THREHOLD = isAppleMobileDevice() ? 10 : 5;	
 
 	// default values for creating shape
+	const DEFAULT_SEGMENT_RADIUS = 10;
 	const DEFAULT_DENSITY = 0.05;
 	const DEFAULT_RESTITUTION = 0.4;
 	const DEFAULT_FRICTION = 0.9;
@@ -1092,6 +1094,64 @@ App = function() {
 			}
 		}
 
+		editModeEventArr[EM_CREATE_SEGMENT] = {};
+		editModeEventArr[EM_CREATE_SEGMENT].init = function() {
+			domCanvas.style.cursor = "crosshair";
+		}
+		editModeEventArr[EM_CREATE_SEGMENT].shutdown = function() {
+		}
+		editModeEventArr[EM_CREATE_SEGMENT].mouseDown = function(ev) {
+			var p = canvasToWorld(mousePosition);
+			if (snapEnabled) {
+				p = snapPointByGrid(p);
+			}
+
+			if (!creatingBody) {				
+				creatingBody = new Body(Body.DYNAMIC, p);
+				var shape = new ShapeSegment(new vec2(0, 0), new vec2(0, 0), DEFAULT_SEGMENT_RADIUS);
+				shape.density = DEFAULT_DENSITY;
+				shape.e = DEFAULT_RESTITUTION;
+				shape.u = DEFAULT_FRICTION;
+				creatingBody.addShape(shape);
+				space.addBody(creatingBody);
+			}
+		}
+		editModeEventArr[EM_CREATE_SEGMENT].mouseUp = function(ev) {			
+			if (creatingBody) {
+				var shape = creatingBody.shapeArr[0];
+				if (shape.area() < 0.0001) {
+					space.removeBody(creatingBody);
+					delete shape;
+					delete creatingBody;					
+				}
+
+				creatingBody = null;
+			}
+		}
+		editModeEventArr[EM_CREATE_SEGMENT].mouseMove = function(ev) {
+			if (mouseDown && creatingBody) {
+				var p1 = canvasToWorld(mouseDownPosition);
+				var p2 = canvasToWorld(mousePosition);
+
+				if (snapEnabled) {
+					p1 = snapPointByGrid(p1);
+					p2 = snapPointByGrid(p2);
+				}
+
+				var shape = creatingBody.shapeArr[0];
+				shape.b.copy(creatingBody.getLocalPoint(p2));
+				shape.body.resetMassData();					
+				shape.body.cacheData();
+
+				updateSidebar();
+			}
+		}
+		editModeEventArr[EM_CREATE_SEGMENT].keyDown = function(keyCode) {
+			if (keyCode == 27) {
+				creatingBody = null;
+			}
+		}
+
 		editModeEventArr[EM_CREATE_TRIANGLE] = {};
 		editModeEventArr[EM_CREATE_TRIANGLE].init = function() {
 			domCanvas.style.cursor = "crosshair";
@@ -1912,7 +1972,7 @@ App = function() {
 
 			// edit mode buttons
 			var value = ["select", "move", "rotate", "scale", 
-				"create_circle", "create_triangle", "create_box", "create_hexagon", "create_poly",
+				"create_circle", "create_segment", "create_triangle", "create_box", "create_hexagon", "create_poly",
 				"create_angle_joint", "create_revolute_joint", "create_weld_joint", 
 				"create_line_joint", "create_prismatic_joint", "create_distance_joint", "create_rope_joint",
 				"collapse_bodies", "edge_slice"][editMode];
@@ -2449,7 +2509,7 @@ App = function() {
 				var w = Math.min(Math.ceil(maxs.x + 1), domCanvas.width) - x;
 				var h = Math.min(Math.ceil(mins.y + 1), domCanvas.height) - y;
 				// FIXME !!
-				console.log(x, y, w, h);
+				//console.log(x, y, w, h);
 				
 				if (x >= 0 && y >= 0 && w > 0 && h > 0) {
 					// void drawImage(HTMLVideoElement image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh);
@@ -2706,7 +2766,7 @@ App = function() {
 				}
 			}
 
-			// Draw highlighted vertex			
+			// Draw highlighted vertex
 			for (var i = 0; i < highlightFeatureArr.length; i++) {
 				var vertexId = highlightFeatureArr[i];
 				var shape = space.shapeById((vertexId >> 16) & 0xFFFF);
@@ -2880,7 +2940,7 @@ App = function() {
 			break;
 		case Shape.TYPE_SEGMENT:
 			p = index == 0 ? shape.ta : shape.tb;
-			return 
+			break; 
 		case Shape.TYPE_POLY:
 			p = shape.tverts[index];
 			break;
@@ -3809,7 +3869,7 @@ App = function() {
 	function onChangedBodyType(value) {
 		if (selectedFeatureArr.length == 1) {
 			var body = selectedFeatureArr[0];
-			body.type = { "Static": Body.STATIC, "Kinetic": Body.KINETIC, "Dynamic": Body.DYNAMIC }[value];
+			body.setType({"Static": Body.STATIC, "Kinetic": Body.KINETIC, "Dynamic": Body.DYNAMIC}[value]);
 			body.resetMassData();
 			body.cacheData();
 		}
@@ -4126,7 +4186,7 @@ App = function() {
 	function onClickedEditMode(value) {
 		editModeEventArr[editMode].shutdown();
 
-		editMode = { create_circle: EM_CREATE_CIRCLE, create_triangle: EM_CREATE_TRIANGLE, create_box: EM_CREATE_BOX, create_hexagon: EM_CREATE_HEXAGON, create_poly: EM_CREATE_POLY,
+		editMode = { create_circle: EM_CREATE_CIRCLE, create_segment: EM_CREATE_SEGMENT, create_triangle: EM_CREATE_TRIANGLE, create_box: EM_CREATE_BOX, create_hexagon: EM_CREATE_HEXAGON, create_poly: EM_CREATE_POLY,
 			create_angle_joint: EM_CREATE_ANGLE_JOINT, create_revolute_joint: EM_CREATE_REVOLUTE_JOINT, create_weld_joint: EM_CREATE_WELD_JOINT, 
 			create_line_joint: EM_CREATE_LINE_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT, create_rope_joint: EM_CREATE_ROPE_JOINT,
 			select: EM_SELECT, move: EM_MOVE, rotate: EM_ROTATE, scale: EM_SCALE,

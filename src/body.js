@@ -108,6 +108,20 @@ Body.prototype.isKinetic = function() {
 	return this.type == Body.KINETIC ? true : false;
 }
 
+Body.prototype.setType = function(type) {
+	if (type == this.type) {
+		return;
+	}
+
+	this.f.set(0, 0);
+	this.v.set(0, 0);
+	this.t = 0;
+	this.w = 0;	
+	this.type = type;
+
+	this.awake(true);
+}
+
 Body.prototype.addShape = function(shape) {
 	shape.body = this;
 	this.shapeArr.push(shape);

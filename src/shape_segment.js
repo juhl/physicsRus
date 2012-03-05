@@ -73,7 +73,7 @@ ShapeSegment.prototype.inertia = function(mass) {
 ShapeSegment.prototype.cacheData = function(xf) {
 	this.ta = xf.transform(this.a);
 	this.tb = xf.transform(this.b);
-	this.tn = vec2.rotate(this.n, angle);
+	this.tn = vec2.perp(vec2.sub(this.tb, this.ta)).normalize();	
 
 	if (this.ta.x < this.tb.x) {
 		l = this.ta.x;
@@ -101,29 +101,29 @@ ShapeSegment.prototype.pointQuery = function(p) {
 		return false;
 	}
 	
-	var dn = vec2.dot(seg.tn, p) - vec2.dot(seg.ta, seg.tn);
-	var dist = Math.abs(dn) - seg.r;
-	if (dist > 0) {
+	var dn = vec2.dot(this.tn, p) - vec2.dot(this.ta, this.tn);
+	var dist = Math.abs(dn);
+	if (dist > this.r) {
 		return false;
 	}
 	
-	var dt = vec2.cross(p, seg.tn);
-	var dtMin = vec2.cross(seg.ta, seg.tn);
-	var dtMax = vec2.cross(seg.tb, seg.tn);
+	var dt = vec2.cross(p, this.tn);
+	var dta = vec2.cross(this.ta, this.tn);
+	var dtb = vec2.cross(this.tb, this.tn);
 	
-	if (dt <= dtMin) {
-		if (dt < dtMin - seg.r) {
+	if (dt <= dta) {
+		if (dt < dta - this.r) {
 			return false;
 		} 
 
-		return vec2.distsq(seg.ta, p) < (seg.r * seg.r);
+		return vec2.distsq(this.ta, p) < (this.r * this.r);
 	} 
-	else if (dt > dtMax) {
-		if (dt > dtMax + seg.r) {
+	else if (dt > dtb) {
+		if (dt > dtb + this.r) {
 			return false;
 		}
 
-		return vec2.distsq(seg.tb, p) < (seg.r * seg.r);
+		return vec2.distsq(this.tb, p) < (this.r * this.r);
 	}
 	
 	return true;
