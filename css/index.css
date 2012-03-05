@@ -1,7 +1,7 @@
 html, body {
   margin: auto; 
   padding: 0;
-  width: 640px;
+  width: 700px;
   height: 100%;
   font-family: Verdana, times new roman, NanumGothic, sans-serif;    
 }
@@ -21,12 +21,6 @@ footer, .dsq-brlink {
   font-size: 8px;
   color: #404040;
 }
-div#content {
-  text-align: center;
-  margin: 10px;
-  padding: 0;
-  width: 100%;  
-}
 div#intro {
   margin: 0px auto;
   padding: 8px;
@@ -41,6 +35,29 @@ div#intro {
   -webkit-box-shadow: 0px 0px 6px black;
   box-shadow: 0px 0px 6px black;
 }
+div#content {
+  text-align: center;
+  margin: 20px 0;
+  padding: 0;
+  width: 100%;  
+}
+div#content > a {
+  text-decoration: none;  
+  margin: 0 auto;
+  padding: 6px 12px;  
+  vertical-align: middle;
+  font-size: 12pt;
+  font-weight: bold;  
+  color: black;  
+  background-color: #DDD;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+}
+div#content > a:hover { 
+  text-decoration: underline; 
+}
+
 div#comments {
   margin: 0px auto; 
   text-align: center;
