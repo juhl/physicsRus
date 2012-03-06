@@ -140,13 +140,13 @@ Body.prototype.removeShape = function(shape) {
 // Internal function
 Body.prototype.setMass = function(mass) {
 	this.m = mass;
-	this.m_inv = 1 / mass; // 0 = 1 / Infinity
+	this.m_inv = mass > 0 ? 1 / mass : 0;
 }
 
 // Internal function
 Body.prototype.setInertia = function(inertia) {
-	this.i = inertia;
-	this.i_inv = 1 / inertia; // 0 = 1 / Infinity
+	this.i = inertia;	
+	this.i_inv = inertia > 0 ? 1 / inertia : 0;
 }
 
 Body.prototype.setTransform = function(pos, angle) {

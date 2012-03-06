@@ -1062,6 +1062,7 @@ App = function() {
 				shape.e = DEFAULT_RESTITUTION;
 				shape.u = DEFAULT_FRICTION;
 				creatingBody.addShape(shape);
+				creatingBody.resetMassData();
 				space.addBody(creatingBody);						
 			}
 		}
@@ -1120,6 +1121,7 @@ App = function() {
 				shape.e = DEFAULT_RESTITUTION;
 				shape.u = DEFAULT_FRICTION;
 				creatingBody.addShape(shape);
+				creatingBody.resetMassData();
 				space.addBody(creatingBody);
 			}
 		}
@@ -1147,7 +1149,7 @@ App = function() {
 
 				var shape = creatingBody.shapeArr[0];
 				shape.b.copy(creatingBody.getLocalPoint(p2));
-				shape.body.resetMassData();					
+				shape.body.resetMassData();
 				shape.body.cacheData();
 
 				updateSidebar();
@@ -1178,6 +1180,7 @@ App = function() {
 				shape.e = DEFAULT_RESTITUTION;
 				shape.u = DEFAULT_FRICTION;
 				creatingBody.addShape(shape);
+				creatingBody.resetMassData();
 				space.addBody(creatingBody);
 			}
 		}
@@ -1254,6 +1257,7 @@ App = function() {
 				shape.e = DEFAULT_RESTITUTION;
 				shape.u = DEFAULT_FRICTION;
 				creatingBody.addShape(shape);
+				creatingBody.resetMassData();
 				space.addBody(creatingBody);
 			}
 		}
@@ -1332,6 +1336,7 @@ App = function() {
 				shape.e = DEFAULT_RESTITUTION;
 				shape.u = DEFAULT_FRICTION;
 				creatingBody.addShape(shape);
+				creatingBody.resetMassData();
 				space.addBody(creatingBody);
 			}
 		}
@@ -1409,6 +1414,7 @@ App = function() {
 				shape.e = DEFAULT_RESTITUTION;
 				shape.u = DEFAULT_FRICTION;
 				creatingBody.addShape(shape);
+				creatingBody.resetMassData();
 				space.addBody(creatingBody);
 			}
 		
