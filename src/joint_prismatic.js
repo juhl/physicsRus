@@ -22,7 +22,7 @@
 // J = [ -n, -s1, n, s2 ]
 //     [  0,  -1, 0,  1 ]
 //
-// JT * lambda = [ -n * lambda_x, -(s1 * lambda_x + lambda_y), n * lambda_x, s2 * lambda_x + lambda_y ]
+// impulse = JT * lambda = [ -n * lambda_x, -(s1 * lambda_x + lambda_y), n * lambda_x, s2 * lambda_x + lambda_y ]
 //-------------------------------------------------------------------------------------------------
 
 PrismaticJoint = function(body1, body2, anchor1, anchor2) {

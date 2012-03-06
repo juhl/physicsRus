@@ -12,7 +12,11 @@
 // s1 = cross(r1 + d, n)
 // s2 = cross(r2, n)
 //
-// JT * lambda = [ -n * lambda, -(s1 * lambda), n * lambda, s2 * lambda ]
+// impulse = JT * lambda = [ -n * lambda, -(s1 * lambda), n * lambda, s2 * lambda ]
+//
+// Motor rotational constraint
+// Cdot = w2 - w1
+// J = [ 0, -1, 0, 1 ]
 //-------------------------------------------------------------------------------------------------
 
 LineJoint = function(body1, body2, anchor1, anchor2) {
@@ -89,12 +93,7 @@ LineJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body2 = this.body2;
 
 	// Max impulse
-	this.maxImpulse = this.maxForce * dt;
-
-	if (this.motorEnabled) {
-		this.motorLambda_acc = 0;
-		this.maxMotorImpulse = this.maxMotorTorque * dt;
-	}
+	this.maxImpulse = this.maxForce * dt;	
 		
 	// Transformed r1, r2
 	this.r1 = vec2.rotate(vec2.sub(this.anchor1, body1.centroid), body1.a);
@@ -120,10 +119,18 @@ LineJoint.prototype.initSolver = function(dt, warmStarting) {
 	// invEM = J * invM * JT
     var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;    
 	this.em = em_inv > 0 ? 1 / em_inv : em_inv;
-	
-	// invEM2 = J2 * invM * J2T
-	var em2_inv = body1.i_inv + body2.i_inv;
-	this.em2 = em2_inv > 0 ? 1 / em2_inv : em2_inv;
+
+	if (this.motorEnabled) {
+		this.maxMotorImpulse = this.maxMotorTorque * dt;
+
+		// invEM2 = J2 * invM * J2T
+		var motorEm_inv = body1.i_inv + body2.i_inv;
+		this.motorEm = motorEm_inv > 0 ? 1 / motorEm_inv : motorEm_inv;
+	}
+	else {
+		this.motorLambda_acc = 0;
+		this.motorEm = 0;
+	}
 	
 	if (warmStarting) {
 		// Apply cached constraint impulses
@@ -150,7 +157,8 @@ LineJoint.prototype.solveVelocityConstraints = function() {
 	if (this.motorEnabled) {
 		// Compute motor impulse
 		var cdot = body2.w - body1.w - this.motorSpeed;
-		var lambda = -this.em2 * cdot;
+		var lambda = -this.motorEm * cdot;
+
 		var motorLambdaOld = this.motorLambda_acc;
 		this.motorLambda_acc = Math.clamp(this.motorLambda_acc + lambda, -this.maxMotorImpulse, this.maxMotorImpulse);
 		lambda = this.motorLambda_acc - motorLambdaOld;
@@ -204,7 +212,7 @@ LineJoint.prototype.solvePositionConstraints = function() {
 	var c = vec2.dot(n, d);
 	var correction = Math.clamp(c, -Joint.MAX_LINEAR_CORRECTION, Joint.MAX_LINEAR_CORRECTION);
 	
-	// Compute lambda for position constraint		
+	// Compute lambda for position constraint
 	// Solve J * invM * JT * lambda = -C
    	var s1 = vec2.cross(r1_d, n);
    	var s2 = vec2.cross(r2, n);

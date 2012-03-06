@@ -9,7 +9,7 @@
 //      = -dot(u, v1) - dot(w1, cross(r1, u)) + dot(u, v2) + dot(w2, cross(r2, u))
 // J = [ -u, -cross(r1, u), u, cross(r2, u) ]
 //
-// JT * lambda = [ -u * lambda, -cross(r1, u) * lambda, u * lambda, cross(r1, u) * lambda ]
+// impulse = JT * lambda = [ -u * lambda, -cross(r1, u) * lambda, u * lambda, cross(r1, u) * lambda ]
 //-------------------------------------------------------------------------------------------------
 
 DistanceJoint = function(body1, body2, anchor1, anchor2) {

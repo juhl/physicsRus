@@ -6,7 +6,7 @@
 // Cdot = v + cross(w, r)
 // J = [ I, -skew(r) ]
 //
-// JT * lambda = [ lambda, cross(r2, lambda) ]
+// impulse = JT * lambda = [ lambda, cross(r2, lambda) ]
 //-------------------------------------------------------------------------------------------------
 
 MouseJoint = function(mouseBody, body, anchor) {

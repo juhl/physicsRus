@@ -5,7 +5,7 @@
 // Cdot = w2 - w1
 // J = [0, -1, 0, 1]
 //
-// JT * lambda = [ 0, -lambda, 0, lambda ]
+// impulse = JT * lambda = [ 0, -lambda, 0, lambda ]
 //-------------------------------------------------------------------------------------------------
 
 AngleJoint = function(body1, body2) {

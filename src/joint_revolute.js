@@ -16,7 +16,7 @@
 // J = [ -I, skew(r1), I, -skew(r2) ]
 //     [  0,       -1, 0,         1 ]
 //
-// JT * lambda = [ -lambda_xy, -(cross(r1, lambda_xy) + lambda_z), lambda_xy, cross(r1, lambda_xy) + lambda_z ]
+// impulse = JT * lambda = [ -lambda_xy, -(cross(r1, lambda_xy) + lambda_z), lambda_xy, cross(r1, lambda_xy) + lambda_z ]
 //-------------------------------------------------------------------------------------------------
 
 RevoluteJoint = function(body1, body2, anchor) {
