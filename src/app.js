@@ -2622,12 +2622,14 @@ App = function() {
 				continue;
 			}			
 
-			/*if (editorEnabled) {
-				drawCanvasTransformedBodyShape(ctx, shape, lineWidth, outlineColor, fillColor);
+			if (editorEnabled) {				
+				var color = Color.parse(fillColor);
+				color.channels[3] = 0.5;				
+				drawBodyShape(ctx, shape, lineWidth, outlineColor, color.rgba());
 			}
-			else {*/
+			else {
 				drawBodyShape(ctx, shape, lineWidth, outlineColor, fillColor);
-			//}
+			}
 
 			if (showBounds) {
 				var bounds = new Bounds(shape.bounds.mins, shape.bounds.maxs);
