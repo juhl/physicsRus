@@ -136,25 +136,25 @@
       <span class="title">Vertex Inspector</span>
       <ul>
         <li><label for="index">Index</label> <input type="number" name="index" readonly="true" /></li>
-        <li><label for="position_x">Position X</label> <input type="number" name="position_x" /></li>
-        <li><label for="position_y">Y</label> <input type="number" name="position_y" /></li>
+        <li><label for="position_x">Position X</label> <input type="number" name="position_x" step="0.1" /></li>
+        <li><label for="position_y">Y</label> <input type="number" name="position_y" step="0.1" /></li>
       </ul>
     </div>
     <div id="edge_inspector" class="pannel">
       <span class="title">Edge Inspector</span>
       <ul>
         <li><label for="index">Index</label> <input type="number" name="index" readonly="true" /></li>
-        <li><label for="v1_position_x">Vertex 1 Position X</label> <input type="number" name="v1_position_x" /></li>
-        <li><label for="v1_position_y">Y</label> <input type="number" name="v1_position_y" /></li>
-        <li><label for="v2_position_x">Vertex 2 Position X</label> <input type="number" name="v2_position_x" /></li>
-        <li><label for="v2_position_y">Y</label> <input type="number" name="v2_position_y" /></li>
+        <li><label for="v1_position_x">Vertex 1 Position X</label> <input type="number" name="v1_position_x" step="0.1" /></li>
+        <li><label for="v1_position_y">Y</label> <input type="number" name="v1_position_y" step="0.1" /></li>
+        <li><label for="v2_position_x">Vertex 2 Position X</label> <input type="number" name="v2_position_x" step="0.1" /></li>
+        <li><label for="v2_position_y">Y</label> <input type="number" name="v2_position_y" step="0.1" /></li>
       </ul>
     </div>
     <div id="shape_inspector" class="pannel">
       <span class="title">Shape Inspector</span>
       <ul>
         <li><label for="type">Type</label> <input type="edit" name="type" readonly="true" /></li>
-        <li><label for="radius">Radius</label> <input type="number" name="radius" /></li>
+        <li><label for="radius">Radius</label> <input type="number" name="radius" min="0.1" step="0.01" /></li>
         <li><label for="density">Density</label> <input type="number" name="density" min="0.0000001" max="1" step="0.001" /></li>
         <li><label for="restitution">Restitution</label> <input type="number" name="restitution" min="0" max="1" step="0.05" /></li>
         <li><label for="friction">Friction</label> <input type="number" name="friction" min="0" max="1" step="0.05" /></li>        
@@ -171,8 +171,8 @@
           </select>
         </li>
         <li><label for="name">Name</label> <input type="edit" name="name" /></li>        
-        <li><label for="position_x">Position X</label> <input type="number" name="position_x" /></li>
-        <li><label for="position_y">Y</label> <input type="number" name="position_y" /></li>
+        <li><label for="position_x">Position X</label> <input type="number" name="position_x" step="0.1" /></li>
+        <li><label for="position_y">Y</label> <input type="number" name="position_y" step="0.1" /></li>
         <li><label for="rotation">Angle</label> <input type="number" name="angle" step="10" /></li>
         <li><label for="mass">Mass</label> <input type="number" name="mass" min="0" step="0.1" /></li>
         <li><label for="inertia">Inertia</label> <input type="number" name="inertia" readonly="true" /></li>
@@ -187,8 +187,8 @@
         <li><label for="type">Type</label> <input type="edit" name="type" readonly="true" /></li>
         <li><label for="body1">Anchor1 Body</label> <input type="edit" name="body1" readonly="true" /></li>
         <li><label for="body2">Anchor2 Body</label> <input type="edit" name="body2" readonly="true" /></li>
-        <li><label for="anchor_position_x">Anchor Position X</label> <input type="number" name="anchor_position_x" /></li>
-        <li><label for="anchor_position_y">Y</label> <input type="number" name="anchor_position_y" /></li>
+        <li><label for="anchor_position_x">Anchor Position X</label> <input type="number" name="anchor_position_x" step="0.1" /></li>
+        <li><label for="anchor_position_y">Y</label> <input type="number" name="anchor_position_y" step="0.1" /></li>
         <li><label for="max_force">Max Force</label> <input type="number" name="max_force" /></li>
         <li><label for="breakable">Breakable</label> <input type="checkbox" name="breakable" /></li>
         <li><label for="collide_connected">CollideConnected</label> <input type="checkbox" name="collide_connected" /></li>
@@ -208,7 +208,7 @@
     <div id="info"></div>
     <div id="settings">
       <div style="text-align:right">
-        <label for="gravity">Gravity: </label><input type="number" id="gravity" size="8" min="-999" max="999" /><br />
+        <label for="gravity">Gravity: </label><input type="number" id="gravity" size="0.1" /><br />
         <label for="frameRateHz">Frame rate: </label><input type="number" id="frameRateHz" size="5" min="10" max="120" /><br />
         <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="5" min="1" max="100" /><br />
         <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" /><br />
