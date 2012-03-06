@@ -20,7 +20,7 @@
 //-------------------------------------------------------------------------------------------------
 
 WeldJoint = function(body1, body2, anchor) {
-	Joint.call(this, Joint.TYPE_WELD, body1, body2, true);
+	Joint.call(this, Joint.TYPE_WELD, body1, body2, false);
 	
 	this.anchor1 = this.body1.getLocalPoint(anchor);
 	this.anchor2 = this.body2.getLocalPoint(anchor);

@@ -12,8 +12,12 @@ RendererCanvas = function() {
   	}
 
 	function drawLine(ctx, p1, p2, lineWidth, strokeStyle) {
+		ctx.beginPath();
+
 		ctx.moveTo(p1.x, p1.y);
-		ctx.lineTo(p2.x, p2.y);		
+		ctx.lineTo(p2.x, p2.y);
+
+		ctx.closePath();
 
 		ctx.lineWidth = lineWidth;
 		ctx.strokeStyle = strokeStyle;
