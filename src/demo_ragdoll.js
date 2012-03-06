@@ -11,11 +11,11 @@ DemoRagDoll = function() {
 		space.addBody(staticBody);		
 			
 		// Head
-		var bodyHead = new Body(Body.DYNAMIC, new vec2(0, 7.5));
-		var shape = new ShapeCircle(0, 0, 0.48);
+		var bodyHead = new Body(Body.DYNAMIC, new vec2(0, 7.4));
+		var shape = new ShapeCircle(0, 0, 0.47);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 8;
+		shape.density = 5;
 		bodyHead.addShape(shape);
 		bodyHead.resetMassData();
 		space.addBody(bodyHead);
@@ -25,7 +25,7 @@ DemoRagDoll = function() {
 		var shape = new ShapeBox(0, 0, 1.5, 0.7);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 6;
+		shape.density = 4;
 		bodySpine1.addShape(shape);
 		bodySpine1.resetMassData();
 		space.addBody(bodySpine1);
@@ -35,7 +35,7 @@ DemoRagDoll = function() {
 		var shape = new ShapeBox(0, 0, 1.3, 0.7);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 6;
+		shape.density = 4;
 		bodySpine2.addShape(shape);
 		bodySpine2.resetMassData();
 		space.addBody(bodySpine2);
@@ -45,7 +45,7 @@ DemoRagDoll = function() {
 		var shape = new ShapeBox(0, 0, 1.2, 0.7);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 6;
+		shape.density = 4;
 		bodySpine3.addShape(shape);
 		bodySpine3.resetMassData();
 		space.addBody(bodySpine3);
@@ -55,7 +55,7 @@ DemoRagDoll = function() {
 		var shape = new ShapePoly([new vec2(-0.6, 0.35), new vec2(-0.64, -0.3), new vec2(0.64, -0.3), new vec2(0.6, 0.35)]);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 6;
+		shape.density = 4;
 		bodyPelvis.addShape(shape);
 		bodyPelvis.resetMassData();
 		space.addBody(bodyPelvis);
@@ -65,7 +65,7 @@ DemoRagDoll = function() {
 		var shape = new ShapeBox(0, 0, 1.3, 0.35);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 5;
+		shape.density = 3;
 		bodyLArm1.addShape(shape);
 		bodyLArm1.resetMassData();
 		space.addBody(bodyLArm1);
@@ -75,7 +75,7 @@ DemoRagDoll = function() {
 		var shape = new ShapeBox(0, 0, 1.4, 0.35);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 5;
+		shape.density = 3;
 		bodyLArm2.addShape(shape);
 		bodyLArm2.resetMassData();
 		space.addBody(bodyLArm2);
@@ -85,7 +85,7 @@ DemoRagDoll = function() {
 		var shape = new ShapeBox(0, 0, 1.3, 0.35);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 5;
+		shape.density = 3;
 		bodyRArm1.addShape(shape);
 		bodyRArm1.resetMassData();
 		space.addBody(bodyRArm1);
@@ -95,7 +95,7 @@ DemoRagDoll = function() {
 		var shape = new ShapeBox(0, 0, 1.4, 0.35);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 5;
+		shape.density = 3;
 		bodyRArm2.addShape(shape);
 		bodyRArm2.resetMassData();
 		space.addBody(bodyRArm2);
@@ -105,7 +105,7 @@ DemoRagDoll = function() {
 		var shape = new ShapeBox(0, 0, 0.5, 1.9);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 5;
+		shape.density = 3;
 		bodyLLeg1.addShape(shape);
 		bodyLLeg1.resetMassData();
 		space.addBody(bodyLLeg1);
@@ -115,7 +115,7 @@ DemoRagDoll = function() {
 		var shape = new ShapeBox(0, 0, 0.5, 1.9);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 5;
+		shape.density = 3;
 		bodyLLeg2.addShape(shape);
 		bodyLLeg2.resetMassData();
 		space.addBody(bodyLLeg2);
@@ -125,7 +125,7 @@ DemoRagDoll = function() {
 		var shape = new ShapeBox(0, 0, 0.5, 1.9);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 5;
+		shape.density = 3;
 		bodyRLeg1.addShape(shape);
 		bodyRLeg1.resetMassData();
 		space.addBody(bodyRLeg1);
@@ -135,7 +135,7 @@ DemoRagDoll = function() {
 		var shape = new ShapeBox(0, 0, 0.5, 1.9);
 		shape.e = 0.4;
 		shape.u = 1.0;
-		shape.density = 5;
+		shape.density = 3;
 		bodyRLeg2.addShape(shape);
 		bodyRLeg2.resetMassData();
 		space.addBody(bodyRLeg2);
@@ -209,7 +209,7 @@ DemoRagDoll = function() {
 		joint.setLimits(deg2rad(-160), deg2rad(15));
 		space.addJoint(joint);
 
-		bodyHead.applyLinearImpulse(new vec2(125, 0), new vec2(0, 7.34));
+		bodyHead.applyLinearImpulse(new vec2(140, 0), new vec2(0, 7.34));
 	}
 
 	function runFrame() {

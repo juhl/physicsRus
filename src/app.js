@@ -2538,12 +2538,10 @@ App = function() {
 				var maxs = worldToCanvas(dirtyBounds.maxs);
 				var x = Math.max(Math.floor(mins.x), 0);
 				var y = Math.max(Math.floor(maxs.y), 0);
-				var w = Math.min(Math.ceil(maxs.x + 1), domCanvas.width) - x;
-				var h = Math.min(Math.ceil(mins.y + 1), domCanvas.height) - y;
-				// FIXME !!
-				//console.log(x, y, w, h);
+				var w = Math.min(Math.ceil(maxs.x), domCanvas.width) - x;
+				var h = Math.min(Math.ceil(mins.y), domCanvas.height) - y;
 				
-				if (x >= 0 && y >= 0 && w > 0 && h > 0) {
+				if (w > 0 && h > 0) {
 					// void drawImage(HTMLVideoElement image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh);
 					fg.ctx.drawImage(bg.canvas, x, y, w, h, x, y, w, h);
 				}

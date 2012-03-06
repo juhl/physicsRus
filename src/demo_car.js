@@ -45,7 +45,7 @@ DemoCar = function() {
 		var shape = new ShapePoly([new vec2(-0.8, 0.48), new vec2(-0.8, 0), new vec2(0.8, 0), new vec2(0.8, 0.32), new vec2(0, 0.84), new vec2(-0.56, 0.84)]);
 		shape.e = 0.5;
 		shape.u = 1.0;
-		shape.density = 5;
+		shape.density = 6;
 		body1.addShape(shape);
 		body1.resetMassData();		
 		space.addBody(body1);
