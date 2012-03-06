@@ -45,6 +45,8 @@ RendererCanvas = function() {
 			s2 = vec2.add(s2, d);
 		} 
 
+		ctx.closePath();
+
 		ctx.lineWidth = lineWidth;
 		ctx.strokeStyle = strokeStyle;
 		ctx.stroke();
@@ -52,8 +54,12 @@ RendererCanvas = function() {
 
 	function drawArrow(ctx, p1, p2, type1, type2, headSize, lineWidth, strokeStyle, fillStyle) {		
 		if (strokeStyle) {
+			ctx.beginPath();
+
 			ctx.moveTo(p1.x, p1.y);
 			ctx.lineTo(p2.x, p2.y);
+
+			ctx.closePath();
 
 			ctx.lineWidth = lineWidth;
 			ctx.strokeStyle = strokeStyle;
