@@ -918,8 +918,8 @@ App = function() {
 
 				var scale_old = transformScale.duplicate();
 
-				transformScale.x += wdx * 0.01;
-				transformScale.y += wdy * 0.01;
+				transformScale.x += wdx * 0.5;
+				transformScale.y += wdy * 0.5;
 				
 				var scale = new vec2(transformScale.x / scale_old.x, transformScale.y / scale_old.y);
 
