@@ -2017,10 +2017,10 @@ App = function() {
 					el.value = index;
 
 					var el = domVertexInspector.querySelector("[name=position_x]");
-					el.value = v.x.toFixed(1);
+					el.value = v.x.toFixed(4);
 
 					var el = domVertexInspector.querySelector("[name=position_y]");
-					el.value = v.y.toFixed(1);
+					el.value = v.y.toFixed(4);
 				}
 			}
 			else if (selectionMode == SM_EDGES) {
@@ -2038,16 +2038,16 @@ App = function() {
 					el.value = index;
 
 					var el = domEdgeInspector.querySelector("[name=v1_position_x]");
-					el.value = v1.x.toFixed(1);
+					el.value = v1.x.toFixed(4);
 
 					var el = domEdgeInspector.querySelector("[name=v1_position_y]");
-					el.value = v1.y.toFixed(1);
+					el.value = v1.y.toFixed(4);
 
 					var el = domEdgeInspector.querySelector("[name=v2_position_x]");
-					el.value = v2.x.toFixed(1);
+					el.value = v2.x.toFixed(4);
 
 					var el = domEdgeInspector.querySelector("[name=v2_position_y]");
-					el.value = v2.y.toFixed(1);
+					el.value = v2.y.toFixed(4);
 				}
 			}
 			else if (selectionMode == SM_SHAPES) {
@@ -2062,14 +2062,14 @@ App = function() {
 					var el = domShapeInspector.querySelector("[name=radius]");
 					if (shape.type == Shape.TYPE_CIRCLE || shape.type == Shape.TYPE_SEGMENT) {
 						el.parentNode.style.display = "block";
-						el.value = shape.r.toFixed(1);
+						el.value = shape.r;
 					}
 					else {
 						el.parentNode.style.display = "none";
 					}
 
 					var el = domShapeInspector.querySelector("[name=density]");
-					el.value = shape.density.toFixed(8);
+					el.value = shape.density;
 
 					var el = domShapeInspector.querySelector("[name=restitution]");
 					el.value = shape.e.toFixed(2);
@@ -2091,10 +2091,10 @@ App = function() {
 					el.value = body.name;
 
 					var el = domBodyInspector.querySelector("[name=position_x]");
-					el.value = body.xf.t.x.toFixed(1);
+					el.value = body.xf.t.x.toFixed(4);
 
 					var el = domBodyInspector.querySelector("[name=position_y]");
-					el.value = body.xf.t.y.toFixed(1);
+					el.value = body.xf.t.y.toFixed(4);
 
 					var el = domBodyInspector.querySelector("[name=angle]");
 					el.value = rad2deg(body.a).toFixed(1);
@@ -2102,11 +2102,11 @@ App = function() {
 					if (!body.isStatic()) {
 						var el = domBodyInspector.querySelector("[name=mass]");
 						el.disabled = false;
-						el.value = body.m.toFixed(8);
+						el.value = body.m.toFixed(4);
 
 						var el = domBodyInspector.querySelector("[name=inertia]");
 						el.disabled = false;
-						el.value = body.i.toFixed(2);
+						el.value = body.i.toFixed(8);
 
 						var el = domBodyInspector.querySelector("[name=fixed_rotation]");
 						el.disabled = false;
@@ -2161,12 +2161,12 @@ App = function() {
 						var el = domJointInspector.querySelector("[name=anchor_position_x]");
 						el.parentNode.style.display = "block";
 						var anchor = anchorIndex == 0 ? joint.getWorldAnchor1() : joint.getWorldAnchor2();
-						el.value = anchor.x.toFixed(1);
+						el.value = anchor.x.toFixed(4);
 
 						var el = domJointInspector.querySelector("[name=anchor_position_y]");
 						el.parentNode.style.display = "block";
 						var anchor = anchorIndex == 0 ? joint.getWorldAnchor1() : joint.getWorldAnchor2();
-						el.value = anchor.y.toFixed(1);
+						el.value = anchor.y.toFixed(4);
 					}
 
 					if (joint.type == Joint.TYPE_REVOLUTE) {
@@ -2975,7 +2975,7 @@ App = function() {
 		ctx.save();
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-		var rvec = body.xf.rotate(new vec2(pixel2meter(HELPER_BODY_AXIS_SIZE), 0));
+		var rvec = body.xf.rotate(new vec2(HELPER_BODY_AXIS_SIZE, 0));
 		var origin = body.xf.t;
 		var px = vec2.add(origin, rvec);
 		var py = vec2.add(origin, vec2.perp(rvec));
