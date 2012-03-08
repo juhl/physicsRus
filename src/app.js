@@ -91,7 +91,7 @@ App = function() {
 	var renderer;
 	var activeWindow = true;
 	var camera = { origin: new vec2(0, 0), 
-		scale: 1, minScale: 0.5, maxScale: 5.0, 
+		scale: 1, minScale: 0.5, maxScale: 8.0, 
 		bounds: new Bounds, 
 		scroll: new vec2(0, 0) 
 	};
@@ -131,8 +131,8 @@ App = function() {
 	var transformCenter = new vec2(0, 0);
 	var transformAxis = 0;
 	var transformScale = new vec2;	
-	var gridSize = 0.6;
-	var gridFrameSize = 6;
+	var gridSize = 1;
+	var gridFrame = 10;
 	var scaledGridSize;
 	var snapCenterOffset = new vec2;
 	var snapOffset = new vec2;
@@ -2472,8 +2472,8 @@ App = function() {
 		if (editorEnabled) {
 			var p = canvasToWorld(mousePosition);
 
-			domStatus.innerHTML = ["x:", p.x + "m", "y:", p.y + "m"].join(" ");
-		}		
+			domStatus.innerHTML = ["x:", p.x.toFixed(2) + "m", "y:", p.y.toFixed(2) + "m"].join(" ");
+		}
 		
 		// Show statistaics
 		if (showStats) {
@@ -2703,8 +2703,10 @@ App = function() {
 	}
 
 	function drawGrids(ctx) {
-		var start_x = Math.floor(camera.bounds.mins.x / scaledGridSize) * scaledGridSize;
-		var start_y = Math.floor(camera.bounds.mins.y / scaledGridSize) * scaledGridSize;
+		var grid_x = Math.floor(camera.bounds.mins.x / scaledGridSize);
+		var grid_y = Math.floor(camera.bounds.mins.y / scaledGridSize);
+		var start_x = grid_x * scaledGridSize;
+		var start_y = grid_y * scaledGridSize;
 		var end_x = Math.ceil(camera.bounds.maxs.x / scaledGridSize) * scaledGridSize;
 		var end_y = Math.ceil(camera.bounds.maxs.y / scaledGridSize) * scaledGridSize;
 
@@ -2718,7 +2720,9 @@ App = function() {
 		for (var x = start_x; x <= end_x; x += scaledGridSize) {
 			v1.x = x;
 			v2.x = x;
-			renderer.drawLine(ctx, worldToCanvas(v1), worldToCanvas(v2), 1, gridColor);
+			renderer.drawLine(ctx, worldToCanvas(v1), worldToCanvas(v2), 1, grid_x % gridFrame == 0 ? gridFrameColor : gridColor);
+
+			grid_x++;
 		}
 
 		v1.set(start_x, start_y);
@@ -2728,7 +2732,9 @@ App = function() {
 		for (var y = start_y; y <= end_y; y += scaledGridSize) {
 			v1.y = y;
 			v2.y = y;
-			renderer.drawLine(ctx, worldToCanvas(v1), worldToCanvas(v2), 1, gridColor);
+			renderer.drawLine(ctx, worldToCanvas(v1), worldToCanvas(v2), 1, grid_y % gridFrame == 0 ? gridFrameColor : gridColor);
+
+			grid_y++;
 		}
 
 		ctx.restore();
