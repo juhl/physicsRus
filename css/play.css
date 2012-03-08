@@ -141,19 +141,37 @@ div#main_view {
   display: tabel-cell;
   background-color: #eee;
 }
-div#info {  
+div#info {
+  display: none;
   margin: 0px auto; 
   padding: 2px;
   width: 400px;
   top: 0px;
-  left: 0px;
-  display: none;
+  left: 0px;  
+  float: left;
   position: absolute;
-  color: black;
   vertical-align: top;  
   font-family: menlo;
   font-size: 9pt;  
+  text-align: left;  
+  color: black;
+  cursor: default;  
+}
+div#status {  
+  display: none;
+  margin: 0px auto; 
+  padding: 2px;
+  width: 200px;
+  height: 60px;
+  position: absolute;
+  left: 0px;
+  bottom: 0px;
+  float: left;
+  vertical-align: bottom;
   text-align: left;
+  font-family: menlo;
+  font-size: 9pt;  
+  color: black;
   cursor: default;
 }
 div#settings {

@@ -75,6 +75,7 @@ App = function() {
 	var domView;
 	var domCanvas;
 	var domInfo;
+	var domStatus;
 	var domToolbar;
 	var domSidebar;
 	var domVertexInspector;
@@ -189,6 +190,7 @@ App = function() {
 		bg.ctx = bg.canvas.getContext("2d");
 
 		domInfo = document.getElementById("info");
+		domStatus = document.getElementById("status");
 		
 		//addEvent(window, "focus", function(ev) { activeWindow = true; });
 		//addEvent(window, "blur", function(ev) { activeWindow = false; });
@@ -2465,7 +2467,13 @@ App = function() {
 	function updateScreen(frameTime) {	
 		var t0 = Date.now();
 		drawFrame(frameTime);
-		stats.timeDrawFrame = Date.now() - t0;		
+		stats.timeDrawFrame = Date.now() - t0;
+
+		if (editorEnabled) {
+			var p = canvasToWorld(mousePosition);
+
+			domStatus.innerHTML = ["x:", p.x + "m", "y:", p.y + "m"].join(" ");
+		}		
 		
 		// Show statistaics
 		if (showStats) {
@@ -2549,7 +2557,7 @@ App = function() {
 		}
 		else {
 			fg.ctx.drawImage(bg.canvas, 0, 0);
-		}
+		}		
 
 		fg.ctx.save();
 		
@@ -2576,22 +2584,22 @@ App = function() {
 		}
 		
 		// Draw joints
-		if (!editorEnabled) {
+		if (!editorEnabled) {			
+			if (showJoints) {
+				for (var i in space.jointHash) {
+					drawHelperJointAnchors(fg.ctx, space.jointHash[i]);
+				}
+			}
+
 			if (showAxis) {
 				for (var i in space.bodyHash) {
 					drawHelperBodyAxis(fg.ctx, space.bodyHash[i]);
 				}
 			}
-
-			if (showJoints) {
-				for (var i in space.jointHash) {
-					drawHelperJointAnchors(fg.ctx, space.jointHash[i]);
-				}
-			}			
-		}		
+		}
 		else {
 			drawEditorHelpers(fg.ctx);
-		}		
+		}
 
 		// Draw contacts
 		if (showContacts) {
@@ -3388,6 +3396,7 @@ App = function() {
 		fg.canvas.width = window.innerWidth - domView.offsetLeft;
 		fg.canvas.height = window.innerHeight - domView.offsetTop;
 
+		//console.log(domCanvas, domView);
 		//console.log(fg.canvas.width, fg.canvas.height);
 
 		bg.canvas.width = fg.canvas.width;
@@ -4136,9 +4145,13 @@ App = function() {
 
 		if (!editorEnabled) {
 			editModeEventArr[editMode].shutdown();
+
+			domStatus.style.display = "none";
 		}
 		else {
 			editModeEventArr[editMode].init();
+
+			domStatus.style.display = "block";
 		}
 
 		selectedFeatureArr = [];
