@@ -41,7 +41,7 @@ DemoCrank = function() {
 		var joint = new RevoluteJoint(staticBody, body1, new vec2(0, 2));
 		joint.collideConnected = false;
 		joint.enableMotor(true);
-		joint.setMotorSpeed(deg2rad(270));
+		joint.setMotorSpeed(deg2rad(225));
 		joint.setMaxMotorTorque(400000000);
 		space.addJoint(joint);
 
