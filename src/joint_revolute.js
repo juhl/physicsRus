@@ -103,8 +103,10 @@ RevoluteJoint.prototype.initSolver = function(dt, warmStarting) {
 	// Max impulse
 	this.maxImpulse = this.maxForce * dt;
 
-	if (this.motorEnabled) {
+	if (!this.motorEnabled) {
 		this.motorLambda_acc = 0;
+	}
+	else {
 		this.maxMotorImpulse = this.maxMotorTorque * dt;
 	}
 
