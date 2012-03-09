@@ -99,14 +99,14 @@ div#sidebar > .pannel > .title {
 .pannel > ul > li {
   list-style: none;  
   width: 100%;
-  height: 23px;
-  line-height: 20px;
+  height: 23px;  
   vertical-align: middle;
 }
 .pannel > ul > li > label {    
   display: inline-block;
   text-align: right;
-  width: 120px;
+  width: 120px;  
+  line-height: 23px;
   vertical-align: middle;
 }
 .pannel input[type="edit"],
