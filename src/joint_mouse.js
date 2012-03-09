@@ -65,7 +65,7 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	var beta = dt * k * this.gamma;
 
 	// Transformed r
-	this.r2 = vec2.rotate(vec2.sub(this.anchor2, body2.centroid), body2.a);	
+	this.r2 = body2.xf.rotate(vec2.sub(this.anchor2, body2.centroid));	
 		
 	// invEM = J * invM * JT
 	var r2 = this.r2;

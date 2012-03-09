@@ -87,8 +87,8 @@ PrismaticJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.maxImpulse = this.maxForce * dt;
 
 	// Transformed r1, r2
-	this.r1 = vec2.rotate(vec2.sub(this.anchor1, body1.centroid), body1.a);
-	this.r2 = vec2.rotate(vec2.sub(this.anchor2, body2.centroid), body2.a);
+	this.r1 = body1.xf.rotate(vec2.sub(this.anchor1, body1.centroid));
+	this.r2 = body2.xf.rotate(vec2.sub(this.anchor2, body2.centroid));
 
 	// World anchor points
 	var p1 = vec2.add(body1.p, this.r1);

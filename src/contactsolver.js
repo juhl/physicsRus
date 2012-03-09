@@ -52,8 +52,8 @@ ContactSolver.prototype.initSolver = function(dt_inv) {
 		con.r2 = vec2.sub(con.p, body2.p);
 
 		// Local r1, r2
-		con.r1_local = vec2.rotate(con.r1, -body1.a);
-		con.r2_local = vec2.rotate(con.r2, -body2.a);
+		con.r1_local = body1.xf.unrotate(con.r1);
+		con.r2_local = body2.xf.unrotate(con.r2);
 
 		var n = con.n;
 		var t = vec2.perp(con.n);

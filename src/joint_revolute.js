@@ -138,8 +138,8 @@ RevoluteJoint.prototype.initSolver = function(dt, warmStarting) {
 	}	
 
 	// Transformed r1, r2
-	this.r1 = vec2.rotate(vec2.sub(this.anchor1, body1.centroid), body1.a);
-	this.r2 = vec2.rotate(vec2.sub(this.anchor2, body2.centroid), body2.a);
+	this.r1 = body1.xf.rotate(vec2.sub(this.anchor1, body1.centroid));
+	this.r2 = body2.xf.rotate(vec2.sub(this.anchor2, body2.centroid));
 
 	// invEM = J * invM * JT
 	var sum_m_inv = body1.m_inv + body2.m_inv;
