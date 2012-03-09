@@ -72,12 +72,12 @@ ContactSolver.prototype.initSolver = function(dt_inv) {
 		var emt_inv = sum_m_inv + body1.i_inv * st1 * st1 + body2.i_inv * st2 * st2;
 		con.emt = emt_inv == 0 ? 0 : 1 / emt_inv;
 		
-		// Linear velocities at contact
+		// Linear velocities at contact point
 		// in 2D: cross(w, r) = perp(r) * w
 		var v1 = vec2.mad(body1.v, vec2.perp(con.r1), body1.w);
 		var v2 = vec2.mad(body2.v, vec2.perp(con.r2), body2.w);
 
-		// relative velocity at contact
+		// relative velocity at contact point
 		var rv = vec2.sub(v2, v1);
 
 		// bounce velocity dot n
@@ -123,12 +123,12 @@ ContactSolver.prototype.solveVelocityConstraints = function() {
 		var r1 = con.r1;
 		var r2 = con.r2;
 
-		// Linear velocities at contact
+		// Linear velocities at contact point
 		// in 2D: cross(w, r) = perp(r) * w
 		var v1 = vec2.mad(body1.v, vec2.perp(r1), body1.w);
 		var v2 = vec2.mad(body2.v, vec2.perp(r2), body2.w);
 
-		// Relative velocity at contact
+		// Relative velocity at contact point
 		var rv = vec2.sub(v2, v1);
 
 		// Compute normal impulse
