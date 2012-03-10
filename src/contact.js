@@ -10,12 +10,12 @@ function Contact(p, n, d, hash) {
 	// Penetration depth (d < 0)
 	this.d = d; 
 
-	// Accumulated normal impulse
-	this.jn_acc = 0;
+	// Accumulated normal constraint impulse
+	this.ln_acc = 0;
 
-	// Accumulated tangential impulse
-	this.jt_acc = 0;
+	// Accumulated tangential constraint impulse
+	this.lt_acc = 0;
 
-	// Accumulated position correction impulse
-	this.jp_acc = 0;
+	// Accumulated position correction constraint impulse
+	this.lp_acc = 0;
 }

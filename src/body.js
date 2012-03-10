@@ -90,7 +90,7 @@ Body.prototype.serialize = function() {
 	}
 
 	return {
-		"type": this.type == Body.STATIC ? "static" : "dynamic",
+		"type": ["static", "kinetic", "dynamic"][this.type],
 		"name": this.name,
 		"position": this.xf.t,
 		"angle": this.xf.a,

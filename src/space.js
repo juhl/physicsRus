@@ -56,7 +56,7 @@ Space.prototype.create = function(text) {
 
 	for (var i = 0; i < config.bodies.length; i++) {
 		var config_body = config.bodies[i];
-		var type = config_body.type == "static" ? Body.STATIC : Body.DYNAMIC;
+		var type = {"static": Body.Static, "kinetic": Body.KINETIC, "dynamic": Body.DYNAMIC}[config_body.type];
 		var body = new Body(type, config_body.position.x, config_body.position.y, config_body.angle);
 
 		for (var j = 0; j < config_body.shapes.length; j++) {

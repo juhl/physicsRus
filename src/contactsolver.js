@@ -1,3 +1,21 @@
+//-------------------------------------------------------------------------------------------------
+// Contact Constraint
+//
+// Non-penetration constraint:
+// C = dot(p2 - p1, n)
+// Cdot = dot(v2 - v1, n)
+// J = [ -n, -cross(r1, n), n, cross(r2, n) ]
+//
+// impulse = JT * lambda = [ -n * lambda, -cross(r1, n) * lambda, n * lambda, cross(r1, n) * lambda ]
+//
+// Friction constraint:
+// C = dot(p2 - p1, t)
+// Cdot = dot(v2 - v1, t)
+// J = [ -t, -cross(r1, t), t, cross(r2, t) ]
+//
+// impulse = JT * lambda = [ -t * lambda, -cross(r1, t) * lambda, t * lambda, cross(r1, t) * lambda ]
+//-------------------------------------------------------------------------------------------------
+
 function ContactSolver(shape1, shape2) {
 	// Contact shapes
 	this.shape1 = shape1;
@@ -29,9 +47,9 @@ ContactSolver.prototype.update = function(newContactArr) {
 		}
 
 		if (k > -1) {
-			newContact.jn_acc = this.contactArr[k].jn_acc;
-			newContact.jt_acc = this.contactArr[k].jt_acc;
-			newContact.jp_acc = 0;
+			newContact.ln_acc = this.contactArr[k].ln_acc;
+			newContact.lt_acc = this.contactArr[k].lt_acc;
+			newContact.lp_acc = 0;
 		}
 	}
 
@@ -58,15 +76,15 @@ ContactSolver.prototype.initSolver = function(dt_inv) {
 		var n = con.n;
 		var t = vec2.perp(con.n);
 
-		// EMn = J * invM * JT
-		// J = [ -n, -cross(r1, n), n, cross(r2, n) ]        
+		// invEMn = J * invM * JT
+		// J = [ -n, -cross(r1, n), n, cross(r2, n) ]
 		var sn1 = vec2.cross(con.r1, n);
 		var sn2 = vec2.cross(con.r2, n);
 		var emn_inv = sum_m_inv + body1.i_inv * sn1 * sn1 + body2.i_inv * sn2 * sn2;
 		con.emn = emn_inv == 0 ? 0 : 1 / emn_inv;
 
-		// EMt = J * invM * JT
-		// J = [ -t, -cross(r1, t), t, cross(r2, t) ]  
+		// invEMt = J * invM * JT
+		// J = [ -t, -cross(r1, t), t, cross(r2, t) ]
 		var st1 = vec2.cross(con.r1, t);
 		var st2 = vec2.cross(con.r2, t);
 		var emt_inv = sum_m_inv + body1.i_inv * st1 * st1 + body2.i_inv * st2 * st2;
@@ -92,12 +110,12 @@ ContactSolver.prototype.warmStart = function() {
 	for (var i = 0; i < this.contactArr.length; i++) {
 		var con = this.contactArr[i];
 		var n = con.n;
-		var jn = con.jn_acc;
-		var jt = con.jt_acc;
+		var ln = con.ln_acc;
+		var lt = con.lt_acc;
 
 		// Apply accumulated impulses
-		//var j = vec2.rotate_vec(new vec2(jn, jt), n);
-		var j = new vec2(jn * n.x - jt * n.y, jt * n.x + jn * n.y);
+		//var j = vec2.rotate_vec(new vec2(ln, lt), n);
+		var j = new vec2(ln * n.x - lt * n.y, lt * n.x + ln * n.y);
 
 		body1.v.mad(j, -body1.m_inv);
 		body1.w -= vec2.cross(con.r1, j) * body1.i_inv;
@@ -131,25 +149,27 @@ ContactSolver.prototype.solveVelocityConstraints = function() {
 		// Relative velocity at contact point
 		var rv = vec2.sub(v2, v1);
 
-		// Compute normal impulse
-		var jn = -con.emn * (vec2.dot(n, rv) + con.bounce);
-		var jn_old = con.jn_acc;
-		con.jn_acc = Math.max(jn_old + jn, 0);
-		jn = con.jn_acc - jn_old;
+		// Compute normal constraint impulse + adding bounce as a velocity bias
+		// lambda_n = -EMn * J * V
+		var ln = -con.emn * (vec2.dot(n, rv) + con.bounce);
+		var ln_old = con.ln_acc;
+		con.ln_acc = Math.max(ln_old + ln, 0);
+		ln = con.ln_acc - ln_old;
 
-		// Max friction impulse (Coulomb's Law)
-		var jt_max = con.jn_acc * this.u;
+		// Max friction constraint impulse (Coulomb's Law)
+		var lt_max = con.ln_acc * this.u;
 
-		// Compute frictional impulse
-		var jt = -con.emt * vec2.dot(t, rv);
-		var jt_old = con.jt_acc;
-		con.jt_acc = Math.clamp(jt_old + jt, -jt_max, jt_max);
-		jt = con.jt_acc - jt_old;
+		// Compute frictional constraint impulse
+		// lambda_t = -EMt * J * V
+		var lt = -con.emt * vec2.dot(t, rv);
+		var lt_old = con.lt_acc;
+		con.lt_acc = Math.clamp(lt_old + lt, -lt_max, lt_max);
+		lt = con.lt_acc - lt_old;
 
 		// Apply the final impulses
-		//var j = vec2.rotate_vec(new vec2(jn, jt), n);
-		var j = new vec2(jn * n.x - jt * n.y, jt * n.x + jn * n.y);
-
+		//var j = vec2.rotate_vec(new vec2(ln, lt), n);
+		var j = new vec2(ln * n.x - lt * n.y, lt * n.x + ln * n.y);
+		
 		body1.v.mad(j, -m1_inv);
 		body1.w -= vec2.cross(r1, j) * i1_inv;
 
@@ -199,21 +219,21 @@ ContactSolver.prototype.solvePositionConstraints = function() {
 		var sn1 = vec2.cross(r1, n);
 		var sn2 = vec2.cross(r2, n);
 		var em_inv = sum_m_inv + body1.i_inv * sn1 * sn1 + body2.i_inv * sn2 * sn2;
-		var jp = em_inv == 0 ? 0 : -correction / em_inv;
+		var lp = em_inv == 0 ? 0 : -correction / em_inv;
 
 		// Accumulate and clamp
-		var jp_old = con.jp_acc;
-		con.jp_acc = Math.max(jp_old + jp, 0);
-		jp = con.jp_acc - jp_old;
+		var lp_old = con.lp_acc;
+		con.lp_acc = Math.max(lp_old + lp, 0);
+		lp = con.lp_acc - lp_old;
 		
 		// Apply correction impulses
-		var j = vec2.scale(n, jp);
+		var j = vec2.scale(n, lp);
 
 		body1.p.mad(j, -m1_inv);
-		body1.a -= sn1 * jp * i1_inv;
+		body1.a -= sn1 * lp * i1_inv;
 		
 		body2.p.mad(j, m2_inv);
-		body2.a += sn2 * jp * i2_inv;
+		body2.a += sn2 * lp * i2_inv;
 	}
 
 	return max_penetration <= ContactSolver.COLLISION_SLOP * 3;

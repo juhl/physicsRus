@@ -167,8 +167,7 @@ var collision = {};
 	}
 
 	// Identify vertexes that have penetrated the segment.
-	function findPointsBehindSeg(contactArr, seg, poly, dist, coef) 
-	{
+	function findPointsBehindSeg(contactArr, seg, poly, dist, coef) {
 		var dta = vec2.cross(seg.tn, seg.ta);
 		var dtb = vec2.cross(seg.tn, seg.tb);
 		var n = vec2.scale(seg.tn, coef);
@@ -241,24 +240,23 @@ var collision = {};
 			var poly_b = poly.tverts[(poly_i + 1) % poly.verts.length];
 
 			if (_circle2Circle(seg.ta, seg.r, poly_a, 0, contactArr))
-			return 1;
+				return 1;
 			
 			if (_circle2Circle(seg.tb, seg.r, poly_a, 0, contactArr))
-			return 1;
+				return 1;
 			
 			if (_circle2Circle(seg.ta, seg.r, poly_b, 0, contactArr))
-			return 1;
+				return 1;
 			
 			if (_circle2Circle(seg.tb, seg.r, poly_b, 0, contactArr))
-			return 1;
+				return 1;
 		}
 
 		return contactArr.length;
 	}
 
 	// Find the minimum separating axis for the given poly and plane list.
-	function findMSA(poly, planes, num)
-	{
+	function findMSA(poly, planes, num)	{
 		var min_dist = -999999;
 		var min_index  = -1;
 
@@ -276,8 +274,7 @@ var collision = {};
 		return { dist: min_dist, index: min_index };
 	}
 
-	function findVertsFallback(contactArr, poly1, poly2, n, dist)
-	{
+	function findVertsFallback(contactArr, poly1, poly2, n, dist) {
 		var num = 0;
 
 		for (var i = 0; i < poly1.verts.length; i++) {
@@ -301,8 +298,7 @@ var collision = {};
 		return num;
 	}
 
-	function findVerts(contactArr, poly1, poly2, n, dist)
-	{
+	function findVerts(contactArr, poly1, poly2, n, dist) {
 		var num = 0;
 
 		for (var i = 0; i < poly1.verts.length; i++) {
