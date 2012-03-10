@@ -94,7 +94,7 @@ div#sidebar > .pannel > .title {
 .pannel > ul {
   width: 236px;
   padding: 0px;
-  margin: 0;  
+  margin: 5px 0;
 }
 .pannel > ul > li {
   list-style: none;  

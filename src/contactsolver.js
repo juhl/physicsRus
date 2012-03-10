@@ -47,9 +47,9 @@ ContactSolver.prototype.update = function(newContactArr) {
 		}
 
 		if (k > -1) {
-			newContact.ln_acc = this.contactArr[k].ln_acc;
-			newContact.lt_acc = this.contactArr[k].lt_acc;
-			newContact.lp_acc = 0;
+			newContact.lambda_n_acc = this.contactArr[k].lambda_n_acc;
+			newContact.lambda_t_acc = this.contactArr[k].lambda_t_acc;
+			newContact.lambda_p_acc = 0;
 		}
 	}
 
@@ -110,12 +110,12 @@ ContactSolver.prototype.warmStart = function() {
 	for (var i = 0; i < this.contactArr.length; i++) {
 		var con = this.contactArr[i];
 		var n = con.n;
-		var ln = con.ln_acc;
-		var lt = con.lt_acc;
+		var lambda_n = con.lambda_n_acc;
+		var lambda_t = con.lambda_t_acc;
 
 		// Apply accumulated impulses
-		//var j = vec2.rotate_vec(new vec2(ln, lt), n);
-		var j = new vec2(ln * n.x - lt * n.y, lt * n.x + ln * n.y);
+		//var j = vec2.rotate_vec(new vec2(lambda_n, lambda_t), n);
+		var j = new vec2(lambda_n * n.x - lambda_t * n.y, lambda_t * n.x + lambda_n * n.y);
 
 		body1.v.mad(j, -body1.m_inv);
 		body1.w -= vec2.cross(con.r1, j) * body1.i_inv;
@@ -151,24 +151,28 @@ ContactSolver.prototype.solveVelocityConstraints = function() {
 
 		// Compute normal constraint impulse + adding bounce as a velocity bias
 		// lambda_n = -EMn * J * V
-		var ln = -con.emn * (vec2.dot(n, rv) + con.bounce);
-		var ln_old = con.ln_acc;
-		con.ln_acc = Math.max(ln_old + ln, 0);
-		ln = con.ln_acc - ln_old;
+		var lambda_n = -con.emn * (vec2.dot(n, rv) + con.bounce);
 
-		// Max friction constraint impulse (Coulomb's Law)
-		var lt_max = con.ln_acc * this.u;
+		// Accumulate and clamp
+		var lambda_n_old = con.lambda_n_acc;
+		con.lambda_n_acc = Math.max(lambda_n_old + lambda_n, 0);
+		lambda_n = con.lambda_n_acc - lambda_n_old;		
 
 		// Compute frictional constraint impulse
 		// lambda_t = -EMt * J * V
-		var lt = -con.emt * vec2.dot(t, rv);
-		var lt_old = con.lt_acc;
-		con.lt_acc = Math.clamp(lt_old + lt, -lt_max, lt_max);
-		lt = con.lt_acc - lt_old;
+		var lambda_t = -con.emt * vec2.dot(t, rv);
+
+		// Max friction constraint impulse (Coulomb's Law)
+		var lambda_t_max = con.lambda_n_acc * this.u;
+
+		// Accumulate and clamp
+		var lambda_t_old = con.lambda_t_acc;
+		con.lambda_t_acc = Math.clamp(lambda_t_old + lambda_t, -lambda_t_max, lambda_t_max);
+		lambda_t = con.lambda_t_acc - lambda_t_old;
 
 		// Apply the final impulses
-		//var j = vec2.rotate_vec(new vec2(ln, lt), n);
-		var j = new vec2(ln * n.x - lt * n.y, lt * n.x + ln * n.y);
+		//var j = vec2.rotate_vec(new vec2(lambda_n, lambda_t), n);
+		var j = new vec2(lambda_n * n.x - lambda_t * n.y, lambda_t * n.x + lambda_n * n.y);
 		
 		body1.v.mad(j, -m1_inv);
 		body1.w -= vec2.cross(r1, j) * i1_inv;
@@ -202,7 +206,7 @@ ContactSolver.prototype.solvePositionConstraints = function() {
 		var p1 = vec2.add(body1.p, r1);
 		var p2 = vec2.add(body2.p, r2);
 
-		// Corrected delta vector
+		// Corrected delambda_ta vector
 		var dp = vec2.sub(p2, p1);
 
 		// Position constraint
@@ -219,21 +223,21 @@ ContactSolver.prototype.solvePositionConstraints = function() {
 		var sn1 = vec2.cross(r1, n);
 		var sn2 = vec2.cross(r2, n);
 		var em_inv = sum_m_inv + body1.i_inv * sn1 * sn1 + body2.i_inv * sn2 * sn2;
-		var lp = em_inv == 0 ? 0 : -correction / em_inv;
+		var lambda_p = em_inv == 0 ? 0 : -correction / em_inv;
 
 		// Accumulate and clamp
-		var lp_old = con.lp_acc;
-		con.lp_acc = Math.max(lp_old + lp, 0);
-		lp = con.lp_acc - lp_old;
+		var lambda_p_old = con.lambda_p_acc;
+		con.lambda_p_acc = Math.max(lambda_p_old + lambda_p, 0);
+		lambda_p = con.lambda_p_acc - lambda_p_old;
 		
 		// Apply correction impulses
-		var j = vec2.scale(n, lp);
+		var j = vec2.scale(n, lambda_p);
 
 		body1.p.mad(j, -m1_inv);
-		body1.a -= sn1 * lp * i1_inv;
+		body1.a -= sn1 * lambda_p * i1_inv;
 		
 		body2.p.mad(j, m2_inv);
-		body2.a += sn2 * lp * i2_inv;
+		body2.a += sn2 * lambda_p * i2_inv;
 	}
 
 	return max_penetration <= ContactSolver.COLLISION_SLOP * 3;

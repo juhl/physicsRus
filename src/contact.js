@@ -11,11 +11,11 @@ function Contact(p, n, d, hash) {
 	this.d = d; 
 
 	// Accumulated normal constraint impulse
-	this.ln_acc = 0;
+	this.lambda_n_acc = 0;
 
 	// Accumulated tangential constraint impulse
-	this.lt_acc = 0;
+	this.lambda_t_acc = 0;
 
 	// Accumulated position correction constraint impulse
-	this.lp_acc = 0;
+	this.lambda_p_acc = 0;
 }
