@@ -15,7 +15,4 @@ function Contact(p, n, d, hash) {
 
 	// Accumulated tangential constraint impulse
 	this.lambda_t_acc = 0;
-
-	// Accumulated position correction constraint impulse
-	this.lambda_p_acc = 0;
 }

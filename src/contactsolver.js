@@ -51,7 +51,6 @@ ContactSolver.prototype.update = function(newContactArr) {
 		if (k > -1) {
 			newContact.lambda_n_acc = this.contactArr[k].lambda_n_acc;
 			newContact.lambda_t_acc = this.contactArr[k].lambda_t_acc;
-			newContact.lambda_p_acc = 0;
 		}
 	}
 
@@ -221,25 +220,20 @@ ContactSolver.prototype.solvePositionConstraints = function() {
 		max_penetration = Math.max(max_penetration, -c);
 
 		// Compute lambda for position constraint
-		// Solve (J * invM * JT) * lambda = -C
+		// Solve (J * invM * JT) * lambda = -C / dt
 		var sn1 = vec2.cross(r1, n);
 		var sn2 = vec2.cross(r2, n);
 		var em_inv = sum_m_inv + body1.i_inv * sn1 * sn1 + body2.i_inv * sn2 * sn2;
-		var lambda_p = em_inv == 0 ? 0 : -correction / em_inv;
-
-		// Accumulate and clamp
-		var lambda_p_old = con.lambda_p_acc;
-		con.lambda_p_acc = Math.max(lambda_p_old + lambda_p, 0);
-		lambda_p = con.lambda_p_acc - lambda_p_old;
+		var lambda_dt = em_inv == 0 ? 0 : -correction / em_inv;
 		
 		// Apply correction impulses
-		var j = vec2.scale(n, lambda_p);
+		var mdx = vec2.scale(n, lambda_dt);
 
-		body1.p.mad(j, -m1_inv);
-		body1.a -= sn1 * lambda_p * i1_inv;
+		body1.p.mad(mdx, -m1_inv);
+		body1.a -= sn1 * lambda_dt * i1_inv;
 		
-		body2.p.mad(j, m2_inv);
-		body2.a += sn2 * lambda_p * i2_inv;
+		body2.p.mad(mdx, m2_inv);
+		body2.a += sn2 * lambda_dt * i2_inv;
 	}
 
 	return max_penetration <= ContactSolver.COLLISION_SLOP * 3;
