@@ -207,7 +207,7 @@ ContactSolver.prototype.solvePositionConstraints = function() {
 		var p1 = vec2.add(body1.p, r1);
 		var p2 = vec2.add(body2.p, r2);
 
-		// Corrected delambda_ta vector
+		// Corrected delta vector
 		var dp = vec2.sub(p2, p1);
 
 		// Position constraint
