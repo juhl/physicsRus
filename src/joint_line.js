@@ -133,14 +133,15 @@ LineJoint.prototype.initSolver = function(dt, warmStarting) {
 	}
 	
 	if (warmStarting) {
-		// Apply cached constraint impulses
-		// V += JT * lambda * invM
-		var j = vec2.scale(this.n, this.lambda_acc);
+		// linearImpulse = JT * lambda
+		var impulse = vec2.scale(this.n, this.lambda_acc);
 
-		body1.v.mad(j, -body1.m_inv);
+		// Apply cached constraint impulses
+		// V += JT * lambda * invM		
+		body1.v.mad(impulse, -body1.m_inv);
 		body1.w -= (this.s1 * this.lambda_acc + this.motorLambda_acc) * body1.i_inv;
 
-		body2.v.mad(j, body2.m_inv);
+		body2.v.mad(impulse, body2.m_inv);
 		body2.w += (this.s2 * this.lambda_acc + this.motorLambda_acc) * body2.i_inv;
 	}
 	else {
@@ -176,14 +177,15 @@ LineJoint.prototype.solveVelocityConstraints = function() {
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc += lambda;
 
+	// linearImpulse = JT * lambda
+	var impulse = vec2.scale(this.n, lambda);
+	
 	// Apply constraint impulses
 	// V += JT * lambda * invM
-	var j = vec2.scale(this.n, lambda);
-
-	body1.v.mad(j, -body1.m_inv);
+	body1.v.mad(impulse, -body1.m_inv);
 	body1.w -= this.s1 * lambda * body1.i_inv;
 
-	body2.v.mad(j, body2.m_inv);
+	body2.v.mad(impulse, body2.m_inv);
 	body2.w += this.s2 * lambda * body2.i_inv;
 }
 

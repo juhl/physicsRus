@@ -90,13 +90,13 @@ AngleJoint.prototype.solvePositionConstraints = function() {
 	var correction = Math.clamp(c, -Joint.MAX_ANGULAR_CORRECTION, Joint.MAX_ANGULAR_CORRECTION);
 
 	// Compute lambda for position (angle) constraint
-	// Solve J * invM * JT * lambda = -C
-	var lambda = this.em * (-correction);
+	// Solve J * invM * JT * lambda = -C / dt
+	var lambda_dt = this.em * (-correction);
 
 	// Apply constraint impulses
 	// X += JT * lambda * invM * dt
-	body1.a -= lambda * body1.i_inv;
-	body2.a += lambda * body2.i_inv;
+	body1.a -= lambda_dt * body1.i_inv;
+	body2.a += lambda_dt * body2.i_inv;
 
 	return Math.abs(c) < Joint.ANGULAR_SLOP;
 }

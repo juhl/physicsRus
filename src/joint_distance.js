@@ -135,14 +135,15 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	}
 
 	if (warmStarting) {
+		// linearImpulse = JT * lambda
+		var impulse = vec2.scale(this.u, this.lambda_acc);
+
 		// Apply cached constraint impulses
 		// V += JT * lambda * invM
-		var j = vec2.scale(this.u, this.lambda_acc);
-
-		body1.v.mad(j, -body1.m_inv);
+		body1.v.mad(impulse, -body1.m_inv);
 		body1.w -= this.s1 * this.lambda_acc * body1.i_inv;
 
-		body2.v.mad(j, body2.m_inv);
+		body2.v.mad(impulse, body2.m_inv);
 		body2.w += this.s2 * this.lambda_acc * body2.i_inv;
 	}
 	else {
@@ -300,12 +301,12 @@ MaxDistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	if (warmStarting) {
 		// apply cached impulses
 		// V += JT * lambda
-		var j = vec2.scale(this.u, this.lambda_acc);
+		var impulse = vec2.scale(this.u, this.lambda_acc);
 	
-		body1.v.mad(j, -body1.m_inv);
+		body1.v.mad(impulse, -body1.m_inv);
 		body1.w -= this.s1 * this.lambda_acc * body1.i_inv;
 
-		body2.v.mad(j, body2.m_inv);
+		body2.v.mad(impulse, body2.m_inv);
 		body2.w += this.s2 * this.lambda_acc * body2.i_inv;
 	}
 	else {
@@ -330,12 +331,12 @@ MaxDistanceJoint.prototype.solveVelocityConstraints = function() {
 
 	// apply impulses
 	// V += JT * lambda
-	var j = vec2.scale(this.u, lambda);
+	var impulse = vec2.scale(this.u, lambda);
 	
-	body1.v.mad(j, -body1.m_inv);
+	body1.v.mad(impulse, -body1.m_inv);
 	body1.w -= this.s1 * lambda * body1.i_inv;
 
-	body2.v.mad(j, body2.m_inv);
+	body2.v.mad(impulse, body2.m_inv);
 	body2.w += this.s2 * lambda * body2.i_inv;
 }
 
@@ -374,21 +375,21 @@ MaxDistanceJoint.prototype.solvePositionConstraints = function() {
 	var correction = Math.clamp(c, -Joint.MAX_LINEAR_CORRECTION, Joint.MAX_LINEAR_CORRECTION);
 
 	// compute lambda for position constraint	
-	// solve J * invM * JT * lambda = -C
+	// solve J * invM * JT * lambda = -C / dt
     var s1 = vec2.cross(r1, u);
     var s2 = vec2.cross(r2, u);
     var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;		
-	var lambda = em_inv == 0 ? 0 : -correction / em_inv;	
+	var lambda_dt = em_inv == 0 ? 0 : -correction / em_inv;	
 
 	// apply impulses
 	// X += JT * lambda * dt
-	var j = vec2.scale(u, lambda);
+	var mdx = vec2.scale(u, lambda_dt);
 
-	body1.p.mad(j, -body1.m_inv);
-	body1.a -= s1 * lambda * body1.i_inv;
+	body1.p.mad(mdx, -body1.m_inv);
+	body1.a -= s1 * lambda_dt * body1.i_inv;
 
-	body2.p.mad(j, body2.m_inv);
-	body2.a += s2 * lambda * body2.i_inv;
+	body2.p.mad(mdx, body2.m_inv);
+	body2.a += s2 * lambda_dt * body2.i_inv;
 
 	return Math.abs(c) < Joint.LINEAR_SLOP;
 }
@@ -447,17 +448,17 @@ SpringJoint.prototype.initSolver = function(dt, warmStarting) {
 
 	// apply spring force
 	var spring_f = (this.restLength - dist) * this.stiffness;
-	this.spring_j = spring_f * dt;
+	this.spring_impulse = spring_f * dt;
 
 	// apply impulses
 	// V += JT * lambda
-	var j = vec2.scale(this.u, this.spring_j);
+	var impulse = vec2.scale(this.u, this.spring_impulse);
 	
-	body1.v.mad(j, -body1.m_inv);
-	body1.w -= this.s1 * this.spring_j * body1.i_inv;
+	body1.v.mad(impulse, -body1.m_inv);
+	body1.w -= this.s1 * this.spring_impulse * body1.i_inv;
 
-	body2.v.mad(j, body2.m_inv);
-	body2.w += this.s2 * this.spring_j * body2.i_inv;
+	body2.v.mad(impulse, body2.m_inv);
+	body2.w += this.s2 * this.spring_impulse * body2.i_inv;
 }
 
 SpringJoint.prototype.solveVelocityConstraints = function() {
@@ -476,12 +477,12 @@ SpringJoint.prototype.solveVelocityConstraints = function() {
 
 	// apply impulses
 	// V += JT * lambda
-	var j = vec2.scale(this.u, lambda);
+	var impulse = vec2.scale(this.u, lambda);
 
-	body1.v.mad(j, -body1.m_inv);
+	body1.v.mad(impulse, -body1.m_inv);
 	body1.w -= this.s1 * lambda * body1.i_inv;
 
-	body2.v.mad(j, body2.m_inv);
+	body2.v.mad(impulse, body2.m_inv);
 	body2.w += this.s2 * lambda * body2.i_inv;
 }
 
@@ -490,7 +491,7 @@ SpringJoint.prototype.solvePositionConstraints = function() {
 }
 
 SpringJoint.prototype.getReactionForce = function(dt_inv) {
-	return vec2.scale(this.u, this.spring_j * dt_inv);
+	return vec2.scale(this.u, this.spring_impulse * dt_inv);
 }
 
 SpringJoint.prototype.getReactionTorque = function(dt_inv) {

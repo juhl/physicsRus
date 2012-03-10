@@ -115,14 +115,14 @@ ContactSolver.prototype.warmStart = function() {
 		var lambda_t = con.lambda_t_acc;
 
 		// Apply accumulated impulses
-		//var j = vec2.rotate_vec(new vec2(lambda_n, lambda_t), n);
-		var j = new vec2(lambda_n * n.x - lambda_t * n.y, lambda_t * n.x + lambda_n * n.y);
+		//var impulse = vec2.rotate_vec(new vec2(lambda_n, lambda_t), n);
+		var impulse = new vec2(lambda_n * n.x - lambda_t * n.y, lambda_t * n.x + lambda_n * n.y);
 
-		body1.v.mad(j, -body1.m_inv);
-		body1.w -= vec2.cross(con.r1, j) * body1.i_inv;
+		body1.v.mad(impulse, -body1.m_inv);
+		body1.w -= vec2.cross(con.r1, impulse) * body1.i_inv;
 
-		body2.v.mad(j, body2.m_inv);
-		body2.w += vec2.cross(con.r2, j) * body2.i_inv;
+		body2.v.mad(impulse, body2.m_inv);
+		body2.w += vec2.cross(con.r2, impulse) * body2.i_inv;
 	}
 }
 
@@ -172,14 +172,14 @@ ContactSolver.prototype.solveVelocityConstraints = function() {
 		lambda_t = con.lambda_t_acc - lambda_t_old;
 
 		// Apply the final impulses
-		//var j = vec2.rotate_vec(new vec2(lambda_n, lambda_t), n);
-		var j = new vec2(lambda_n * n.x - lambda_t * n.y, lambda_t * n.x + lambda_n * n.y);
+		//var impulse = vec2.rotate_vec(new vec2(lambda_n, lambda_t), n);
+		var impulse = new vec2(lambda_n * n.x - lambda_t * n.y, lambda_t * n.x + lambda_n * n.y);
 		
-		body1.v.mad(j, -m1_inv);
-		body1.w -= vec2.cross(r1, j) * i1_inv;
+		body1.v.mad(impulse, -m1_inv);
+		body1.w -= vec2.cross(r1, impulse) * i1_inv;
 
-		body2.v.mad(j, m2_inv);
-		body2.w += vec2.cross(r2, j) * i2_inv;
+		body2.v.mad(impulse, m2_inv);
+		body2.w += vec2.cross(r2, impulse) * i2_inv;
 	}   
 }
 

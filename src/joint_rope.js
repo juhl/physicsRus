@@ -99,14 +99,15 @@ RopeJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.em = em_inv == 0 ? 0 : 1 / em_inv;
 
 	if (warmStarting) {
-		// Apply cached constraint impulses
-		// V += JT * lambda * invM
-		var j = vec2.scale(this.u, this.lambda_acc);
+		// linearImpulse = JT * lambda
+		var impulse = vec2.scale(this.u, this.lambda_acc);
 
-		body1.v.mad(j, -body1.m_inv);
+		// Apply cached constraint impulses
+		// V += JT * lambda * invM		
+		body1.v.mad(impulse, -body1.m_inv);
 		body1.w -= this.s1 * this.lambda_acc * body1.i_inv;
 
-		body2.v.mad(j, body2.m_inv);
+		body2.v.mad(impulse, body2.m_inv);
 		body2.w += this.s2 * this.lambda_acc * body2.i_inv;
 	}
 	else {
@@ -128,14 +129,15 @@ RopeJoint.prototype.solveVelocityConstraints = function() {
 	this.lambda_acc = Math.min(lambda_old + lambda, 0);
 	lambda = this.lambda_acc - lambda_old;
 
-	// Apply constraint impulses
-	// V += JT * lambda * invM
-	var j = vec2.scale(this.u, lambda);
+	// linearImpulse = JT * lambda
+	var impulse = vec2.scale(this.u, lambda);
 
-	body1.v.mad(j, -body1.m_inv);
+	// Apply constraint impulses
+	// V += JT * lambda * invM	
+	body1.v.mad(impulse, -body1.m_inv);
 	body1.w -= this.s1 * lambda * body1.i_inv;
 
-	body2.v.mad(j, body2.m_inv);
+	body2.v.mad(impulse, body2.m_inv);
 	body2.w += this.s2 * lambda * body2.i_inv;
 }
 
