@@ -286,31 +286,33 @@ RevoluteJoint.prototype.solvePositionConstraints = function() {
 	// Solve limit constraint
 	if (this.limitEnabled && this.limitState != Joint.LIMIT_STATE_INACTIVE) {
 		var da = body2.a - body1.a - this.refAngle;
-		var angularImpulse = 0;
 
+		// angular lambda = -EM * C / dt
+		var angularImpulseDt = 0;
+		
 		if (this.limitState == Joint.LIMIT_STATE_EQUAL_LIMITS) {
 			var c = Math.clamp(da - this.limitLowerAngle, -Joint.MAX_ANGULAR_CORRECTION, Joint.MAX_ANGULAR_CORRECTION);
 
 			angularError = Math.abs(c);
-			angularImpulse = -this.em2 * c;
+			angularImpulseDt = -this.em2 * c;
 		}
 		else if (this.limitState == Joint.LIMIT_STATE_AT_LOWER) {
 			var c = da - this.limitLowerAngle;
 			
 			angularError = -c;
 			c = Math.clamp(c + Joint.ANGULAR_SLOP, -Joint.MAX_ANGULAR_CORRECTION, 0);
-			angularImpulse = -this.em2 * c;
+			angularImpulseDt = -this.em2 * c;
 		}
 		else if (this.limitState == Joint.LIMIT_STATE_AT_UPPER) {
 			var c = da - this.limitUpperAngle;
 
 			angularError = c;
 			c = Math.clamp(c - Joint.ANGULAR_SLOP, 0, Joint.MAX_ANGULAR_CORRECTION);
-			angularImpulse = -this.em2 * c;
+			angularImpulseDt = -this.em2 * c;
 		}
 
-		body1.a -= angularImpulse * body1.i_inv;
-		body2.a += angularImpulse * body2.i_inv;
+		body1.a -= angularImpulseDt * body1.i_inv;
+		body2.a += angularImpulseDt * body2.i_inv;
 	}
 
 	// Solve point-to-point constraint
@@ -325,7 +327,7 @@ RevoluteJoint.prototype.solvePositionConstraints = function() {
 		positionError = correction.length();
 
 		// Compute lambda for position constraint
-		// Solve J1 * invM * J1T * lambda = -C
+		// Solve J1 * invM * J1T * lambda = -C / dt
 		var sum_m_inv = body1.m_inv + body2.m_inv;
 		var r1y_i = r1.y * body1.i_inv;
 		var r2y_i = r2.y * body2.i_inv;
@@ -333,15 +335,15 @@ RevoluteJoint.prototype.solvePositionConstraints = function() {
 		var k12 = -r1.x * r1y_i - r2.x * r2y_i;
 		var k22 = sum_m_inv + r1.x * r1.x * body1.i_inv + r2.x * r2.x * body2.i_inv;
 		var em_inv = new mat2(k11, k12, k12, k22);
-		var lambda = em_inv.solve(correction.neg());
+		var lambda_dt = em_inv.solve(correction.neg());
 	
 		// Apply constraint impulses
 		// X += J1T * lambda * invM * dt
-		body1.p.mad(lambda, -body1.m_inv);
-		body1.a -= vec2.cross(r1, lambda) * body1.i_inv;
+		body1.p.mad(lambda_dt, -body1.m_inv);
+		body1.a -= vec2.cross(r1, lambda_dt) * body1.i_inv;
 
-		body2.p.mad(lambda, body2.m_inv);
-		body2.a += vec2.cross(r2, lambda) * body2.i_inv;
+		body2.p.mad(lambda_dt, body2.m_inv);
+		body2.a += vec2.cross(r2, lambda_dt) * body2.i_inv;
 	}
 
 	return positionError < Joint.LINEAR_SLOP && angularError < Joint.ANGULAR_SLOP;

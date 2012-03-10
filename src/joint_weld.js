@@ -143,7 +143,7 @@ WeldJoint.prototype.solvePositionConstraints = function() {
 		Math.clamp(c2, -Joint.MAX_ANGULAR_CORRECTION, Joint.MAX_ANGULAR_CORRECTION));
 
 	// Compute lambda for position constraint
-	// Solve J * invM * JT * lambda = -C
+	// Solve J * invM * JT * lambda = -C / dt
 	var sum_m_inv = body1.m_inv + body2.m_inv;
 	var r1x_i = r1.x * body1.i_inv;
 	var r1y_i = r1.y * body1.i_inv;
@@ -156,17 +156,17 @@ WeldJoint.prototype.solvePositionConstraints = function() {
 	var k23 = r1x_i + r2x_i;
 	var k33 = body1.i_inv + body2.i_inv;
 	var em_inv = new mat3(k11, k12, k13, k12, k22, k23, k13, k23, k33);
-	var lambda = em_inv.solve(correction.neg());
+	var lambda_dt = em_inv.solve(correction.neg());
 	
 	// Apply constraint impulses
 	// X += JT * lambda * invM * dt
-	var lambda_xy = new vec2(lambda.x, lambda.y);
+	var lambda_dt_xy = new vec2(lambda_dt.x, lambda_dt.y);
 
-	body1.p.mad(lambda_xy, -body1.m_inv);
-	body1.a -= (vec2.cross(r1, lambda_xy) + lambda.z) * body1.i_inv;
+	body1.p.mad(lambda_dt_xy, -body1.m_inv);
+	body1.a -= (vec2.cross(r1, lambda_dt_xy) + lambda_dt.z) * body1.i_inv;
 
-	body2.p.mad(lambda_xy, body2.m_inv);
-	body2.a += (vec2.cross(r2, lambda_xy) + lambda.z) * body2.i_inv;
+	body2.p.mad(lambda_dt_xy, body2.m_inv);
+	body2.a += (vec2.cross(r2, lambda_dt_xy) + lambda_dt.z) * body2.i_inv;
 
 	return c1.length() < Joint.LINEAR_SLOP && Math.abs(c2) <= Joint.ANGULAR_SLOP;
 }

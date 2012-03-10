@@ -186,7 +186,7 @@ PrismaticJoint.prototype.solvePositionConstraints = function() {
 	correction.y = Math.clamp(c2, -Joint.MAX_ANGULAR_CORRECTION, Joint.MAX_ANGULAR_CORRECTION);
 
 	// Compute impulse for position constraint
-	// Solve J * invM * JT * lambda = -C
+	// Solve J * invM * JT * lambda = -C / dt
 	var s1 = vec2.cross(r1_d, n);
 	var s2 = vec2.cross(r2, n);
 	var s1_i = s1 * body1.i_inv;
@@ -195,17 +195,17 @@ PrismaticJoint.prototype.solvePositionConstraints = function() {
 	var k12 = s1_i + s2_i;
 	var k22 = body1.i_inv + body2.i_inv;
 	var em_inv = new mat2(k11, k12, k12, k22);
-	var lambda = em_inv.solve(correction.neg());
+	var lambda_dt = em_inv.solve(correction.neg());
 
 	// Apply constarint impulses
 	// X += JT * lambda * invM * dt
-	var j = vec2.scale(n, lambda.x);
+	var mdx = vec2.scale(n, lambda_dt.x);
 
-	body1.p.mad(j, -body1.m_inv);
-	body1.a -= (vec2.cross(r1_d, j) + lambda.y) * body1.i_inv;
+	body1.p.mad(mdx, -body1.m_inv);
+	body1.a -= (vec2.cross(r1_d, j) + lambda_dt.y) * body1.i_inv;
 
-	body2.p.mad(j, body2.m_inv);
-	body2.a += (vec2.cross(r2, j) + lambda.y) * body2.i_inv;
+	body2.p.mad(mdx, body2.m_inv);
+	body2.a += (vec2.cross(r2, j) + lambda_dt.y) * body2.i_inv;
 
 	return Math.abs(c1) <= Joint.LINEAR_SLOP && Math.abs(c2) <= Joint.ANGULAR_SLOP;
 }

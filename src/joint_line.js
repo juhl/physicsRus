@@ -213,22 +213,22 @@ LineJoint.prototype.solvePositionConstraints = function() {
 	var correction = Math.clamp(c, -Joint.MAX_LINEAR_CORRECTION, Joint.MAX_LINEAR_CORRECTION);
 	
 	// Compute lambda for position constraint
-	// Solve J * invM * JT * lambda = -C
+	// Solve J * invM * JT * lambda = -C / dt
    	var s1 = vec2.cross(r1_d, n);
    	var s2 = vec2.cross(r2, n);
    	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;
 	var k_inv = em_inv == 0 ? 0 : 1 / em_inv;
-	var lambda = k_inv * (-correction);
+	var lambda_dt = k_inv * (-correction);
 
 	// Apply constraint impulses
 	// X += JT * lambda * invM * dt
-	var j = vec2.scale(n, lambda);
+	var mdx = vec2.scale(n, lambda_dt);
 
-	body1.p.mad(j, -body1.m_inv);
-	body1.a -= s1 * lambda * body1.i_inv;
+	body1.p.mad(mdx, -body1.m_inv);
+	body1.a -= s1 * lambda_dt * body1.i_inv;
 
-	body2.p.mad(j, body2.m_inv);
-	body2.a += s2 * lambda * body2.i_inv;
+	body2.p.mad(mdx, body2.m_inv);
+	body2.a += s2 * lambda_dt * body2.i_inv;
 
 	return Math.abs(c) < Joint.LINEAR_SLOP;
 }

@@ -14,6 +14,8 @@
 // J = [ -t, -cross(r1, t), t, cross(r2, t) ]
 //
 // impulse = JT * lambda = [ -t * lambda, -cross(r1, t) * lambda, t * lambda, cross(r1, t) * lambda ]
+//
+// NOTE: lambda is a impulse in constraint space
 //-------------------------------------------------------------------------------------------------
 
 function ContactSolver(shape1, shape2) {

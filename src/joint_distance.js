@@ -155,21 +155,22 @@ DistanceJoint.prototype.solveVelocityConstraints = function() {
 	var body2 = this.body2;
 
 	// Compute lambda for velocity constraint
-	// Solve J * invM * JT * lambda = -(J * V + beta * C/h + gamma * lambda)
+	// Solve J * invM * JT * lambda = -(J * V + gamma * lambda + beta * C/h)
     var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
-	var lambda = -this.em * (cdot + this.c_beta + this.gamma * this.lambda_acc);
+	var lambda = -this.em * (cdot + this.gamma * this.lambda_acc + this.c_beta);
 
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc += lambda;
 
+	// linearImpulse = JT * lambda
+	var impulse = vec2.scale(this.u, lambda);
+
 	// Apply constraint impulses
 	// V += JT * lambda * invM
-	var j = vec2.scale(this.u, lambda);
-
-	body1.v.mad(j, -body1.m_inv);
+	body1.v.mad(impulse, -body1.m_inv);
 	body1.w -= this.s1 * lambda * body1.i_inv;
 
-	body2.v.mad(j, body2.m_inv);
+	body2.v.mad(impulse, body2.m_inv);
 	body2.w += this.s2 * lambda * body2.i_inv;
 }
 
@@ -200,21 +201,21 @@ DistanceJoint.prototype.solvePositionConstraints = function() {
 	var correction = Math.clamp(c, -Joint.MAX_LINEAR_CORRECTION, Joint.MAX_LINEAR_CORRECTION);
 
 	// Compute lambda for correction
-	// Solve J * invM * JT * lambda = -C
+	// Solve J * invM * JT * lambda = -C / dt
     var s1 = vec2.cross(r1, u);
     var s2 = vec2.cross(r2, u);
     var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;
-	var lambda = em_inv == 0 ? 0 : -correction / em_inv;
-
+	var lambda_dt = em_inv == 0 ? 0 : -correction / em_inv;
+	
 	// Apply constraint impulses
 	// X += JT * lambda * invM * dt
-	var j = vec2.scale(u, lambda);
+	var mdx = vec2.scale(u, lambda_dt);
 
-	body1.p.mad(j, -body1.m_inv);
-	body1.a -= s1 * lambda * body1.i_inv;
+	body1.p.mad(mdx, -body1.m_inv);
+	body1.a -= s1 * lambda_dt * body1.i_inv;
 
-	body2.p.mad(j, body2.m_inv);
-	body2.a += s2 * lambda * body2.i_inv;
+	body2.p.mad(mdx, body2.m_inv);
+	body2.a += s2 * lambda_dt * body2.i_inv;
 
 	return Math.abs(c) < Joint.LINEAR_SLOP;
 }
