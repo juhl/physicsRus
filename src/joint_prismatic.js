@@ -201,13 +201,13 @@ PrismaticJoint.prototype.solvePositionConstraints = function() {
 
 	// Apply constarint impulses
 	// X += JT * lambda * invM * dt
-	var mdx = vec2.scale(n, lambda_dt.x);
+	var impulse_dt = vec2.scale(n, lambda_dt.x);
 
-	body1.p.mad(mdx, -body1.m_inv);
-	body1.a -= (vec2.cross(r1_d, mdx) + lambda_dt.y) * body1.i_inv;
+	body1.p.mad(impulse_dt, -body1.m_inv);
+	body1.a -= (vec2.cross(r1_d, impulse_dt) + lambda_dt.y) * body1.i_inv;
 
-	body2.p.mad(mdx, body2.m_inv);
-	body2.a += (vec2.cross(r2, mdx) + lambda_dt.y) * body2.i_inv;
+	body2.p.mad(impulse_dt, body2.m_inv);
+	body2.a += (vec2.cross(r2, impulse_dt) + lambda_dt.y) * body2.i_inv;
 
 	return Math.abs(c1) <= Joint.LINEAR_SLOP && Math.abs(c2) <= Joint.ANGULAR_SLOP;
 }

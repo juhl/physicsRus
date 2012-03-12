@@ -227,12 +227,12 @@ ContactSolver.prototype.solvePositionConstraints = function() {
 		var lambda_dt = em_inv == 0 ? 0 : -correction / em_inv;
 		
 		// Apply correction impulses
-		var mdx = vec2.scale(n, lambda_dt);
+		var impulse_dt = vec2.scale(n, lambda_dt);
 
-		body1.p.mad(mdx, -m1_inv);
+		body1.p.mad(impulse_dt, -m1_inv);
 		body1.a -= sn1 * lambda_dt * i1_inv;
 		
-		body2.p.mad(mdx, m2_inv);
+		body2.p.mad(impulse_dt, m2_inv);
 		body2.a += sn2 * lambda_dt * i2_inv;
 	}
 

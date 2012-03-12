@@ -224,12 +224,12 @@ LineJoint.prototype.solvePositionConstraints = function() {
 
 	// Apply constraint impulses
 	// X += JT * lambda * invM * dt
-	var mdx = vec2.scale(n, lambda_dt);
+	var impulse_dt = vec2.scale(n, lambda_dt);
 
-	body1.p.mad(mdx, -body1.m_inv);
+	body1.p.mad(impulse_dt, -body1.m_inv);
 	body1.a -= s1 * lambda_dt * body1.i_inv;
 
-	body2.p.mad(mdx, body2.m_inv);
+	body2.p.mad(impulse_dt, body2.m_inv);
 	body2.a += s2 * lambda_dt * body2.i_inv;
 
 	return Math.abs(c) < Joint.LINEAR_SLOP;
