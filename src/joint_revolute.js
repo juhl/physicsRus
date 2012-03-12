@@ -338,7 +338,8 @@ RevoluteJoint.prototype.solvePositionConstraints = function() {
 		var lambda_dt = em_inv.solve(correction.neg());
 	
 		// Apply constraint impulses
-		// X += J1T * lambda * invM * dt
+		// impulse = J1T * lambda
+		// X += impulse * invM * dt
 		body1.p.mad(lambda_dt, -body1.m_inv);
 		body1.a -= vec2.cross(r1, lambda_dt) * body1.i_inv;
 

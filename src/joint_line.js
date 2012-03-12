@@ -223,7 +223,8 @@ LineJoint.prototype.solvePositionConstraints = function() {
 	var lambda_dt = k_inv * (-correction);
 
 	// Apply constraint impulses
-	// X += JT * lambda * invM * dt
+	// impulse = JT * lambda
+	// X += impulse * invM * dt
 	var impulse_dt = vec2.scale(n, lambda_dt);
 
 	body1.p.mad(impulse_dt, -body1.m_inv);

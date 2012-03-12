@@ -170,7 +170,8 @@ RopeJoint.prototype.solvePositionConstraints = function() {
 	var lambda_dt = em_inv == 0 ? 0 : -correction / em_inv;
 
 	// Apply constraint impulses
-	// X += JT * lambda * invM * dt
+	// impulse = JT * lambda
+	// X += impulse * invM * dt
 	var impulse_Dt = vec2.scale(u, lambda_dt);
 
 	body1.p.mad(impulse_dt, -body1.m_inv);

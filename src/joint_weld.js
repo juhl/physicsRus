@@ -159,7 +159,8 @@ WeldJoint.prototype.solvePositionConstraints = function() {
 	var lambda_dt = em_inv.solve(correction.neg());
 	
 	// Apply constraint impulses
-	// X += JT * lambda * invM * dt
+	// impulse = JT * lambda
+	// X += impulse * invM * dt
 	var lambda_dt_xy = new vec2(lambda_dt.x, lambda_dt.y);
 
 	body1.p.mad(lambda_dt_xy, -body1.m_inv);

@@ -200,7 +200,8 @@ PrismaticJoint.prototype.solvePositionConstraints = function() {
 	var lambda_dt = em_inv.solve(correction.neg());
 
 	// Apply constarint impulses
-	// X += JT * lambda * invM * dt
+	// impulse = JT * lambda
+	// X += impulse * invM * dt
 	var impulse_dt = vec2.scale(n, lambda_dt.x);
 
 	body1.p.mad(impulse_dt, -body1.m_inv);

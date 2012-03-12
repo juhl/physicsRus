@@ -75,7 +75,7 @@ AngleJoint.prototype.solveVelocityConstraints = function() {
 	// Accumulate lambda for angular velocity constraint
 	this.lambda_acc += lambda;
 
-	// Apply constraint impulses
+	// Apply constraint impulses	
 	// V += JT * lambda * invM
 	body1.w -= lambda * body1.i_inv;
 	body2.w += lambda * body2.i_inv;
@@ -94,7 +94,8 @@ AngleJoint.prototype.solvePositionConstraints = function() {
 	var lambda_dt = this.em * (-correction);
 
 	// Apply constraint impulses
-	// X += JT * lambda * invM * dt
+	// impulse = JT * lambda
+	// X += impulse * invM * dt
 	body1.a -= lambda_dt * body1.i_inv;
 	body2.a += lambda_dt * body2.i_inv;
 
