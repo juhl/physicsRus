@@ -156,9 +156,9 @@ DistanceJoint.prototype.solveVelocityConstraints = function() {
 	var body2 = this.body2;
 
 	// Compute lambda for velocity constraint
-	// Solve J * invM * JT * lambda = -(J * V + gamma * lambda + beta * C/h)
+	// Solve J * invM * JT * lambda = -(J * V + beta * C/h + gamma * lambda)
     var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
-	var lambda = -this.em * (cdot + this.gamma * this.lambda_acc + this.c_beta);
+	var lambda = -this.em * (cdot + this.c_beta + this.gamma * this.lambda_acc);
 
 	// Accumulate lambda for velocity constraint
 	this.lambda_acc += lambda;
