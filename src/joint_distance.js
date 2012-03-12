@@ -122,7 +122,6 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 		// Soft constraint formulas
 		this.gamma = (d + k * dt) * dt;
 		this.gamma = this.gamma == 0 ? 0 : 1 / this.gamma;
-
 		var beta = dt * k * this.gamma;
 		this.c_beta = c * beta;
 

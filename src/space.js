@@ -106,7 +106,9 @@ Space.prototype.create = function(text) {
 			break;
 		case "WeldJoint":
 			joint = new WeldJoint(body1, body2, config_joint.anchor);
-			break;		
+			joint.setSpringFrequencyHz(config_joint.frequencyHz);
+			joint.setSpringDampingRatio(config_joint.dampingRatio);
+			break;
 		case "LineJoint":
 			joint = new LineJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
 			joint.enableMotor(config_joint.motorEnabled);

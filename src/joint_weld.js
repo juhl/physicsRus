@@ -51,8 +51,19 @@ WeldJoint.prototype.serialize = function() {
 		"anchor2": this.body2.getWorldPoint(this.anchor2),
 		"collideConnected": this.collideConnected,
 		"maxForce": this.maxForce,
-		"breakable": this.breakable
+		"breakable": this.breakable,
+		"frequencyHz": this.frequencyHz,
+		"dampingRatio": this.dampingRatio	
 	};
+}
+
+WeldJoint.prototype.setSpringFrequencyHz = function(frequencyHz) {
+	// NOTE: frequencyHz should be limited to under 4 times time steps
+	this.frequencyHz = frequencyHz;
+}
+
+WeldJoint.prototype.setSpringDampingRatio = function(dampingRatio) {
+	this.dampingRatio = dampingRatio;
 }
 
 WeldJoint.prototype.initSolver = function(dt, warmStarting) {
