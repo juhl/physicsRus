@@ -137,9 +137,9 @@
       <span class="title">Vertex Inspector</span>
       <form>
       <ul>
-        <li><label for="index">Index</label> <input type="number" name="index" readonly="readonly" /></li>
-        <li><label for="position_x">Position X(m)</label> <input type="number" name="position_x" step="0.1" /></li>
-        <li><label for="position_y">Y(m)</label> <input type="number" name="position_y" step="0.1" /></li>
+        <li><label for="index">Index</label> <input type="number" id="index" readonly="readonly" /></li>
+        <li><label for="position_x">Position X(m)</label> <input type="number" id="position_x" step="0.1" /></li>
+        <li><label for="position_y">Y(m)</label> <input type="number" id="position_y" step="0.1" /></li>
       </ul>
       </form>
     </div>
@@ -147,11 +147,11 @@
       <span class="title">Edge Inspector</span>
       <form>
       <ul>
-        <li><label for="index">Index</label> <input type="number" name="index" readonly="readonly" /></li>
-        <li><label for="v1_position_x">Vertex 1 Position X(m)</label> <input type="number" name="v1_position_x" step="0.1" /></li>
-        <li><label for="v1_position_y">Y(m)</label> <input type="number" name="v1_position_y" step="0.1" /></li>
-        <li><label for="v2_position_x">Vertex 2 Position X(m)</label> <input type="number" name="v2_position_x" step="0.1" /></li>
-        <li><label for="v2_position_y">Y(m)</label> <input type="number" name="v2_position_y" step="0.1" /></li>
+        <li><label for="index">Index</label> <input type="number" id="index" readonly="readonly" /></li>
+        <li><label for="v1_position_x">Vertex 1 Position X(m)</label> <input type="number" id="v1_position_x" step="0.1" /></li>
+        <li><label for="v1_position_y">Y(m)</label> <input type="number" id="v1_position_y" step="0.1" /></li>
+        <li><label for="v2_position_x">Vertex 2 Position X(m)</label> <input type="number" id="v2_position_x" step="0.1" /></li>
+        <li><label for="v2_position_y">Y(m)</label> <input type="number" id="v2_position_y" step="0.1" /></li>
       </ul>
       </form>
     </div>
@@ -159,11 +159,11 @@
       <span class="title">Shape Inspector</span>
       <form>
       <ul>
-        <li><label for="type">Type</label> <input type="text" name="type" readonly="readonly" /></li>
-        <li><label for="radius">Radius</label> <input type="number" name="radius" min="0.1" step="0.01" /></li>
-        <li><label for="density">Density(kg/m²)</label> <input type="number" name="density" min="0.0000001" max="1" step="0.001" /></li>
-        <li><label for="restitution">Restitution</label> <input type="number" name="restitution" min="0" max="1" step="0.05" /></li>
-        <li><label for="friction">Friction</label> <input type="number" name="friction" min="0" max="1" step="0.05" /></li>        
+        <li><label for="type">Type</label> <input type="text" id="type" readonly="readonly" /></li>
+        <li><label for="radius">Radius</label> <input type="number" id="radius" min="0.1" step="0.01" /></li>
+        <li><label for="density">Density(kg/m²)</label> <input type="number" id="density" min="0.0000001" max="1" step="0.001" /></li>
+        <li><label for="restitution">Restitution</label> <input type="number" id="restitution" min="0" max="1" step="0.05" /></li>
+        <li><label for="friction">Friction</label> <input type="number" id="friction" min="0" max="1" step="0.05" /></li>        
       </ul>
       </form>
     </div>
@@ -172,21 +172,21 @@
       <form>
       <ul>
         <li>
-          <label for="type">Type</label> <select name="type">
+          <label for="type">Type</label> <select id="type">
             <option>Static</option>
             <option>Kinetic</option>
             <option>Dynamic</option>
           </select>
         </li>
-        <li><label for="name">Name</label> <input type="text" name="name" /></li>        
-        <li><label for="position_x">Position X(m)</label> <input type="number" name="position_x" step="0.1" /></li>
-        <li><label for="position_y">Y(m)</label> <input type="number" name="position_y" step="0.1" /></li>
-        <li><label for="rotation">Angle(°)</label> <input type="number" name="angle" step="10" /></li>
-        <li><label for="mass">Mass(kg)</label> <input type="number" name="mass" min="0" step="0.1" /></li>
-        <li><label for="inertia">Inertia(kg·m²)</label> <input type="number" name="inertia" readonly="readonly" /></li>
-        <li><label for="fixed_rotation">Fixed Rotation</label> <input type="checkbox" name="fixed_rotation" /></li>
-        <li><label for="category_bits">Category Bits</label> <input type="text" name="category_bits" /></li>
-        <li><label for="mask_bits">Mask Bits</label> <input type="text" name="mask_bits" /></li>
+        <li><label for="name">Name</label> <input type="text" id="name" /></li>        
+        <li><label for="position_x">Position X(m)</label> <input type="number" id="position_x" step="0.1" /></li>
+        <li><label for="position_y">Y(m)</label> <input type="number" id="position_y" step="0.1" /></li>
+        <li><label for="rotation">Angle(°)</label> <input type="number" id="angle" step="10" /></li>
+        <li><label for="mass">Mass(kg)</label> <input type="number" id="mass" min="0" step="0.1" /></li>
+        <li><label for="inertia">Inertia(kg·m²)</label> <input type="number" id="inertia" readonly="readonly" /></li>
+        <li><label for="fixed_rotation">Fixed Rotation</label> <input type="checkbox" id="fixed_rotation" /></li>
+        <li><label for="category_bits">Category Bits</label> <input type="text" id="category_bits" /></li>
+        <li><label for="mask_bits">Mask Bits</label> <input type="text" id="mask_bits" /></li>
       </ul>
       </form>
     </div>
@@ -194,22 +194,22 @@
       <span class="title">Joint Inspector</span>
       <form>
       <ul>
-        <li><label for="type">Type</label> <input type="text" name="type" readonly="readonly" /></li>
-        <li><label for="body1">Anchor1 Body</label> <input type="text" name="body1" readonly="readonly" /></li>
-        <li><label for="body2">Anchor2 Body</label> <input type="text" name="body2" readonly="readonly" /></li>
-        <li><label for="anchor_position_x">Anchor Position X(m)</label> <input type="number" name="anchor_position_x" step="0.1" /></li>
-        <li><label for="anchor_position_y">Y(m)</label> <input type="number" name="anchor_position_y" step="0.1" /></li>
-        <li><label for="max_force">Max Force(N)</label> <input type="number" name="max_force" /></li>
-        <li><label for="breakable">Breakable</label> <input type="checkbox" name="breakable" /></li>
-        <li><label for="collide_connected">CollideConnected</label> <input type="checkbox" name="collide_connected" /></li>
-        <li><label for="enable_limit">Enable Limit</label> <input type="checkbox" name="enable_limit" /></li>
-        <li><label for="limit_lower_angle">Lower Limit Angle(°)</label> <input type="number" name="limit_lower_angle" min="-360" max="360" step="1" /></li>
-        <li><label for="limit_upper_angle">Upper Limit Angle(°)</label> <input type="number" name="limit_upper_angle" min="-360" max="360" step="1" /></li>
-        <li><label for="enable_motor">Enable Motor</label> <input type="checkbox" name="enable_motor" /></li>
-        <li><label for="motor_speed">Motor Speed(°/s)</label> <input type="number" name="motor_speed" /></li>
-        <li><label for="max_motor_torque">Max Motor Torque(N·m)</label> <input type="number" name="max_motor_torque" /></li>
-        <li><label for="spring_frequency_hz">Spring Frequency</label> <input type="number" name="spring_frequency_hz" min="0" /></li>
-        <li><label for="spring_damping_ratio">Spring Damping Ratio</label> <input type="number" name="spring_damping_ratio" min="0" step="0.1" /></li>
+        <li><label for="type">Type</label> <input type="text" id="type" readonly="readonly" /></li>
+        <li><label for="body1">Anchor1 Body</label> <input type="text" id="body1" readonly="readonly" /></li>
+        <li><label for="body2">Anchor2 Body</label> <input type="text" id="body2" readonly="readonly" /></li>
+        <li><label for="anchor_position_x">Anchor Position X(m)</label> <input type="number" id="anchor_position_x" step="0.1" /></li>
+        <li><label for="anchor_position_y">Y(m)</label> <input type="number" id="anchor_position_y" step="0.1" /></li>
+        <li><label for="max_force">Max Force(N)</label> <input type="number" id="max_force" /></li>
+        <li><label for="breakable">Breakable</label> <input type="checkbox" id="breakable" /></li>
+        <li><label for="collide_connected">CollideConnected</label> <input type="checkbox" id="collide_connected" /></li>
+        <li><label for="enable_limit">Enable Limit</label> <input type="checkbox" id="enable_limit" /></li>
+        <li><label for="limit_lower_angle">Lower Limit Angle(°)</label> <input type="number" id="limit_lower_angle" min="-360" max="360" step="1" /></li>
+        <li><label for="limit_upper_angle">Upper Limit Angle(°)</label> <input type="number" id="limit_upper_angle" min="-360" max="360" step="1" /></li>
+        <li><label for="enable_motor">Enable Motor</label> <input type="checkbox" id="enable_motor" /></li>
+        <li><label for="motor_speed">Motor Speed(°/s)</label> <input type="number" id="motor_speed" /></li>
+        <li><label for="max_motor_torque">Max Motor Torque(N·m)</label> <input type="number" id="max_motor_torque" /></li>
+        <li><label for="spring_frequency_hz">Spring Frequency</label> <input type="number" id="spring_frequency_hz" min="0" /></li>
+        <li><label for="spring_damping_ratio">Spring Damping Ratio</label> <input type="number" id="spring_damping_ratio" min="0" step="0.1" /></li>
       </ul>
       </form>
     </div>
@@ -227,12 +227,12 @@
         <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="6" min="0" max="100" /><br />
       </div>
       <div>
-        <input type="checkbox" id="warmStarting" checked="true" />Warm starting<br />
-        <input type="checkbox" id="allowSleep" checked="true" />Allow sleep<br />
-        <input type="checkbox" id="enableDirtyRect" checked="true" />Enable dirty rect<br />
+        <input type="checkbox" id="warmStarting" checked="checked" />Warm starting<br />
+        <input type="checkbox" id="allowSleep" checked="checked" />Allow sleep<br />
+        <input type="checkbox" id="enableDirtyRect" checked="checked" />Enable dirty rect<br />
         <input type="checkbox" id="showDirtyRect" />Show dirty rect<br />
         <input type="checkbox" id="showAxis" />Show axis<br />
-        <input type="checkbox" id="showJoints" checked="true" />Show joints<br />
+        <input type="checkbox" id="showJoints" checked="checked" />Show joints<br />
         <input type="checkbox" id="showBounds" />Show bounding boxes<br />        
         <input type="checkbox" id="showContacts" />Show contacts<br />
         <input type="checkbox" id="showStats" />Show statistics<br />

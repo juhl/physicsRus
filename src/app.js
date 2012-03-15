@@ -252,71 +252,71 @@ App = function() {
 			addEvent(elements[i], "click", function() { return onClickedEditMode(this.value); });
 		}
 		domVertexInspector = domSidebar.querySelector("#vertex_inspector");
-		addEvent(domVertexInspector.querySelector("[name=position_x]"), "change", function() { onChangedVertexPositionX(this.value); });
-		addEvent(domVertexInspector.querySelector("[name=position_x]"), "input", function() { onChangedVertexPositionX(this.value); });
-		addEvent(domVertexInspector.querySelector("[name=position_y]"), "change", function() { onChangedVertexPositionY(this.value); });
-		addEvent(domVertexInspector.querySelector("[name=position_y]"), "input", function() { onChangedVertexPositionY(this.value); });
+		addEvent(domVertexInspector.querySelector("#position_x"), "change", function() { onChangedVertexPositionX(this.value); });
+		addEvent(domVertexInspector.querySelector("#position_x"), "input", function() { onChangedVertexPositionX(this.value); });
+		addEvent(domVertexInspector.querySelector("#position_y"), "change", function() { onChangedVertexPositionY(this.value); });
+		addEvent(domVertexInspector.querySelector("#position_y"), "input", function() { onChangedVertexPositionY(this.value); });
 
 		domEdgeInspector = domSidebar.querySelector("#edge_inspector");
-		addEvent(domEdgeInspector.querySelector("[name=v1_position_x]"), "change", function() { onChangedEdgePositionX(0, this.value); });
-		addEvent(domEdgeInspector.querySelector("[name=v1_position_x]"), "input", function() { onChangedEdgePositionX(0, this.value); });
-		addEvent(domEdgeInspector.querySelector("[name=v1_position_y]"), "change", function() { onChangedEdgePositionY(0, this.value); });
-		addEvent(domEdgeInspector.querySelector("[name=v1_position_y]"), "input", function() { onChangedEdgePositionY(0, this.value); });
-		addEvent(domEdgeInspector.querySelector("[name=v2_position_x]"), "change", function() { onChangedEdgePositionX(1, this.value); });
-		addEvent(domEdgeInspector.querySelector("[name=v2_position_x]"), "input", function() { onChangedEdgePositionX(1, this.value); });
-		addEvent(domEdgeInspector.querySelector("[name=v2_position_y]"), "change", function() { onChangedEdgePositionY(1, this.value); });
-		addEvent(domEdgeInspector.querySelector("[name=v2_position_y]"), "input", function() { onChangedEdgePositionY(1, this.value); });
+		addEvent(domEdgeInspector.querySelector("#v1_position_x"), "change", function() { onChangedEdgePositionX(0, this.value); });
+		addEvent(domEdgeInspector.querySelector("#v1_position_x"), "input", function() { onChangedEdgePositionX(0, this.value); });
+		addEvent(domEdgeInspector.querySelector("#v1_position_y"), "change", function() { onChangedEdgePositionY(0, this.value); });
+		addEvent(domEdgeInspector.querySelector("#v1_position_y"), "input", function() { onChangedEdgePositionY(0, this.value); });
+		addEvent(domEdgeInspector.querySelector("#v2_position_x"), "change", function() { onChangedEdgePositionX(1, this.value); });
+		addEvent(domEdgeInspector.querySelector("#v2_position_x"), "input", function() { onChangedEdgePositionX(1, this.value); });
+		addEvent(domEdgeInspector.querySelector("#v2_position_y"), "change", function() { onChangedEdgePositionY(1, this.value); });
+		addEvent(domEdgeInspector.querySelector("#v2_position_y"), "input", function() { onChangedEdgePositionY(1, this.value); });
 
 		domShapeInspector = domSidebar.querySelector("#shape_inspector");
-		addEvent(domShapeInspector.querySelector("[name=radius]"), "change", function() { onChangedShapeRadius(this.value); });
-		addEvent(domShapeInspector.querySelector("[name=radius]"), "input", function() { onChangedShapeRadius(this.value); });
-		addEvent(domShapeInspector.querySelector("[name=density]"), "change", function() { onChangedShapeDensity(this.value); });
-		addEvent(domShapeInspector.querySelector("[name=density]"), "input", function() { onChangedShapeDensity(this.value); });
-		addEvent(domShapeInspector.querySelector("[name=restitution]"), "change", function() { onChangedShapeRestitution(this.value); });
-		addEvent(domShapeInspector.querySelector("[name=restitution]"), "input", function() { onChangedShapeRestitution(this.value); });
-		addEvent(domShapeInspector.querySelector("[name=friction]"), "change", function() { onChangedShapeFriction(this.value); });
-		addEvent(domShapeInspector.querySelector("[name=friction]"), "input", function() { onChangedShapeFriction(this.value); });
+		addEvent(domShapeInspector.querySelector("#radius"), "change", function() { onChangedShapeRadius(this.value); });
+		addEvent(domShapeInspector.querySelector("#radius"), "input", function() { onChangedShapeRadius(this.value); });
+		addEvent(domShapeInspector.querySelector("#density"), "change", function() { onChangedShapeDensity(this.value); });
+		addEvent(domShapeInspector.querySelector("#density"), "input", function() { onChangedShapeDensity(this.value); });
+		addEvent(domShapeInspector.querySelector("#restitution"), "change", function() { onChangedShapeRestitution(this.value); });
+		addEvent(domShapeInspector.querySelector("#restitution"), "input", function() { onChangedShapeRestitution(this.value); });
+		addEvent(domShapeInspector.querySelector("#friction"), "change", function() { onChangedShapeFriction(this.value); });
+		addEvent(domShapeInspector.querySelector("#friction"), "input", function() { onChangedShapeFriction(this.value); });
 
 		domBodyInspector = domSidebar.querySelector("#body_inspector");
-		addEvent(domBodyInspector.querySelector("[name=type]"), "change", function() { onChangedBodyType(this.value); });
-		addEvent(domBodyInspector.querySelector("[name=name]"), "change", function() { onChangedBodyName(this.value); });
-		addEvent(domBodyInspector.querySelector("[name=position_x]"), "change", function() { onChangedBodyPositionX(this.value); });
-		addEvent(domBodyInspector.querySelector("[name=position_x]"), "input", function() { onChangedBodyPositionX(this.value); });
-		addEvent(domBodyInspector.querySelector("[name=position_y]"), "change", function() { onChangedBodyPositionY(this.value); });
-		addEvent(domBodyInspector.querySelector("[name=position_y]"), "input", function() { onChangedBodyPositionY(this.value); });
-		addEvent(domBodyInspector.querySelector("[name=angle]"), "change", function() { onChangedBodyAngle(this.value); });
-		addEvent(domBodyInspector.querySelector("[name=angle]"), "input", function() { onChangedBodyAngle(this.value); });
-		addEvent(domBodyInspector.querySelector("[name=mass]"), "change", function() { onChangedBodyMass(this.value); });
-		addEvent(domBodyInspector.querySelector("[name=mass]"), "input", function() { onChangedBodyMass(this.value); });
-		addEvent(domBodyInspector.querySelector("[name=fixed_rotation]"), "click", onClickedBodyFixedRotation);
-		addEvent(domBodyInspector.querySelector("[name=category_bits]"), "change", function() { onChangedBodyCategoryBits(this.value); });	
-		addEvent(domBodyInspector.querySelector("[name=mask_bits]"), "change", function() { onChangedBodyMaskBits(this.value); });
+		addEvent(domBodyInspector.querySelector("#type"), "change", function() { onChangedBodyType(this.value); });
+		addEvent(domBodyInspector.querySelector("#name"), "change", function() { onChangedBodyName(this.value); });
+		addEvent(domBodyInspector.querySelector("#position_x"), "change", function() { onChangedBodyPositionX(this.value); });
+		addEvent(domBodyInspector.querySelector("#position_x"), "input", function() { onChangedBodyPositionX(this.value); });
+		addEvent(domBodyInspector.querySelector("#position_y"), "change", function() { onChangedBodyPositionY(this.value); });
+		addEvent(domBodyInspector.querySelector("#position_y"), "input", function() { onChangedBodyPositionY(this.value); });
+		addEvent(domBodyInspector.querySelector("#angle"), "change", function() { onChangedBodyAngle(this.value); });
+		addEvent(domBodyInspector.querySelector("#angle"), "input", function() { onChangedBodyAngle(this.value); });
+		addEvent(domBodyInspector.querySelector("#mass"), "change", function() { onChangedBodyMass(this.value); });
+		addEvent(domBodyInspector.querySelector("#mass"), "input", function() { onChangedBodyMass(this.value); });
+		addEvent(domBodyInspector.querySelector("#fixed_rotation"), "click", onClickedBodyFixedRotation);
+		addEvent(domBodyInspector.querySelector("#category_bits"), "change", function() { onChangedBodyCategoryBits(this.value); });	
+		addEvent(domBodyInspector.querySelector("#mask_bits"), "change", function() { onChangedBodyMaskBits(this.value); });
 
 		domJointInspector = domSidebar.querySelector("#joint_inspector");
-		addEvent(domJointInspector.querySelector("[name=body1]"), "change", function() { onChangedJointBody(0, this.value); });		
-		addEvent(domJointInspector.querySelector("[name=body2]"), "change", function() { onChangedJointBody(1, this.value); });
-		addEvent(domJointInspector.querySelector("[name=anchor_position_x]"), "change", function() { onChangedJointAnchorPositionX(this.value); });
-		addEvent(domJointInspector.querySelector("[name=anchor_position_x]"), "input", function() { onChangedJointAnchorPositionX(this.value); });
-		addEvent(domJointInspector.querySelector("[name=anchor_position_y]"), "change", function() { onChangedJointAnchorPositionY(this.value); });
-		addEvent(domJointInspector.querySelector("[name=anchor_position_y]"), "input", function() { onChangedJointAnchorPositionY(this.value); });
-		addEvent(domJointInspector.querySelector("[name=max_force]"), "change", function() { onChangedJointMaxForce(this.value); });
-		addEvent(domJointInspector.querySelector("[name=max_force]"), "input", function() { onChangedJointMaxForce(this.value); });
-		addEvent(domJointInspector.querySelector("[name=breakable]"), "click", onClickedJointBreakable);
-		addEvent(domJointInspector.querySelector("[name=collide_connected]"), "click", onClickedJointCollideConnected);
-		addEvent(domJointInspector.querySelector("[name=enable_limit]"), "click", onClickedJointEnableLimit);
-		addEvent(domJointInspector.querySelector("[name=limit_lower_angle]"), "change", function() { onChangedJointLimitLowerAngle(this.value); });
-		addEvent(domJointInspector.querySelector("[name=limit_lower_angle]"), "input", function() { onChangedJointLimitLowerAngle(this.value); });
-		addEvent(domJointInspector.querySelector("[name=limit_upper_angle]"), "change", function() { onChangedJointLimitUpperAngle(this.value); });
-		addEvent(domJointInspector.querySelector("[name=limit_upper_angle]"), "input", function() { onChangedJointLimitUpperAngle(this.value); });
-		addEvent(domJointInspector.querySelector("[name=enable_motor]"), "click", onClickedJointEnableMotor);
-		addEvent(domJointInspector.querySelector("[name=motor_speed]"), "change", function() { onChangedJointMotorSpeed(this.value); });
-		addEvent(domJointInspector.querySelector("[name=motor_speed]"), "input", function() { onChangedJointMotorSpeed(this.value); });
-		addEvent(domJointInspector.querySelector("[name=max_motor_torque]"), "change", function() { onChangedJointMaxMotorTorque(this.value); });
-		addEvent(domJointInspector.querySelector("[name=max_motor_torque]"), "input", function() { onChangedJointMaxMotorTorque(this.value); });
-		addEvent(domJointInspector.querySelector("[name=spring_frequency_hz]"), "change", function() { onChangedJointSpringFrequencyHz(this.value); });
-		addEvent(domJointInspector.querySelector("[name=spring_frequency_hz]"), "input", function() { onChangedJointSpringFrequencyHz(this.value); });
-		addEvent(domJointInspector.querySelector("[name=spring_damping_ratio]"), "change", function() { onChangedJointSpringDampingRatio(this.value); });
-		addEvent(domJointInspector.querySelector("[name=spring_damping_ratio]"), "input", function() { onChangedJointSpringDampingRatio(this.value); });
+		addEvent(domJointInspector.querySelector("#body1"), "change", function() { onChangedJointBody(0, this.value); });		
+		addEvent(domJointInspector.querySelector("#body2"), "change", function() { onChangedJointBody(1, this.value); });
+		addEvent(domJointInspector.querySelector("#anchor_position_x"), "change", function() { onChangedJointAnchorPositionX(this.value); });
+		addEvent(domJointInspector.querySelector("#anchor_position_x"), "input", function() { onChangedJointAnchorPositionX(this.value); });
+		addEvent(domJointInspector.querySelector("#anchor_position_y"), "change", function() { onChangedJointAnchorPositionY(this.value); });
+		addEvent(domJointInspector.querySelector("#anchor_position_y"), "input", function() { onChangedJointAnchorPositionY(this.value); });
+		addEvent(domJointInspector.querySelector("#max_force"), "change", function() { onChangedJointMaxForce(this.value); });
+		addEvent(domJointInspector.querySelector("#max_force"), "input", function() { onChangedJointMaxForce(this.value); });
+		addEvent(domJointInspector.querySelector("#breakable"), "click", onClickedJointBreakable);
+		addEvent(domJointInspector.querySelector("#collide_connected"), "click", onClickedJointCollideConnected);
+		addEvent(domJointInspector.querySelector("#enable_limit"), "click", onClickedJointEnableLimit);
+		addEvent(domJointInspector.querySelector("#limit_lower_angle"), "change", function() { onChangedJointLimitLowerAngle(this.value); });
+		addEvent(domJointInspector.querySelector("#limit_lower_angle"), "input", function() { onChangedJointLimitLowerAngle(this.value); });
+		addEvent(domJointInspector.querySelector("#limit_upper_angle"), "change", function() { onChangedJointLimitUpperAngle(this.value); });
+		addEvent(domJointInspector.querySelector("#limit_upper_angle"), "input", function() { onChangedJointLimitUpperAngle(this.value); });
+		addEvent(domJointInspector.querySelector("#enable_motor"), "click", onClickedJointEnableMotor);
+		addEvent(domJointInspector.querySelector("#motor_speed"), "change", function() { onChangedJointMotorSpeed(this.value); });
+		addEvent(domJointInspector.querySelector("#motor_speed"), "input", function() { onChangedJointMotorSpeed(this.value); });
+		addEvent(domJointInspector.querySelector("#max_motor_torque"), "change", function() { onChangedJointMaxMotorTorque(this.value); });
+		addEvent(domJointInspector.querySelector("#max_motor_torque"), "input", function() { onChangedJointMaxMotorTorque(this.value); });
+		addEvent(domJointInspector.querySelector("#spring_frequency_hz"), "change", function() { onChangedJointSpringFrequencyHz(this.value); });
+		addEvent(domJointInspector.querySelector("#spring_frequency_hz"), "input", function() { onChangedJointSpringFrequencyHz(this.value); });
+		addEvent(domJointInspector.querySelector("#spring_damping_ratio"), "change", function() { onChangedJointSpringDampingRatio(this.value); });
+		addEvent(domJointInspector.querySelector("#spring_damping_ratio"), "input", function() { onChangedJointSpringDampingRatio(this.value); });
 
 		// Setting up settings events
 		domSettings = document.querySelector("#settings");
@@ -2021,13 +2021,13 @@ App = function() {
 
 					var v = getShapeVertex(shape, index);
 
-					var el = domVertexInspector.querySelector("[name=index]");
+					var el = domVertexInspector.querySelector("#index");
 					el.value = index;
 
-					var el = domVertexInspector.querySelector("[name=position_x]");
+					var el = domVertexInspector.querySelector("#position_x");
 					el.value = v.x.toFixed(4);
 
-					var el = domVertexInspector.querySelector("[name=position_y]");
+					var el = domVertexInspector.querySelector("#position_y");
 					el.value = v.y.toFixed(4);
 				}
 			}
@@ -2042,19 +2042,19 @@ App = function() {
 					var v1 = getShapeVertex(shape, index);
 					var v2 = getShapeVertex(shape, index + 1);
 
-					var el = domEdgeInspector.querySelector("[name=index]");
+					var el = domEdgeInspector.querySelector("#index");
 					el.value = index;
 
-					var el = domEdgeInspector.querySelector("[name=v1_position_x]");
+					var el = domEdgeInspector.querySelector("#v1_position_x");
 					el.value = v1.x.toFixed(4);
 
-					var el = domEdgeInspector.querySelector("[name=v1_position_y]");
+					var el = domEdgeInspector.querySelector("#v1_position_y");
 					el.value = v1.y.toFixed(4);
 
-					var el = domEdgeInspector.querySelector("[name=v2_position_x]");
+					var el = domEdgeInspector.querySelector("#v2_position_x");
 					el.value = v2.x.toFixed(4);
 
-					var el = domEdgeInspector.querySelector("[name=v2_position_y]");
+					var el = domEdgeInspector.querySelector("#v2_position_y");
 					el.value = v2.y.toFixed(4);
 				}
 			}
@@ -2064,10 +2064,10 @@ App = function() {
 
 					domShapeInspector.style.display = "block";
 
-					var el = domShapeInspector.querySelector("[name=type]");
+					var el = domShapeInspector.querySelector("#type");
 					el.value = ["Circle", "Segment", "Poly"][shape.type];
 
-					var el = domShapeInspector.querySelector("[name=radius]");
+					var el = domShapeInspector.querySelector("#radius");
 					if (shape.type == Shape.TYPE_CIRCLE || shape.type == Shape.TYPE_SEGMENT) {
 						el.parentNode.style.display = "block";
 						el.value = shape.r;
@@ -2076,13 +2076,13 @@ App = function() {
 						el.parentNode.style.display = "none";
 					}
 
-					var el = domShapeInspector.querySelector("[name=density]");
+					var el = domShapeInspector.querySelector("#density");
 					el.value = shape.density;
 
-					var el = domShapeInspector.querySelector("[name=restitution]");
+					var el = domShapeInspector.querySelector("#restitution");
 					el.value = shape.e.toFixed(2);
 
-					var el = domShapeInspector.querySelector("[name=friction]");
+					var el = domShapeInspector.querySelector("#friction");
 					el.value = shape.u.toFixed(2);					
 				}
 			}
@@ -2092,52 +2092,52 @@ App = function() {
 
 					domBodyInspector.style.display = "block";
 
-					var el = domBodyInspector.querySelector("[name=type]");					
+					var el = domBodyInspector.querySelector("#type");					
 					el.selectedIndex = body.type;
 
-					var el = domBodyInspector.querySelector("[name=name]");
+					var el = domBodyInspector.querySelector("#name");
 					el.value = body.name;
 
-					var el = domBodyInspector.querySelector("[name=position_x]");
+					var el = domBodyInspector.querySelector("#position_x");
 					el.value = body.xf.t.x.toFixed(4);
 
-					var el = domBodyInspector.querySelector("[name=position_y]");
+					var el = domBodyInspector.querySelector("#position_y");
 					el.value = body.xf.t.y.toFixed(4);
 
-					var el = domBodyInspector.querySelector("[name=angle]");
+					var el = domBodyInspector.querySelector("#angle");
 					el.value = rad2deg(body.a).toFixed(1);
 
 					if (!body.isStatic()) {
-						var el = domBodyInspector.querySelector("[name=mass]");
+						var el = domBodyInspector.querySelector("#mass");
 						el.disabled = false;
 						el.value = body.m.toFixed(4);
 
-						var el = domBodyInspector.querySelector("[name=inertia]");
+						var el = domBodyInspector.querySelector("#inertia");
 						el.disabled = false;
 						el.value = body.i.toFixed(8);
 
-						var el = domBodyInspector.querySelector("[name=fixed_rotation]");
+						var el = domBodyInspector.querySelector("#fixed_rotation");
 						el.disabled = false;
 						el.checked = body.fixedRotation;
 					}
 					else {
-						var el = domBodyInspector.querySelector("[name=mass]");
+						var el = domBodyInspector.querySelector("#mass");
 						el.disabled = true;
 						el.value = "0"
 
-						var el = domBodyInspector.querySelector("[name=inertia]");
+						var el = domBodyInspector.querySelector("#inertia");
 						el.disabled = true;
 						el.value = "0";
 
-						var el = domBodyInspector.querySelector("[name=fixed_rotation]");
+						var el = domBodyInspector.querySelector("#fixed_rotation");
 						el.disabled = true;
 						el.checked = false;
 					}
 
-					var el = domBodyInspector.querySelector("[name=category_bits]");
+					var el = domBodyInspector.querySelector("#category_bits");
 					el.value = "0x" + body.categoryBits.toString(16).toUpperCase();
 
-					var el = domBodyInspector.querySelector("[name=mask_bits]");
+					var el = domBodyInspector.querySelector("#mask_bits");
 					el.value = "0x" + body.maskBits.toString(16).toUpperCase();
 				}
 			}
@@ -2149,125 +2149,125 @@ App = function() {
 
 					domJointInspector.style.display = "block";
 
-					var el = domJointInspector.querySelector("[name=type]");
+					var el = domJointInspector.querySelector("#type");
 					el.value = ["Angle", "Revolute", "Weld", "Line", "Prismatic", "Distance", "Rope", "Mouse"][joint.type];
 
-					var el = domJointInspector.querySelector("[name=body1]");
+					var el = domJointInspector.querySelector("#body1");
 					el.value = new String(joint.body1.name);
 
-					var el = domJointInspector.querySelector("[name=body2]");
+					var el = domJointInspector.querySelector("#body2");
 					el.value = new String(joint.body2.name);
 
 					if (joint.type == Joint.TYPE_ANGLE) {
-						var el = domJointInspector.querySelector("[name=anchor_position_x]");
+						var el = domJointInspector.querySelector("#anchor_position_x");
 						el.parentNode.style.display = "none";
 
-						var el = domJointInspector.querySelector("[name=anchor_position_y]");
+						var el = domJointInspector.querySelector("#anchor_position_y");
 						el.parentNode.style.display = "none";
 					}
 					else {
-						var el = domJointInspector.querySelector("[name=anchor_position_x]");
+						var el = domJointInspector.querySelector("#anchor_position_x");
 						el.parentNode.style.display = "block";
 						var anchor = anchorIndex == 0 ? joint.getWorldAnchor1() : joint.getWorldAnchor2();
 						el.value = anchor.x.toFixed(4);
 
-						var el = domJointInspector.querySelector("[name=anchor_position_y]");
+						var el = domJointInspector.querySelector("#anchor_position_y");
 						el.parentNode.style.display = "block";
 						var anchor = anchorIndex == 0 ? joint.getWorldAnchor1() : joint.getWorldAnchor2();
 						el.value = anchor.y.toFixed(4);
 					}
 
 					if (joint.type == Joint.TYPE_REVOLUTE) {
-						var el = domJointInspector.querySelector("[name=enable_limit]");
+						var el = domJointInspector.querySelector("#enable_limit");
 						el.parentNode.style.display = "block";
 						el.checked = joint.limitEnabled;
 
 						if (joint.limitEnabled) {
-							var el = domJointInspector.querySelector("[name=limit_lower_angle]");
+							var el = domJointInspector.querySelector("#limit_lower_angle");
 							el.parentNode.style.display = "block";
 							el.value = rad2deg(joint.limitLowerAngle).toFixed(1);
 
-							var el = domJointInspector.querySelector("[name=limit_upper_angle]");
+							var el = domJointInspector.querySelector("#limit_upper_angle");
 							el.parentNode.style.display = "block";
 							el.value = rad2deg(joint.limitUpperAngle).toFixed(1);
 						}
 						else {
-							var el = domJointInspector.querySelector("[name=limit_lower_angle]");
+							var el = domJointInspector.querySelector("#limit_lower_angle");
 							el.parentNode.style.display = "none";
 
-							var el = domJointInspector.querySelector("[name=limit_upper_angle]");
+							var el = domJointInspector.querySelector("#limit_upper_angle");
 							el.parentNode.style.display = "none";
 						}
 					}
 					else {
-						var el = domJointInspector.querySelector("[name=enable_limit]");
+						var el = domJointInspector.querySelector("#enable_limit");
 						el.parentNode.style.display = "none";
 						el.checked = false;
 
-						var el = domJointInspector.querySelector("[name=limit_lower_angle]");
+						var el = domJointInspector.querySelector("#limit_lower_angle");
 						el.parentNode.style.display = "none";
 
-						var el = domJointInspector.querySelector("[name=limit_upper_angle]");
+						var el = domJointInspector.querySelector("#limit_upper_angle");
 						el.parentNode.style.display = "none";
 					}
 
 					if (joint.type == Joint.TYPE_REVOLUTE || joint.type == Joint.TYPE_LINE) {
-						var el = domJointInspector.querySelector("[name=enable_motor]");
+						var el = domJointInspector.querySelector("#enable_motor");
 						el.parentNode.style.display = "block";
 						el.checked = joint.motorEnabled;
 
 						if (joint.motorEnabled) {
-							var el = domJointInspector.querySelector("[name=motor_speed]");
+							var el = domJointInspector.querySelector("#motor_speed");
 							el.parentNode.style.display = "block";
 							el.value = rad2deg(joint.motorSpeed).toFixed(1);
 
-							var el = domJointInspector.querySelector("[name=max_motor_torque]");
+							var el = domJointInspector.querySelector("#max_motor_torque");
 							el.parentNode.style.display = "block";
 							el.value = joint.maxMotorTorque.toFixed(1);
 						}
 						else {
-							var el = domJointInspector.querySelector("[name=motor_speed]");
+							var el = domJointInspector.querySelector("#motor_speed");
 							el.parentNode.style.display = "none";
 
-							var el = domJointInspector.querySelector("[name=max_motor_torque]");
+							var el = domJointInspector.querySelector("#max_motor_torque");
 							el.parentNode.style.display = "none";
 						}
 					}
 					else {
-						var el = domJointInspector.querySelector("[name=enable_motor]");
+						var el = domJointInspector.querySelector("#enable_motor");
 						el.parentNode.style.display = "none";
 
-						var el = domJointInspector.querySelector("[name=motor_speed]");
+						var el = domJointInspector.querySelector("#motor_speed");
 						el.parentNode.style.display = "none";
 
-						var el = domJointInspector.querySelector("[name=max_motor_torque]");
+						var el = domJointInspector.querySelector("#max_motor_torque");
 						el.parentNode.style.display = "none";
 					}
 
 					if (joint.type == Joint.TYPE_DISTANCE) {
-						var el = domJointInspector.querySelector("[name=spring_frequency_hz]");
+						var el = domJointInspector.querySelector("#spring_frequency_hz");
 						el.parentNode.style.display = "block";
 						el.value = joint.frequencyHz.toFixed(0);
 
-						var el = domJointInspector.querySelector("[name=spring_damping_ratio]");
+						var el = domJointInspector.querySelector("#spring_damping_ratio");
 						el.parentNode.style.display = "block";
 						el.value = joint.dampingRatio.toFixed(2);
 					}
 					else {
-						var el = domJointInspector.querySelector("[name=spring_frequency_hz]");
+						var el = domJointInspector.querySelector("#spring_frequency_hz");
 						el.parentNode.style.display = "none";
 
-						var el = domJointInspector.querySelector("[name=spring_damping_ratio]");
+						var el = domJointInspector.querySelector("#spring_damping_ratio");
 						el.parentNode.style.display = "none";
 					}
 					
-					var el = domJointInspector.querySelector("[name=max_force]");
+					var el = domJointInspector.querySelector("#max_force");
 					el.value = joint.maxForce.toFixed(1);
 
-					var el = domJointInspector.querySelector("[name=collide_connected]");
+					var el = domJointInspector.querySelector("#collide_connected");
 					el.checked = joint.collideConnected;
 
-					var el = domJointInspector.querySelector("[name=breakable]");
+					var el = domJointInspector.querySelector("#breakable");
 					el.checked = joint.breakable;
 				}
 			}
