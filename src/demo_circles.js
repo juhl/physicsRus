@@ -13,7 +13,7 @@ DemoCircles = function() {
 		for (var i = 0; i < 25; i++) {
 			var body = new Body(Body.DYNAMIC, new vec2(Math.random() * 20 - 10, 0.5 + Math.random() * 14));
 			var shape = new ShapeCircle(0, 0, 1.4 * (Math.max(Math.random(), 0.2)));
-			shape.e = 0.8;
+			shape.e = 0.6;
 			shape.u = 0.9;
 			shape.density = 1;
 			body.addShape(shape);

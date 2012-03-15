@@ -78,7 +78,7 @@ ContactSolver.prototype.initSolver = function(dt_inv) {
 		var t = vec2.perp(con.n);
 
 		// invEMn = J * invM * JT
-		// J = [ -n, -cross(r1, n), n, cross(r2, n) ]
+		// J = [ -n, -cross(r1, n), n, cross(r2, n) ]		
 		var sn1 = vec2.cross(con.r1, n);
 		var sn2 = vec2.cross(con.r2, n);
 		var emn_inv = sum_m_inv + body1.i_inv * sn1 * sn1 + body2.i_inv * sn2 * sn2;
