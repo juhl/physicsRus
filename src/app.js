@@ -2092,8 +2092,8 @@ App = function() {
 
 					domBodyInspector.style.display = "block";
 
-					var el = domBodyInspector.querySelector("[name=type]");
-					el.value = ["Static", "Kinetic", "Dynamic"][body.type];
+					var el = domBodyInspector.querySelector("[name=type]");					
+					el.selectedIndex = body.type;
 
 					var el = domBodyInspector.querySelector("[name=name]");
 					el.value = body.name;
