@@ -3,73 +3,73 @@ var stats = {};
 
 App = function() {
 	// edit mode
-	const EM_SELECT = 0;
-	const EM_MOVE = 1;
-	const EM_ROTATE = 2;
-	const EM_SCALE = 3;
-	const EM_CREATE_CIRCLE = 4;
-	const EM_CREATE_SEGMENT = 5;
-	const EM_CREATE_TRIANGLE = 6;
-	const EM_CREATE_BOX = 7;
-	const EM_CREATE_HEXAGON = 8;
-	const EM_CREATE_POLY = 9;
-	const EM_CREATE_ANGLE_JOINT = 10;
-	const EM_CREATE_REVOLUTE_JOINT = 11;
-	const EM_CREATE_WELD_JOINT = 12;
-	const EM_CREATE_LINE_JOINT = 13;
-	const EM_CREATE_PRISMATIC_JOINT = 14;
-	const EM_CREATE_DISTANCE_JOINT = 15;
-	const EM_CREATE_ROPE_JOINT = 16;
-	const EM_COLLAPSE_BODIES = 17;
-	const EM_EDGE_SLICE = 18;
+	var EM_SELECT = 0;
+	var EM_MOVE = 1;
+	var EM_ROTATE = 2;
+	var EM_SCALE = 3;
+	var EM_CREATE_CIRCLE = 4;
+	var EM_CREATE_SEGMENT = 5;
+	var EM_CREATE_TRIANGLE = 6;
+	var EM_CREATE_BOX = 7;
+	var EM_CREATE_HEXAGON = 8;
+	var EM_CREATE_POLY = 9;
+	var EM_CREATE_ANGLE_JOINT = 10;
+	var EM_CREATE_REVOLUTE_JOINT = 11;
+	var EM_CREATE_WELD_JOINT = 12;
+	var EM_CREATE_LINE_JOINT = 13;
+	var EM_CREATE_PRISMATIC_JOINT = 14;
+	var EM_CREATE_DISTANCE_JOINT = 15;
+	var EM_CREATE_ROPE_JOINT = 16;
+	var EM_COLLAPSE_BODIES = 17;
+	var EM_EDGE_SLICE = 18;
 
 	// selection mode
-	const SM_VERTICES = 0;
-	const SM_EDGES = 1;
-	const SM_SHAPES = 2;
-	const SM_BODIES = 3;
-	const SM_JOINTS = 4;
+	var SM_VERTICES = 0;
+	var SM_EDGES = 1;
+	var SM_SHAPES = 2;
+	var SM_BODIES = 3;
+	var SM_JOINTS = 4;
 
 	// selection flag
-	const SF_REPLACE = 0;
-	const SF_ADDITIVE = 1;
-	const SF_XOR = 2;
+	var SF_REPLACE = 0;
+	var SF_ADDITIVE = 1;
+	var SF_XOR = 2;
 
 	// transform axis
-	const TRANSFORM_AXIS_X = 1;
-	const TRANSFORM_AXIS_Y = 2;
-	const TRANSFORM_AXIS_Z = 4;
-	const TRANSFORM_AXIS_XY = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
-	const TRANSFORM_AXIS_XYZ = TRANSFORM_AXIS_XY | TRANSFORM_AXIS_Z;
+	var TRANSFORM_AXIS_X = 1;
+	var TRANSFORM_AXIS_Y = 2;
+	var TRANSFORM_AXIS_Z = 4;
+	var TRANSFORM_AXIS_XY = TRANSFORM_AXIS_X | TRANSFORM_AXIS_Y;
+	var TRANSFORM_AXIS_XYZ = TRANSFORM_AXIS_XY | TRANSFORM_AXIS_Z;
 
 	// gizmo value (pixel unit)
-	const GIZMO_RADIUS = 120;
-	const GIZMO_INNER_OFFSET = 32;
-	const GIZMO_INNER_RADIUS = 15;
-	const GIZMO_SCALE_AXIS_BOX_EXTENT = 6;	
+	var GIZMO_RADIUS = 120;
+	var GIZMO_INNER_OFFSET = 32;
+	var GIZMO_INNER_RADIUS = 15;
+	var GIZMO_SCALE_AXIS_BOX_EXTENT = 6;	
 
 	// edit mode drawing value
-	const HELPER_BODY_AXIS_SIZE = pixel2meter(12);
-	const HELPER_VERTEX_EXTENT = pixel2meter(2);
-	const HELPER_JOINT_ANCHOR_RADIUS = pixel2meter(2.5);
-	const HELPER_ANGLE_JOINT_RADIUS = pixel2meter(16);
-	const HELPER_REVOLUTE_JOINT_RADIUS = pixel2meter(20);
-	const HELPER_PRISMATIC_JOINT_ARROW_SIZE = pixel2meter(12);
-	const HELPER_LINE_JOINT_RADIUS = pixel2meter(8);
-	const HELPER_WELD_JOINT_EXTENT = pixel2meter(8);
+	var HELPER_BODY_AXIS_SIZE = pixel2meter(12);
+	var HELPER_VERTEX_EXTENT = pixel2meter(2);
+	var HELPER_JOINT_ANCHOR_RADIUS = pixel2meter(2.5);
+	var HELPER_ANGLE_JOINT_RADIUS = pixel2meter(16);
+	var HELPER_REVOLUTE_JOINT_RADIUS = pixel2meter(20);
+	var HELPER_PRISMATIC_JOINT_ARROW_SIZE = pixel2meter(12);
+	var HELPER_LINE_JOINT_RADIUS = pixel2meter(8);
+	var HELPER_WELD_JOINT_EXTENT = pixel2meter(8);
 
 	// selectable feature threholds
-	const SELECTABLE_POINT_DIST_THREHOLD = pixel2meter(isAppleMobileDevice() ? 15 : 5);
-	const SELECTABLE_LINE_DIST_THREHOLD = pixel2meter(isAppleMobileDevice() ? 8 : 4);
-	const SELECTABLE_CIRCLE_DIST_THREHOLD = pixel2meter(isAppleMobileDevice() ? 10 : 5);	
+	var SELECTABLE_POINT_DIST_THREHOLD = pixel2meter(isAppleMobileDevice() ? 15 : 5);
+	var SELECTABLE_LINE_DIST_THREHOLD = pixel2meter(isAppleMobileDevice() ? 8 : 4);
+	var SELECTABLE_CIRCLE_DIST_THREHOLD = pixel2meter(isAppleMobileDevice() ? 10 : 5);	
 
 	// default values for creating shape
-	const DEFAULT_SEGMENT_RADIUS = 0.2;
-	const DEFAULT_DENSITY = 1;
-	const DEFAULT_RESTITUTION = 0.4;
-	const DEFAULT_FRICTION = 0.9;
+	var DEFAULT_SEGMENT_RADIUS = 0.2;
+	var DEFAULT_DENSITY = 1;
+	var DEFAULT_RESTITUTION = 0.4;
+	var DEFAULT_FRICTION = 0.9;
 
-	const PIXEL_UNIT = pixel2meter(1);
+	var PIXEL_UNIT = pixel2meter(1);
 
 	// DOM objects
 	var domView;
