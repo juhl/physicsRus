@@ -135,34 +135,41 @@
     </div>
     <div id="vertex_inspector" class="pannel">
       <span class="title">Vertex Inspector</span>
+      <form>
       <ul>
-        <li><label for="index">Index</label> <input type="number" name="index" readonly="true" /></li>
+        <li><label for="index">Index</label> <input type="number" name="index" readonly="readonly" /></li>
         <li><label for="position_x">Position X(m)</label> <input type="number" name="position_x" step="0.1" /></li>
         <li><label for="position_y">Y(m)</label> <input type="number" name="position_y" step="0.1" /></li>
       </ul>
+      </form>
     </div>
     <div id="edge_inspector" class="pannel">
       <span class="title">Edge Inspector</span>
+      <form>
       <ul>
-        <li><label for="index">Index</label> <input type="number" name="index" readonly="true" /></li>
+        <li><label for="index">Index</label> <input type="number" name="index" readonly="readonly" /></li>
         <li><label for="v1_position_x">Vertex 1 Position X(m)</label> <input type="number" name="v1_position_x" step="0.1" /></li>
         <li><label for="v1_position_y">Y(m)</label> <input type="number" name="v1_position_y" step="0.1" /></li>
         <li><label for="v2_position_x">Vertex 2 Position X(m)</label> <input type="number" name="v2_position_x" step="0.1" /></li>
         <li><label for="v2_position_y">Y(m)</label> <input type="number" name="v2_position_y" step="0.1" /></li>
       </ul>
+      </form>
     </div>
     <div id="shape_inspector" class="pannel">
       <span class="title">Shape Inspector</span>
+      <form>
       <ul>
-        <li><label for="type">Type</label> <input type="edit" name="type" readonly="true" /></li>
+        <li><label for="type">Type</label> <input type="text" name="type" readonly="readonly" /></li>
         <li><label for="radius">Radius</label> <input type="number" name="radius" min="0.1" step="0.01" /></li>
         <li><label for="density">Density(kg/m²)</label> <input type="number" name="density" min="0.0000001" max="1" step="0.001" /></li>
         <li><label for="restitution">Restitution</label> <input type="number" name="restitution" min="0" max="1" step="0.05" /></li>
         <li><label for="friction">Friction</label> <input type="number" name="friction" min="0" max="1" step="0.05" /></li>        
       </ul>
+      </form>
     </div>
     <div id="body_inspector" class="pannel">
       <span class="title">Body Inspector</span>
+      <form>
       <ul>
         <li>
           <label for="type">Type</label> <select name="type">
@@ -171,23 +178,25 @@
             <option>Dynamic</option>
           </select>
         </li>
-        <li><label for="name">Name</label> <input type="edit" name="name" /></li>        
+        <li><label for="name">Name</label> <input type="text" name="name" /></li>        
         <li><label for="position_x">Position X(m)</label> <input type="number" name="position_x" step="0.1" /></li>
         <li><label for="position_y">Y(m)</label> <input type="number" name="position_y" step="0.1" /></li>
         <li><label for="rotation">Angle(°)</label> <input type="number" name="angle" step="10" /></li>
         <li><label for="mass">Mass(kg)</label> <input type="number" name="mass" min="0" step="0.1" /></li>
-        <li><label for="inertia">Inertia(kg·m²)</label> <input type="number" name="inertia" readonly="true" /></li>
+        <li><label for="inertia">Inertia(kg·m²)</label> <input type="number" name="inertia" readonly="readonly" /></li>
         <li><label for="fixed_rotation">Fixed Rotation</label> <input type="checkbox" name="fixed_rotation" /></li>
-        <li><label for="category_bits">Category Bits</label> <input type="edit" name="category_bits" /></li>
-        <li><label for="mask_bits">Mask Bits</label> <input type="edit" name="mask_bits" /></li>
+        <li><label for="category_bits">Category Bits</label> <input type="text" name="category_bits" /></li>
+        <li><label for="mask_bits">Mask Bits</label> <input type="text" name="mask_bits" /></li>
       </ul>
+      </form>
     </div>
     <div id="joint_inspector" class="pannel">
       <span class="title">Joint Inspector</span>
+      <form>
       <ul>
-        <li><label for="type">Type</label> <input type="edit" name="type" readonly="true" /></li>
-        <li><label for="body1">Anchor1 Body</label> <input type="edit" name="body1" readonly="true" /></li>
-        <li><label for="body2">Anchor2 Body</label> <input type="edit" name="body2" readonly="true" /></li>
+        <li><label for="type">Type</label> <input type="text" name="type" readonly="readonly" /></li>
+        <li><label for="body1">Anchor1 Body</label> <input type="text" name="body1" readonly="readonly" /></li>
+        <li><label for="body2">Anchor2 Body</label> <input type="text" name="body2" readonly="readonly" /></li>
         <li><label for="anchor_position_x">Anchor Position X(m)</label> <input type="number" name="anchor_position_x" step="0.1" /></li>
         <li><label for="anchor_position_y">Y(m)</label> <input type="number" name="anchor_position_y" step="0.1" /></li>
         <li><label for="max_force">Max Force(N)</label> <input type="number" name="max_force" /></li>
@@ -202,18 +211,20 @@
         <li><label for="spring_frequency_hz">Spring Frequency</label> <input type="number" name="spring_frequency_hz" min="0" /></li>
         <li><label for="spring_damping_ratio">Spring Damping Ratio</label> <input type="number" name="spring_damping_ratio" min="0" step="0.1" /></li>
       </ul>
+      </form>
     </div>
-  </div>
+  </div>  
   <div id="main_view">
     <canvas id="canvas"></canvas>
     <div id="info"></div>
     <div id="status"></div>
     <div id="settings">
+      <form>
       <div style="text-align:right">
-        <label for="gravity">Gravity: </label><input type="number" id="gravity" min="-99" max="99" size="0.1" /><br />
-        <label for="frameRateHz">Frame rate: </label><input type="number" id="frameRateHz" size="5" min="10" max="120" /><br />
-        <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="5" min="1" max="100" /><br />
-        <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="5" min="0" max="100" /><br />
+        <label for="gravity">Gravity: </label><input type="number" id="gravity" size="6" min="-99" max="99" /><br />
+        <label for="frameRateHz">Frame rate: </label><input type="number" id="frameRateHz" size="6" min="10" max="120" /><br />
+        <label for="v_iters">Velocity iters: </label><input type="number" id="v_iters" size="6" min="1" max="100" /><br />
+        <label for="p_iters">Position iters: </label><input type="number" id="p_iters" size="6" min="0" max="100" /><br />
       </div>
       <div>
         <input type="checkbox" id="warmStarting" checked="true" />Warm starting<br />
@@ -226,6 +237,7 @@
         <input type="checkbox" id="showContacts" />Show contacts<br />
         <input type="checkbox" id="showStats" />Show statistics<br />
       </div>
+      </form>
     </div>    
   </div>
   <div id="help">
