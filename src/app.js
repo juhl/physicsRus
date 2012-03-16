@@ -3601,8 +3601,22 @@ App = function() {
 	}
 
 	function onMouseWheel(ev) {
+		var wheelDeltaX = 0;
+		var wheelDeltaY = 0;
+
+		if (ev.detail) {
+			if (ev.axis == ev.HORIZONTAL_AXIS)
+				wheelDeltaX = -40 * ev.detail;
+			else
+				wheelDeltaY = -40 * ev.detail;
+		}
+		else {
+			wheelDeltaX = ev.wheelDeltaX;
+			wheelDeltaY = ev.wheelDeltaY;
+		}
+
 		// Zoom in and out using vertical mouse wheel
-		var ds = -ev.wheelDeltaY * 0.001;
+		var ds = -wheelDeltaY * 0.001;
 		var oldViewScale = camera.scale;
 		camera.scale = Math.clamp(oldViewScale + ds, camera.minScale, camera.maxScale);
 		ds = camera.scale - oldViewScale;
@@ -3615,7 +3629,7 @@ App = function() {
 		camera.origin.y += p.y * ds;
 
 		// Horizontal scroll using horizontal mouse wheel
-		var dx = ev.wheelDeltaX * 0.2;
+		var dx = wheelDeltaX * 0.2;
 		camera.origin.x -= dx;
 
 		// Clamp view origin limit
