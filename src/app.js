@@ -3603,13 +3603,16 @@ App = function() {
 		var wheelDeltaX = 0;
 		var wheelDeltaY = 0;
 
-		if (ev.detail) {
+		if (ev.detail) { // Mozilla
 			if (ev.axis == ev.HORIZONTAL_AXIS)
 				wheelDeltaX = -40 * ev.detail;
 			else
 				wheelDeltaY = -40 * ev.detail;
 		}
-		else {
+		else if (ev.wheelDelta) { // IE, Opera
+			wheelDeltaY = ev.wheelDelta;
+		}
+		else
 			wheelDeltaX = ev.wheelDeltaX;
 			wheelDeltaY = ev.wheelDeltaY;
 		}
