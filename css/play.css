@@ -94,11 +94,11 @@ td#main_view {
   background-color: #eee;
   cursor: default;
 }
-#editmode_pannel {
+#sidebar #editmode_pannel {
   margin: 0;
   padding: 0;  
   position: relative;
-  width: 100%;
+  width: 240px;
   height: 280px;
 }
 #sidebar .pannel {
