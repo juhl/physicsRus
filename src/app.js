@@ -3399,12 +3399,10 @@ App = function() {
 	function onResize(ev) {
 		window.scrollTo(0, 0);
 
-		//fg.canvas.width = window.innerWidth - domView.offsetLeft;
-		//fg.canvas.height = window.innerHeight - domView.offsetTop;
 		fg.canvas.width = window.innerWidth - domView.offsetLeft;
 		fg.canvas.height = window.innerHeight - domView.offsetTop;
 		
-		console.log(fg.canvas.width, fg.canvas.height);
+		//console.log(fg.canvas.width, fg.canvas.height);
 
 		bg.canvas.width = fg.canvas.width;
 		bg.canvas.height = fg.canvas.height;
