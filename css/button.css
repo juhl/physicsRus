@@ -11,8 +11,8 @@
   
   position: relative;
   
-  color: #ddd;  
-  cursor: pointer;   
+  color: #ddd;
+  cursor: pointer;
   text-decoration: none;
   font-style: normal;
   font: inherit;
@@ -39,7 +39,6 @@
   display: inline-block;
   vertical-align: middle;
   *display: inline !important;
-  position: relative;
   
   /* help IE to calm down a bit */
   zoom: 1;

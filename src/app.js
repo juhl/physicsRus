@@ -187,7 +187,7 @@ App = function() {
 		fg.ctx = fg.canvas.getContext("2d");
 
 		bg.canvas = document.createElement("canvas");
-		bg.ctx = bg.canvas.getContext("2d");
+		bg.ctx = bg.canvas.getContext("2d");		
 
 		domInfo = document.getElementById("info");
 		domStatus = document.getElementById("status");
@@ -439,7 +439,7 @@ App = function() {
 				var p = canvasToWorld(pos);
 
 				if (snapEnabled) {
-				 	p = snapPointByGrid(p);
+					p = snapPointByGrid(p);
 				}
 				transformCenter.copy(p);
 				transformScale.set(1, 1);
@@ -665,7 +665,7 @@ App = function() {
 				var p = canvasToWorld(pos);
 
 				if (snapEnabled) {
-				 	p = snapPointByGrid(p);
+					p = snapPointByGrid(p);
 				}
 				transformCenter.copy(p);
 				transformScale.set(1, 1);
@@ -888,7 +888,7 @@ App = function() {
 				var p = canvasToWorld(pos);
 
 				if (snapEnabled) {
-				 	p = snapPointByGrid(p);
+					p = snapPointByGrid(p);
 				}
 				transformCenter.copy(p);
 				transformScale.set(1, 1);
@@ -1983,7 +1983,7 @@ App = function() {
 		var editModeButtons = domSidebar.querySelectorAll("[name=editmode]");
 
 		if (editorEnabled) {
-			domSidebar.style.display = "table-cell";
+			domSidebar.style.display = "block";
 
 			// edit mode buttons
 			var value = ["select", "move", "rotate", "scale", 
@@ -2279,10 +2279,10 @@ App = function() {
 
 	function createCheckPattern(color) {		
 		var c = Color.parse(color);
-    	var r = c.channels[0];
-    	var g = c.channels[1];
-    	var b = c.channels[2];
-    	var a = 255;
+		var r = c.channels[0];
+		var g = c.channels[1];
+		var b = c.channels[2];
+		var a = 255;
 
 		var patternCanvas = document.createElement("canvas");
 		patternCanvas.width = 4;
@@ -2689,7 +2689,7 @@ App = function() {
 		case Shape.TYPE_POLY:
 			var ctverts = new Array(shape.tverts.length);
 			for (var i = 0; i < ctverts.length; i++) {
-			 	ctverts[i] = worldToCanvas(shape.tverts[i]);
+				ctverts[i] = worldToCanvas(shape.tverts[i]);
 			}
 			renderer.drawPolygon(ctx, ctverts, lineWidth, outlineColor, fillColor);
 			break;
@@ -2825,8 +2825,8 @@ App = function() {
 					var v1 = shape.tverts[index1];
 					var v2 = shape.tverts[index2];
 
-			 		renderer.drawLine(ctx, v1, v2, pixel2meter(2), selectionColor);
-			 	
+					renderer.drawLine(ctx, v1, v2, pixel2meter(2), selectionColor);
+				
 					dirtyBounds.addPoint(v1);
 					dirtyBounds.addPoint(v2);
 				}
@@ -2842,7 +2842,7 @@ App = function() {
 					var v1 = shape.tverts[index1];
 					var v2 = shape.tverts[index2];
 
-			 		renderer.drawLine(ctx, v1, v2, pixel2meter(2), highlightColor);			 
+					renderer.drawLine(ctx, v1, v2, pixel2meter(2), highlightColor);			 
 					
 					dirtyBounds.addPoint(v1);
 					dirtyBounds.addPoint(v2);
@@ -3399,11 +3399,12 @@ App = function() {
 	function onResize(ev) {
 		window.scrollTo(0, 0);
 
+		//fg.canvas.width = window.innerWidth - domView.offsetLeft;
+		//fg.canvas.height = window.innerHeight - domView.offsetTop;
 		fg.canvas.width = window.innerWidth - domView.offsetLeft;
 		fg.canvas.height = window.innerHeight - domView.offsetTop;
-
-		//console.log(domCanvas, domView);
-		//console.log(fg.canvas.width, fg.canvas.height);
+		
+		console.log(fg.canvas.width, fg.canvas.height);
 
 		bg.canvas.width = fg.canvas.width;
 		bg.canvas.height = fg.canvas.height;
@@ -3412,7 +3413,7 @@ App = function() {
 
 		// Set dirtyBounds to full screen
 		dirtyBounds.set(canvasToWorld(new vec2(0, domCanvas.height)), canvasToWorld(new vec2(domCanvas.width, 0)));		
-		bg.outdated = true;		
+		bg.outdated = true;
 	}
 
 	function getMousePosition(ev) {
@@ -4161,7 +4162,7 @@ App = function() {
 	function onClickedEdit() {				
 		editorEnabled = !editorEnabled;
 		pause = false;
-		step = false;		
+		step = false;
 
 		if (!editorEnabled) {
 			editModeEventArr[editMode].shutdown();
@@ -4326,8 +4327,8 @@ App = function() {
 
 		if (showSettings) {
 			layout.style.display = "block";
-			layout.style.left = (domCanvas.width - layout.clientWidth) - 4 + "px";
-			layout.style.top = "4px";				
+			layout.style.left = (window.innerWidth - layout.clientWidth) - 4 + "px";
+			layout.style.top = "48px";
 
 			if (button.className.indexOf(" pushed") == -1) {
 				button.className += " pushed";
