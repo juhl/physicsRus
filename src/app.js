@@ -3612,7 +3612,7 @@ App = function() {
 		else if (ev.wheelDelta) { // IE, Opera
 			wheelDeltaY = ev.wheelDelta;
 		}
-		else
+		else {
 			wheelDeltaX = ev.wheelDeltaX;
 			wheelDeltaY = ev.wheelDeltaY;
 		}
