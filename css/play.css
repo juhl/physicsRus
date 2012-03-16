@@ -4,7 +4,8 @@ html, body {
   width: 100%;
   height: 100%;
   font-family: Verdana, times new roman, NanumGothic, sans-serif;    
-  text-align: left;  
+  text-align: left;
+  position: relative;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -77,7 +78,7 @@ td#sidebar {
 td#main_view {
   margin: 0;
   padding: 0;  
-  vertical-align: top;
+  vertical-align: top;  
   top: 0px;
   left: 0px;
   width: 100%;
@@ -165,15 +166,16 @@ div#info {
   padding: 2px;
   width: 400px;
   height: 60px;
-  left: 250px;  
-  top: 48px;
+  left: 0px;
+  top: 0px;
   float: left;
   position: absolute;
   vertical-align: top;
   font-family: menlo;
-  font-size: 9pt;  
-  text-align: left;  
+  font-size: 9pt;
+  text-align: left;
   color: black;
+  pointer-events:none;
   cursor: default;  
 }
 div#status {  
@@ -184,11 +186,13 @@ div#status {
   height: 15px;
   left: 250px;
   bottom: 0px;
+  float: left;
   text-align: left;
   position: absolute;  
   font-family: menlo;
-  font-size: 9pt;  
+  font-size: 9pt;    
   color: black;
+  pointer-events:none;
   cursor: default;
 }
 div#settings {

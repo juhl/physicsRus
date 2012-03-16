@@ -4320,6 +4320,33 @@ App = function() {
 		var editbox = document.getElementById("p_iters");
 		editbox.value = positionIterations;
 
+		var checkbox = document.getElementById("warmStarting");
+		checkbox.checked = warmStarting;
+
+		var checkbox = document.getElementById("allowSleep");
+		checkbox.checked = allowSleep;
+
+		var checkbox = document.getElementById("enableDirtyRect");
+		checkbox.checked = enableDirtyBounds;
+
+		var checkbox = document.getElementById("showDirtyRect");
+		checkbox.checked = showDirtyBounds;		
+
+		var checkbox = document.getElementById("showAxis");
+		checkbox.checked = showAxis;
+
+		var checkbox = document.getElementById("showJoints");
+		checkbox.checked = showJoints;
+
+		var checkbox = document.getElementById("showBounds");
+		checkbox.checked = showBounds;
+
+		var checkbox = document.getElementById("showContacts");
+		checkbox.checked = showContacts;
+
+		var checkbox = document.getElementById("showStats");
+		checkbox.checked = showStats;
+
 		var layout = document.getElementById("settings");
 		var button = document.getElementById("toggle_settings");
 
