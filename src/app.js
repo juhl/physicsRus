@@ -3609,12 +3609,12 @@ App = function() {
 			else
 				wheelDeltaY = -40 * ev.detail;
 		}
-		else if (ev.wheelDelta) { // IE, Opera
-			wheelDeltaY = ev.wheelDelta;
-		}
-		else {
+		else if (ev.wheelDeltaX) {
 			wheelDeltaX = ev.wheelDeltaX;
 			wheelDeltaY = ev.wheelDeltaY;
+		}
+		else if (ev.wheelDelta) { // IE, Opera
+			wheelDeltaY = ev.wheelDelta;
 		}
 
 		// Zoom in and out using vertical mouse wheel
