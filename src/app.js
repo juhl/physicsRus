@@ -1422,6 +1422,7 @@ App = function() {
 		
 			var shape = creatingBody.shapeArr[0];
 			shape.verts.push(creatingBody.getLocalPoint(p));
+			shape.finishVerts();
 
 			var center = vec2.add(creatingBody.p, shape.centroid());
 			for (var i = 0; i < shape.verts.length; i++) {
@@ -1430,7 +1431,6 @@ App = function() {
 
 			creatingBody.setTransform(center, 0);
 
-			shape.finishVerts();
 			shape.body.resetMassData();
 			shape.body.cacheData();
 		}
