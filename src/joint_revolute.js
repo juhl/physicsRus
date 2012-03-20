@@ -211,7 +211,7 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 		var lambda = this.em_inv.solve(cdot.neg());
 
 		if (this.limitState == Joint.LIMIT_STATE_EQUAL_LIMITS) {
-			// Accumulate lambda for velocity constraint
+			// Accumulate lambda
 			this.lambda_acc.addself(lambda);
 		}
 		else if (this.limitState == Joint.LIMIT_STATE_AT_LOWER || this.limitState == Joint.LIMIT_STATE_AT_UPPER) {
@@ -232,13 +232,13 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
 				lambda.y = reduced.y;
 				lambda.z = -this.lambda_acc.z;
 				
-				// Accumulate lambda for velocity constraint
+				// Accumulate lambda
 				this.lambda_acc.x += lambda.x;
 				this.lambda_acc.y += lambda.y;
 				this.lambda_acc.z = 0;
 			}
 			else {
-				// Accumulate lambda for velocity constraint
+				// Accumulate lambda
 				this.lambda_acc.addself(lambda);
 			}
 		}
@@ -263,7 +263,7 @@ RevoluteJoint.prototype.solveVelocityConstraints = function() {
    		var cdot = vec2.sub(v2, v1);
 		var lambda = this.em_inv.solve2x2(cdot.neg());
 
-		// Accumulate lambda for velocity constraint
+		// Accumulate lambda
 		this.lambda_acc.addself(vec3.fromVec2(lambda, 0));
 
 		// Apply constraint impulses

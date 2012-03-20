@@ -1422,6 +1422,7 @@ App = function() {
 		
 			var shape = creatingBody.shapeArr[0];
 			shape.verts.push(creatingBody.getLocalPoint(p));
+			shape.verts = createConvexHull(shape.verts);
 			shape.finishVerts();
 
 			var center = vec2.add(creatingBody.p, shape.centroid());
@@ -2244,7 +2245,7 @@ App = function() {
 						el.parentNode.style.display = "none";
 					}
 
-					if (joint.type == Joint.TYPE_DISTANCE) {
+					if (joint.type == Joint.TYPE_DISTANCE || joint.type == Joint.TYPE_WELD) {
 						var el = domJointInspector.querySelector("#joint_spring_frequency_hz");
 						el.parentNode.style.display = "block";
 						el.value = joint.frequencyHz.toFixed(0);

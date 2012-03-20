@@ -20,18 +20,18 @@ DistanceJoint = function(body1, body2, anchor1, anchor2) {
 	this.anchor2 = this.body2.getLocalPoint(anchor2);
 
 	// Rest length
-	this.restLength = vec2.dist(anchor1, anchor2);
-	
+	this.restLength = vec2.dist(anchor1, anchor2);		
+
 	// Soft constraint coefficients
 	this.gamma = 0;
-	this.c_beta = 0;
+	this.beta_c = 0;
+
+	// Spring coefficients
+	this.frequencyHz = 0;
+	this.dampingRatio = 0;
 
 	// Accumulated impulse
 	this.lambda_acc = 0;
-
-	//
-	this.frequencyHz = 0;
-	this.dampingRatio = 0;
 }
 
 DistanceJoint.prototype = new Joint;
@@ -107,9 +107,7 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.em = em_inv == 0 ? 0 : 1 / em_inv;	
 
 	// Compute soft constraint parameters
-	if (this.frequencyHz > 0) {
-		var c = dist - this.restLength;
-
+	if (this.frequencyHz > 0) {		
 		// Frequency
 		var omega = 2 * Math.PI * this.frequencyHz;
 
@@ -120,17 +118,22 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 		var d = this.em * 2 * this.dampingRatio * omega;
 
 		// Soft constraint formulas
+		// gamma and beta are divided by dt to reduce computation
 		this.gamma = (d + k * dt) * dt;
 		this.gamma = this.gamma == 0 ? 0 : 1 / this.gamma;
 		var beta = dt * k * this.gamma;
-		this.c_beta = c * beta;
 
+		// Position constraint
+		var c = dist - this.restLength;
+		this.beta_c = beta * c;
+
+		//
 		em_inv = em_inv + this.gamma;
 		this.em = em_inv == 0 ? 0 : 1 / em_inv;
 	}
 	else {
 		this.gamma = 0;
-		this.c_beta = 0;
+		this.beta_c = 0;
 	}
 
 	if (warmStarting) {
@@ -155,11 +158,12 @@ DistanceJoint.prototype.solveVelocityConstraints = function() {
 	var body2 = this.body2;
 
 	// Compute lambda for velocity constraint
-	// Solve J * invM * JT * lambda = -(J * V + beta * C/h + gamma * lambda)
+	// Solve J * invM * JT * lambda = -(J * V + beta * C + gamma * lambda)
     var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
-	var lambda = -this.em * (cdot + this.c_beta + this.gamma * this.lambda_acc);
+    var soft = this.beta_c + this.gamma * this.lambda_acc;
+	var lambda = -this.em * (cdot + soft);
 
-	// Accumulate lambda for velocity constraint
+	// Accumulate lambda
 	this.lambda_acc += lambda;
 
 	// linearImpulse = JT * lambda

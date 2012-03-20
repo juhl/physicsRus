@@ -144,7 +144,7 @@ PrismaticJoint.prototype.solveVelocityConstraints = function() {
 	var cdot2 = body2.w - body1.w;
 	var lambda = this.em_inv.solve(new vec2(-cdot1, -cdot2));
 
-	// Accumulate lambda for velocity constraint
+	// Accumulate lambda
 	this.lambda_acc.addself(lambda);
 
 	// linearImpulse = JT * lambda

@@ -21,9 +21,9 @@ MouseJoint = function(mouseBody, body, anchor) {
 	
 	// Soft constraint coefficients
 	this.gamma = 0;
-	this.c_beta = 0;
+	this.beta_c = 0;
 	
-	// Spring stiffness
+	// Spring coefficients
 	this.frequencyHz = 5;
 	this.dampingRatio = 0.9;
 
@@ -59,9 +59,9 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 	var d = body2.m * 2 * this.dampingRatio * omega;
 
 	// Soft constraint formulas
+	// gamma and beta are divided by dt to reduce computation
 	this.gamma = (d + k * dt) * dt;
 	this.gamma = this.gamma == 0 ? 0 : 1 / this.gamma;
-
 	var beta = dt * k * this.gamma;
 
 	// Transformed r
@@ -77,7 +77,7 @@ MouseJoint.prototype.initSolver = function(dt, warmStarting) {
 
 	// Position constraint
 	var c = vec2.sub(vec2.add(body2.p, this.r2), body1.p);
-	this.c_beta = vec2.scale(c, beta);
+	this.beta_c = vec2.scale(c, beta);
 
 	body2.w *= 0.98;	
 
@@ -96,13 +96,13 @@ MouseJoint.prototype.solveVelocityConstraints = function() {
 	var body2 = this.body2;
 
 	// Compute lambda for velocity constraint
-	// Solve J * invM * JT * lambda = -(J * V + beta * C/h + gamma * lambda)
+	// Solve J * invM * JT * lambda = -(J * V + beta * C + gamma * lambda)
 	// in 2D: cross(w, r) = perp(r) * w
    	var cdot = vec2.mad(body2.v, vec2.perp(this.r2), body2.w);
-   	var magic = vec2.mad(this.c_beta, this.lambda_acc, this.gamma);
-	var lambda = this.em_inv.solve(vec2.add(cdot, magic).neg());	
+   	var soft = vec2.mad(this.beta_c, this.lambda_acc, this.gamma);
+	var lambda = this.em_inv.solve(vec2.add(cdot, soft).neg());	
 
-	// Accumulate lambda for velocity constraint
+	// Accumulate lambda
 	var lambda_old = this.lambda_acc.duplicate();
 	this.lambda_acc.addself(lambda);
 	var lsq = this.lambda_acc.lengthsq();

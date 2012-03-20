@@ -37,66 +37,7 @@ ShapePoly.prototype.finishVerts = function() {
 
 	this.convexity = true;
 	this.tverts = [];
-	this.tplanes = [];
-
-	// Create the convex hull using the Gift wrapping algorithm
-	// http://en.wikipedia.org/wiki/Gift_wrapping_algorithm
-
-	// Find the right most point on the hull
-	var i0 = 0;
-	var x0 = this.verts[0].x;
-	for (var i = 1; i < this.verts.length; i++) {
-		var x = this.verts[i].x;
-		if (x > x0 || (x == x0 && this.verts[i].y < this.verts[i0].y)) {
-			i0 = i;
-			x0 = x;
-		}
-	}
-
-	//
-	var n = this.verts.length;//Math.min(this.verts.length, 100);
-	var hull = [];
-	var m = 0;
-	var ih = i0;
-
-	while (1) {
-		hull[m] = ih;
-
-		var ie = 0;
-		for (var j = 1; j < n; j++) {
-			if (ie == ih) {
-				ie = j;
-				continue;
-			}
-
-			var r = vec2.sub(this.verts[ie], this.verts[hull[m]]);
-			var v = vec2.sub(this.verts[j], this.verts[hull[m]]);
-			var c = vec2.cross(r, v);
-			if (c < 0) {
-				ie = j;
-			}
-
-			// Collinearity check
-			if (c == 0 && v.lengthsq() > r.lengthsq()) {
-				ie = j;
-			}
-		}
-
-		m++;
-		ih = ie;
-
-		if (ie == i0) {
-			break;
-		}		
-	}
-
-	// Copy vertices
-	var verts = [];
-	for (var i = 0; i < m; ++i) {
-		verts.push(this.verts[hull[i]]);
-	}
-
-	this.verts = verts;
+	this.tplanes = [];	
 
 	// Must be counter-clockwise verts
 	for (var i = 0; i < this.verts.length; i++) {

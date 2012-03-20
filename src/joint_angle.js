@@ -72,7 +72,7 @@ AngleJoint.prototype.solveVelocityConstraints = function() {
 	var cdot = body2.w - body1.w;
 	var lambda = -this.em * cdot;
 
-	// Accumulate lambda for angular velocity constraint
+	// Accumulate lambda
 	this.lambda_acc += lambda;
 
 	// Apply constraint impulses	

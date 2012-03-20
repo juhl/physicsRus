@@ -67,3 +67,62 @@ function inertiaForPoly(mass, verts, offset) {
 function inertiaForBox(mass, w, h) {
 	return mass * (w * w + h * h) / 12;
 }
+
+// Create the convex hull using the Gift wrapping algorithm
+// http://en.wikipedia.org/wiki/Gift_wrapping_algorithm
+function createConvexHull(points) {	
+	// Find the right most point on the hull
+	var i0 = 0;
+	var x0 = points[0].x;
+	for (var i = 1; i < points.length; i++) {
+		var x = points[i].x;
+		if (x > x0 || (x == x0 && points[i].y < points[i0].y)) {
+			i0 = i;
+			x0 = x;
+		}
+	}
+
+	var n = points.length;
+	var hull = [];
+	var m = 0;
+	var ih = i0;
+
+	while (1) {
+		hull[m] = ih;
+
+		var ie = 0;
+		for (var j = 1; j < n; j++) {
+			if (ie == ih) {
+				ie = j;
+				continue;
+			}
+
+			var r = vec2.sub(points[ie], points[hull[m]]);
+			var v = vec2.sub(points[j], points[hull[m]]);
+			var c = vec2.cross(r, v);
+			if (c < 0) {
+				ie = j;
+			}
+
+			// Collinearity check
+			if (c == 0 && v.lengthsq() > r.lengthsq()) {
+				ie = j;
+			}
+		}
+
+		m++;
+		ih = ie;
+
+		if (ie == i0) {
+			break;
+		}		
+	}
+
+	// Copy vertices
+	var newPoints = [];
+	for (var i = 0; i < m; ++i) {
+		newPoints.push(points[hull[i]]);
+	}
+
+	return newPoints;
+}

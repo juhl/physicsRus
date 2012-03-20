@@ -41,32 +41,32 @@ DemoCar = function() {
 		space.addJoint(joint);
 
 		// Car body        
-		var body1 = new Body(Body.DYNAMIC, new vec2(-8, 5));		
+		var carBody = new Body(Body.DYNAMIC, new vec2(-8, 5));		
 		var shape = new ShapePoly([new vec2(-0.8, 0.48), new vec2(-0.8, 0), new vec2(0.8, 0), new vec2(0.8, 0.32), new vec2(0, 0.84), new vec2(-0.56, 0.84)]);
 		shape.e = 0.5;
 		shape.u = 1.0;
 		shape.density = 6;
-		body1.addShape(shape);
-		body1.resetMassData();		
-		space.addBody(body1);
+		carBody.addShape(shape);
+		carBody.resetMassData();
+		space.addBody(carBody);
 
 		// Wheel 1        
-		var body2 = new Body(Body.DYNAMIC, new vec2(-8.5, 4.9));
+		var wheel1Body = new Body(Body.DYNAMIC, new vec2(-8.5, 4.9));
 		var shape = new ShapeCircle(0, 0, 0.26);
 		shape.e = 0.1;
 		shape.u = 0.97;
 		shape.density = 0.8;
-		body2.addShape(shape);
-		body2.resetMassData();
-		space.addBody(body2);
+		wheel1Body.addShape(shape);
+		wheel1Body.resetMassData();
+		space.addBody(wheel1Body);
 
-		var joint = new DistanceJoint(body1, body2, new vec2(-8.5, 5.36), new vec2(-8.5, 4.9));
+		var joint = new DistanceJoint(carBody, wheel1Body, new vec2(-8.5, 5.36), new vec2(-8.5, 4.9));
 		joint.setSpringFrequencyHz(12);
 		joint.setSpringDampingRatio(0.1);
 		joint.collideConnected = false;
 		space.addJoint(joint);
 
-		var joint = new LineJoint(body1, body2, new vec2(-8.5, 5.36), new vec2(-8.5, 4.9));
+		var joint = new LineJoint(carBody, wheel1Body, new vec2(-8.5, 5.36), new vec2(-8.5, 4.9));
 		/*joint.enableMotor(true);
 		joint.setMotorSpeed(deg2rad(-2000));
 		joint.setMaxMotorTorque(20000);*/
@@ -74,30 +74,58 @@ DemoCar = function() {
 		space.addJoint(joint);
 
 		// Wheel 2        
-		var body3 = new Body(Body.DYNAMIC, new vec2(-7.5, 4.9));
+		var wheel2Body = new Body(Body.DYNAMIC, new vec2(-7.5, 4.9));
 		var shape = new ShapeCircle(0, 0, 0.26);
 		shape.e = 0.1;
 		shape.u = 0.97;
 		shape.density = 0.8;
-		body3.addShape(shape);
-		body3.resetMassData();
-		space.addBody(body3);
+		wheel2Body.addShape(shape);
+		wheel2Body.resetMassData();
+		space.addBody(wheel2Body);
 
-		var joint = new DistanceJoint(body1, body3, new vec2(-7.5, 5.36), new vec2(-7.5, 4.9));
+		var joint = new DistanceJoint(carBody, wheel2Body, new vec2(-7.5, 5.36), new vec2(-7.5, 4.9));
 		joint.setSpringFrequencyHz(12)
 		joint.setSpringDampingRatio(0.1);
 		joint.collideConnected = false;
 		space.addJoint(joint);
 
-		var joint = new LineJoint(body1, body3, new vec2(-7.5, 5.36), new vec2(-7.5, 4.9));
+		var joint = new LineJoint(carBody, wheel2Body, new vec2(-7.5, 5.36), new vec2(-7.5, 4.9));
 		/*joint.enableMotor(true);
 		joint.setMotorSpeed(deg2rad(-2000));
 		joint.setMaxMotorTorque(30000);*/
 		joint.collideConnected = false;
-		space.addJoint(joint);
+		space.addJoint(joint);		
 
 		// Both wheels constrained to be same rotation        
-		//space.addJoint(new AngleJoint(body2, body3));
+		//space.addJoint(new AngleJoint(wheel1Body, wheel2Body));
+
+		// Car antenna
+		var antennaBodies = [];
+		for (var i = 0; i < 3; i++) {
+			antennaBodies[i] = new Body(Body.DYNAMIC, new vec2(-8.55, 5.94 + 0.2 * i));
+			var shape = new ShapeBox(0, 0, 0.04, 0.2);
+			shape.e = 0.5;
+			shape.u = 1.0;
+			shape.density = 0.5;
+			antennaBodies[i].addShape(shape);
+			antennaBodies[i].resetMassData();
+			space.addBody(antennaBodies[i]);
+
+			if (i == 0) {
+				var joint = new WeldJoint(carBody, antennaBodies[0], new vec2(-8.55, 5.84 + 0.2 * i));
+				joint.collideConnected = false;
+				joint.setSpringFrequencyHz(30);
+				joint.setSpringDampingRatio(0.1);
+				space.addJoint(joint);
+			}
+			else {
+				var joint = new WeldJoint(antennaBodies[i - 1], antennaBodies[i], new vec2(-8.55, 5.84 + 0.2 * i));
+				joint.collideConnected = false;
+				joint.setSpringFrequencyHz(30);
+				joint.setSpringDampingRatio(0.1);
+				space.addJoint(joint);
+			}
+		}
 	}
 
 	function runFrame() {

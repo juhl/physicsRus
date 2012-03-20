@@ -174,7 +174,7 @@ LineJoint.prototype.solveVelocityConstraints = function() {
    	var cdot = this.n.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
 	var lambda = -this.em * cdot;
 
-	// Accumulate lambda for velocity constraint
+	// Accumulate lambda
 	this.lambda_acc += lambda;
 
 	// linearImpulse = JT * lambda
