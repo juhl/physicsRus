@@ -4259,11 +4259,11 @@ App = function() {
 					shape.finishVerts();
 					shape.body.resetMassData();
 					shape.body.cacheData();	
-				}
-				
-				if (shape.verts.length == 0) {
-					deleteShape(shape);
-					delete shape;
+								
+					if (shape.verts.length == 0) {
+						deleteShape(shape);
+						delete shape;
+					}
 				}
 			}
 		}
