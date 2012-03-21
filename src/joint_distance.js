@@ -127,7 +127,7 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 		var c = dist - this.restLength;
 		this.beta_c = beta * c;
 
-		//
+		// invEM = invEM + gamma * I (to reduce calculation)
 		em_inv = em_inv + this.gamma;
 		this.em = em_inv == 0 ? 0 : 1 / em_inv;
 	}
@@ -158,7 +158,7 @@ DistanceJoint.prototype.solveVelocityConstraints = function() {
 	var body2 = this.body2;
 
 	// Compute lambda for velocity constraint
-	// Solve J * invM * JT * lambda = -(J * V + beta * C + gamma * lambda)
+	// Solve J * invM * JT * lambda = -(J * V + beta * C + gamma * (lambda_acc + lambda))
     var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
     var soft = this.beta_c + this.gamma * this.lambda_acc;
 	var lambda = -this.em * (cdot + soft);

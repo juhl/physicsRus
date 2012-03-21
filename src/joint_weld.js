@@ -124,7 +124,7 @@ WeldJoint.prototype.initSolver = function(dt, warmStarting) {
 		var c = body2.a - body1.a;
 		this.beta_c = beta * c;
 
-		//
+		// invEM = invEM + gamma * I (to reduce calculation)
 		this.em_inv._33 += this.gamma;
 	}
 	else {
@@ -155,7 +155,7 @@ WeldJoint.prototype.solveVelocityConstraints = function() {
 
 	if (this.frequencyHz > 0) {
 		// Compute lambda for angular velocity constraint
-		// Solve J2 * invM * J2T * lambda = -(J2 * V + beta * C + gamma * lambda)
+		// Solve J2 * invM * J2T * lambda = -(J2 * V + beta * C + gamma * (lambda_acc + lambda))
 		var cdot2 = body2.w - body1.w;
 		lambda_z = -(cdot2 + this.beta_c + this.gamma * this.lambda_acc.z) / this.em_inv._33;
 
