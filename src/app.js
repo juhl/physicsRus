@@ -1778,8 +1778,11 @@ App = function() {
 						primaryBody.addShape(shape);
 					}
 
-					for (var j in body.jointHash) {
-						var joint = body.jointHash[j];
+					for (var j = 0; j < body.jointArr.length; j++) {
+						var joint = body.jointArr[j];
+						if (!joint) {
+							continue;
+						}
 
 						var anchor1 = joint.getWorldAnchor1();
 						var anchor2 = joint.getWorldAnchor2();
@@ -1799,7 +1802,6 @@ App = function() {
 						}
 					}
 
-					body.jointHash = {};
 					space.removeBody(body);					
 				}
 
@@ -2502,7 +2504,7 @@ App = function() {
 				domInfo.innerHTML =					
 					["fps:", fps.toFixed(1), "tm_draw:", stats.timeDrawFrame, "step_cnt:", stats.stepCount, "tm_step:", stats.timeStep, "<br />"].join(" ") +
 					["tm_col:", stats.timeCollision, "tm_init_sv:", stats.timeInitSolver, "tm_vel_sv:", stats.timeVelocitySolver, "tm_pos_sv:", stats.timePositionSolver, "<br />"].join(" ") +
-					["bodies:", space.numBodies, "joints:", space.numJoints, "contacts:", space.numContacts, "pos_iters:", stats.positionIterations].join(" ");
+					["bodies:", space.bodyArr.length, "joints:", space.jointArr.length, "contacts:", space.numContacts, "pos_iters:", stats.positionIterations].join(" ");
 			}
 		}
 		else {
@@ -2515,8 +2517,11 @@ App = function() {
 		camera.bounds.set(canvasToWorld(new vec2(0, domCanvas.height)), canvasToWorld(new vec2(domCanvas.width, 0)));
 
 		// Check the visibility of shapes for all bodies
-		for (var i in space.bodyHash) {
-			var body = space.bodyHash[i];
+		for (var i = 0; i < space.bodyArr.length; i++) {
+			var body = space.bodyArr[i];
+			if (!body) {
+				continue;
+			}
 
 			body.visible = false;
 
@@ -2548,9 +2553,9 @@ App = function() {
 			}
 			else {
 				// Draw static bodies
-				for (var i in space.bodyHash) {
-					var body = space.bodyHash[i];
-					if (body.isStatic()) {
+				for (var i = 0; i < space.bodyArr.length; i++) {
+					var body = space.bodyArr[i];
+					if (body && body.isStatic()) {
 						drawBody(bg.ctx, body, PIXEL_UNIT, "#000", bodyColor(body));
 					}
 				}
@@ -2594,9 +2599,9 @@ App = function() {
 		dirtyBounds.clear();
 
 		// Draw bodies except for static bodies
-		for (var i in space.bodyHash) {
-			var body = space.bodyHash[i];
-			if (body.visible) {
+		for (var i = 0; i < space.bodyArr.length; i++) {
+			var body = space.bodyArr[i];
+			if (body && body.visible) {
 				if (editorEnabled || (!editorEnabled && !body.isStatic())) {				
 					drawBody(fg.ctx, body, PIXEL_UNIT, "#000", bodyColor(body));					
 				}
@@ -2604,16 +2609,20 @@ App = function() {
 		}
 		
 		// Draw joints
-		if (!editorEnabled) {			
+		if (!editorEnabled) {
 			if (showJoints) {
-				for (var i in space.jointHash) {
-					drawHelperJointAnchors(fg.ctx, space.jointHash[i]);
+				for (var i = 0; i < space.jointArr.length; i++) {
+					if (space.jointArr[i]) {
+						drawHelperJointAnchors(fg.ctx, space.jointArr[i]);
+					}
 				}
 			}
 
 			if (showAxis) {
-				for (var i in space.bodyHash) {
-					drawHelperBodyAxis(fg.ctx, space.bodyHash[i]);
+				for (var i = 0; i < space.bodyArr.length; i++) {
+					if (space.bodyArr[i]) {
+						drawHelperBodyAxis(fg.ctx, space.bodyArr[i]);
+					}
 				}
 			}
 		}
@@ -2774,18 +2783,25 @@ App = function() {
 	}
 
 	function drawEditorHelpers(ctx) {
-		for (var i in space.bodyHash) {
-			drawHelperBodyAxis(ctx, space.bodyHash[i]);
+		for (var i = 0; i < space.bodyArr.length; i++) {
+			if (space.bodyArr[i]) {
+				drawHelperBodyAxis(ctx, space.bodyArr[i]);
+			}
 		}
 		
-		for (var i in space.jointHash) {
-			drawHelperJointAnchors(ctx, space.jointHash[i]);
+		for (var i = 0; i < space.jointArr.length; i++) {
+			if (space.jointArr[i]) {
+				drawHelperJointAnchors(ctx, space.jointArr[i]);
+			}
 		}
 
 		if (selectionMode == SM_VERTICES) {
 			// Draw vertices
-			for (var i in space.bodyHash) {
-				var body = space.bodyHash[i];
+			for (var i = 0; i < space.bodyArr.length; i++) {
+				var body = space.bodyArr[i];
+				if (!body) {
+					continue;
+				}
 
 				for (var j = 0; j < body.shapeArr.length; j++) {
 					var shape = body.shapeArr[j];
@@ -3118,8 +3134,11 @@ App = function() {
 		var p1 = joint.getWorldAnchor1();
 		var p2 = joint.getWorldAnchor2();
 
-		renderer.drawCircle(ctx, p1, HELPER_JOINT_ANCHOR_RADIUS, undefined, 1, "", jointAnchorColor);
-		renderer.drawCircle(ctx, p2, HELPER_JOINT_ANCHOR_RADIUS, undefined, 1, "", jointAnchorColor);
+		var rvec = new vec2(HELPER_JOINT_ANCHOR_RADIUS, 0);
+		var uvec = new vec2(0, HELPER_JOINT_ANCHOR_RADIUS);
+
+		renderer.drawBox(ctx, p1, rvec, uvec, 0, "", jointAnchorColor);
+		renderer.drawBox(ctx, p2, rvec, uvec, 0, "", jointAnchorColor);
 
 		bounds.addExtents(p1, HELPER_JOINT_ANCHOR_RADIUS, HELPER_JOINT_ANCHOR_RADIUS);
 		bounds.addExtents(p2, HELPER_JOINT_ANCHOR_RADIUS, HELPER_JOINT_ANCHOR_RADIUS);

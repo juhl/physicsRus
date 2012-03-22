@@ -74,6 +74,7 @@ Body = function(type, pos, angle) {
 	this.shapeArr = [];
 
 	// Joint hash for this body
+	this.jointArr = [];
 	this.jointHash = {};
 
 	// Bounds of all shapes
@@ -245,8 +246,11 @@ Body.prototype.resetMassData = function() {
 }
 
 Body.prototype.resetJointAnchors = function() {
-	for (var i in this.jointHash) {
-		var joint = this.jointHash[i];
+	for (var i = 0; i < this.jointArr.length; i++) {
+		var joint = this.jointArr[i];
+		if (!joint) {
+			continue;
+		}
 
 		var anchor1 = joint.getWorldAnchor1();
 		var anchor2 = joint.getWorldAnchor2();
@@ -379,10 +383,13 @@ Body.prototype.isCollidable = function(other) {
 	if (!(this.maskBits & other.categoryBits) || !(other.maskBits & this.categoryBits))
 		return false;
 
-	for (var i in this.jointHash) {
-		var joint = this.jointHash[i];
+	for (var i = 0; i < this.jointArr.length; i++) {
+		var joint = this.jointArr[i];
+		if (!joint) {
+			continue;
+		}
 
-		if (!joint.collideConnected && other.jointHash[joint.id]) {
+		if (!joint.collideConnected && other.jointHash[joint.id] != undefined) {
 			return false;
 		}
 	}
