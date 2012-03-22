@@ -131,17 +131,17 @@ WeldJoint.prototype.initSolver = function(dt, warmStarting) {
 		var k = m * omega * omega;
 
 		// Damping coefficient
-		var d = m * 2 * this.dampingRatio * omega;
+		var c = m * 2 * this.dampingRatio * omega;
 
 		// Soft constraint formulas
 		// gamma and beta are divided by dt to reduce computation
-		this.gamma = (d + k * dt) * dt;
+		this.gamma = (c + k * dt) * dt;
 		this.gamma = this.gamma == 0 ? 0 : 1 / this.gamma;
 		var beta = dt * k * this.gamma;
 
 		// Position constraint
-		var c = body2.a - body1.a;
-		this.beta_c = beta * c;
+		var pc = body2.a - body1.a;
+		this.beta_c = beta * pc;
 
 		// invEM = invEM + gamma * I (to reduce calculation)
 		this.em_inv._33 += this.gamma;

@@ -35,7 +35,7 @@ App = function() {
 	var EM_CREATE_ANGLE_JOINT = 10;
 	var EM_CREATE_REVOLUTE_JOINT = 11;
 	var EM_CREATE_WELD_JOINT = 12;
-	var EM_CREATE_LINE_JOINT = 13;
+	var EM_CREATE_WHEEL_JOINT = 13;
 	var EM_CREATE_PRISMATIC_JOINT = 14;
 	var EM_CREATE_DISTANCE_JOINT = 15;
 	var EM_CREATE_ROPE_JOINT = 16;
@@ -74,7 +74,7 @@ App = function() {
 	var HELPER_ANGLE_JOINT_RADIUS = pixel2meter(16);
 	var HELPER_REVOLUTE_JOINT_RADIUS = pixel2meter(20);
 	var HELPER_PRISMATIC_JOINT_ARROW_SIZE = pixel2meter(12);
-	var HELPER_LINE_JOINT_RADIUS = pixel2meter(8);
+	var HELPER_WHEEL_JOINT_RADIUS = pixel2meter(8);
 	var HELPER_WELD_JOINT_EXTENT = pixel2meter(8);
 
 	// selectable feature threholds
@@ -1595,13 +1595,13 @@ App = function() {
 			}
 		}
 
-		editModeEventArr[EM_CREATE_LINE_JOINT] = {};
-		editModeEventArr[EM_CREATE_LINE_JOINT].init = function() {
+		editModeEventArr[EM_CREATE_WHEEL_JOINT] = {};
+		editModeEventArr[EM_CREATE_WHEEL_JOINT].init = function() {
 			domCanvas.style.cursor = "crosshair";
 		}
-		editModeEventArr[EM_CREATE_LINE_JOINT].shutdown = function() {
+		editModeEventArr[EM_CREATE_WHEEL_JOINT].shutdown = function() {
 		}
-		editModeEventArr[EM_CREATE_LINE_JOINT].mouseDown = function(ev) {
+		editModeEventArr[EM_CREATE_WHEEL_JOINT].mouseDown = function(ev) {
 			if (selectionMode == SM_BODIES && selectedFeatureArr.length == 2) {
 				var p = canvasToWorld(mousePosition);
 				if (snapEnabled) {
@@ -1612,15 +1612,15 @@ App = function() {
 					var body1 = selectedFeatureArr[0];
 					var body2 = selectedFeatureArr[1];
 
-					creatingJoint = new LineJoint(body1, body2, p, p);
+					creatingJoint = new WheelJoint(body1, body2, p, p);
 					space.addJoint(creatingJoint);
 				}
 			}
 		}
-		editModeEventArr[EM_CREATE_LINE_JOINT].mouseUp = function(ev) {
+		editModeEventArr[EM_CREATE_WHEEL_JOINT].mouseUp = function(ev) {
 			creatingJoint = null;
 		}
-		editModeEventArr[EM_CREATE_LINE_JOINT].mouseMove = function(ev) {		
+		editModeEventArr[EM_CREATE_WHEEL_JOINT].mouseMove = function(ev) {		
 			if (mouseDown && creatingJoint) {
 				var p = canvasToWorld(mousePosition);
 				
@@ -1631,7 +1631,7 @@ App = function() {
 				creatingJoint.setWorldAnchor2(p);
 			}
 		}
-		editModeEventArr[EM_CREATE_LINE_JOINT].keyDown = function(keyCode) {
+		editModeEventArr[EM_CREATE_WHEEL_JOINT].keyDown = function(keyCode) {
 			if (keyCode == 27) {
 				creatingJoint = null;
 			}
@@ -2009,7 +2009,7 @@ App = function() {
 			var value = ["select", "move", "rotate", "scale", 
 				"create_circle", "create_segment", "create_triangle", "create_box", "create_hexagon", "create_poly",
 				"create_angle_joint", "create_revolute_joint", "create_weld_joint", 
-				"create_line_joint", "create_prismatic_joint", "create_distance_joint", "create_rope_joint",
+				"create_wheel_joint", "create_prismatic_joint", "create_distance_joint", "create_rope_joint",
 				"collapse_bodies", "edge_slice"][editMode];
 
 			for (var i = 0; i < editModeButtons.length; i++) {
@@ -2170,7 +2170,7 @@ App = function() {
 					domJointInspector.style.display = "block";
 
 					var el = domJointInspector.querySelector("#joint_type");
-					el.value = ["Angle", "Revolute", "Weld", "Line", "Prismatic", "Distance", "Rope", "Mouse"][joint.type];
+					el.value = ["Angle", "Revolute", "Weld", "Wheel", "Prismatic", "Distance", "Rope", "Mouse"][joint.type];
 
 					var el = domJointInspector.querySelector("#joint_body1");
 					el.value = new String(joint.body1.name);
@@ -2231,7 +2231,7 @@ App = function() {
 						el.parentNode.style.display = "none";
 					}
 
-					if (joint.type == Joint.TYPE_REVOLUTE || joint.type == Joint.TYPE_LINE) {
+					if (joint.type == Joint.TYPE_REVOLUTE || joint.type == Joint.TYPE_WHEEL) {
 						var el = domJointInspector.querySelector("#joint_enable_motor");
 						el.parentNode.style.display = "block";
 						el.checked = joint.motorEnabled;
@@ -2264,7 +2264,7 @@ App = function() {
 						el.parentNode.style.display = "none";
 					}
 
-					if (joint.type == Joint.TYPE_DISTANCE || joint.type == Joint.TYPE_WELD) {
+					if (joint.type == Joint.TYPE_DISTANCE || joint.type == Joint.TYPE_WELD || joint.type == Joint.TYPE_WHEEL) {
 						var el = domJointInspector.querySelector("#joint_spring_frequency_hz");
 						el.parentNode.style.display = "block";
 						el.value = joint.frequencyHz.toFixed(0);
@@ -3173,13 +3173,13 @@ App = function() {
 
 			bounds.addExtents(p1, HELPER_WELD_JOINT_EXTENT, HELPER_WELD_JOINT_EXTENT);
 		}
-		else if (joint.type == Joint.TYPE_LINE) {
+		else if (joint.type == Joint.TYPE_WHEEL) {
 			var color = Color.parse(jointHelperColor);
 			color.channels[3] = 0.2;
-			renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_CIRCLE, ARROW_TYPE_CIRCLE, HELPER_LINE_JOINT_RADIUS, PIXEL_UNIT, jointHelperColor, color.rgba());
+			renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_CIRCLE, ARROW_TYPE_CIRCLE, HELPER_WHEEL_JOINT_RADIUS, PIXEL_UNIT, jointHelperColor, color.rgba());
 
-			bounds.addExtents(p1, HELPER_LINE_JOINT_RADIUS, HELPER_LINE_JOINT_RADIUS);
-			bounds.addExtents(p2, HELPER_LINE_JOINT_RADIUS, HELPER_LINE_JOINT_RADIUS);
+			bounds.addExtents(p1, HELPER_WHEEL_JOINT_RADIUS, HELPER_WHEEL_JOINT_RADIUS);
+			bounds.addExtents(p2, HELPER_WHEEL_JOINT_RADIUS, HELPER_WHEEL_JOINT_RADIUS);
 		}
 		else if (joint.type == Joint.TYPE_PRISMATIC) {
 			renderer.drawArrow(ctx, p1, p2, ARROW_TYPE_NORMAL, ARROW_TYPE_NORMAL, HELPER_PRISMATIC_JOINT_ARROW_SIZE, PIXEL_UNIT, jointHelperColor, jointHelperColor);
@@ -4230,7 +4230,7 @@ App = function() {
 
 		editMode = { create_circle: EM_CREATE_CIRCLE, create_segment: EM_CREATE_SEGMENT, create_triangle: EM_CREATE_TRIANGLE, create_box: EM_CREATE_BOX, create_hexagon: EM_CREATE_HEXAGON, create_poly: EM_CREATE_POLY,
 			create_angle_joint: EM_CREATE_ANGLE_JOINT, create_revolute_joint: EM_CREATE_REVOLUTE_JOINT, create_weld_joint: EM_CREATE_WELD_JOINT, 
-			create_line_joint: EM_CREATE_LINE_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT, create_rope_joint: EM_CREATE_ROPE_JOINT,
+			create_wheel_joint: EM_CREATE_WHEEL_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT, create_rope_joint: EM_CREATE_ROPE_JOINT,
 			select: EM_SELECT, move: EM_MOVE, rotate: EM_ROTATE, scale: EM_SCALE,
 			collapse_bodies: EM_COLLAPSE_BODIES, edge_slice: EM_EDGE_SLICE }[value];
 

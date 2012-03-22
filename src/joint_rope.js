@@ -111,10 +111,10 @@ RopeJoint.prototype.initSolver = function(dt, warmStarting) {
 	
 	// s1, s2
 	this.s1 = vec2.cross(this.r1, this.u);
-   	this.s2 = vec2.cross(this.r2, this.u);
+	this.s2 = vec2.cross(this.r2, this.u);
 		
 	// invEM = J * invM * JT
-   	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
+	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
 	this.em = em_inv == 0 ? 0 : 1 / em_inv;
 
 	if (warmStarting) {

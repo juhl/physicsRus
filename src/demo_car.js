@@ -79,17 +79,13 @@ DemoCar = function() {
 		wheel1Body.resetMassData();
 		space.addBody(wheel1Body);
 
-		var joint = new DistanceJoint(carBody, wheel1Body, new vec2(-8.5, 5.36), new vec2(-8.5, 4.9));
+		var joint = new WheelJoint(carBody, wheel1Body, new vec2(-8.5, 5), new vec2(-8.5, 4.9));
 		joint.setSpringFrequencyHz(12);
 		joint.setSpringDampingRatio(0.1);
 		joint.collideConnected = false;
-		space.addJoint(joint);
-
-		var joint = new LineJoint(carBody, wheel1Body, new vec2(-8.5, 5.36), new vec2(-8.5, 4.9));
 		/*joint.enableMotor(true);
 		joint.setMotorSpeed(deg2rad(-2000));
 		joint.setMaxMotorTorque(20000);*/
-		joint.collideConnected = false;
 		space.addJoint(joint);
 
 		// Wheel 2        
@@ -102,13 +98,9 @@ DemoCar = function() {
 		wheel2Body.resetMassData();
 		space.addBody(wheel2Body);
 
-		var joint = new DistanceJoint(carBody, wheel2Body, new vec2(-7.5, 5.36), new vec2(-7.5, 4.9));
+		var joint = new WheelJoint(carBody, wheel2Body, new vec2(-7.5, 5), new vec2(-7.5, 4.9));
 		joint.setSpringFrequencyHz(12)
 		joint.setSpringDampingRatio(0.1);
-		joint.collideConnected = false;
-		space.addJoint(joint);
-
-		var joint = new LineJoint(carBody, wheel2Body, new vec2(-7.5, 5.36), new vec2(-7.5, 4.9));
 		/*joint.enableMotor(true);
 		joint.setMotorSpeed(deg2rad(-2000));
 		joint.setMaxMotorTorque(30000);*/

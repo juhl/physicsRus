@@ -18,8 +18,9 @@
 */
 
 //-------------------------------------------------------------------------------------------------
-// Line Joint
+// Wheel Joint
 //
+// Point-to-Line constraint:
 // d = p2 - p1
 // n = normalize(perp(d))
 // C = dot(n, d)
@@ -27,19 +28,29 @@
 //      = dot(d, cross(w1, n)) + dot(n, v2 + cross(w2, r2) - v1 - cross(w1, r1))
 //      = dot(d, cross(w1, n)) + dot(n, v2) + dot(n, cross(w2, r2)) - dot(n, v1) - dot(n, cross(w1, r1))
 //      = -dot(n, v1) - dot(cross(d + r1, n), w1) + dot(n, v2) + dot(cross(r2, n), w2)
-// J = [ -n, -s1, n, s2 ]
-// s1 = cross(r1 + d, n)
-// s2 = cross(r2, n)
+// J = [ -n, -sn1, n, sn2 ]
+// sn1 = cross(r1 + d, n)
+// sn2 = cross(r2, n)
 //
-// impulse = JT * lambda = [ -n * lambda, -(s1 * lambda), n * lambda, s2 * lambda ]
+// impulse = JT * lambda = [ -n * lambda, -(sn1 * lambda), n * lambda, sn2 * lambda ]
 //
-// Motor rotational constraint
+// Spring constraint:
+// u = normalize(d)
+// C = dot(u, d)
+// Cdot = -dot(u, v1) - dot(cross(d + r1, u), w1) + dot(u, v2) + dot(cross(r2, u), w2)
+// J = [ -u, -su1, u, su2 ]
+// su1 = cross(r1 + d, u)
+// su2 = cross(r2, u)
+//
+// impulse = JT * lambda = [ -u * lambda, -(su1 * lambda), u * lambda, su2 * lambda ]
+//
+// Motor rotational constraint:
 // Cdot = w2 - w1
 // J = [ 0, -1, 0, 1 ]
 //-------------------------------------------------------------------------------------------------
 
-LineJoint = function(body1, body2, anchor1, anchor2) {
-	Joint.call(this, Joint.TYPE_LINE, body1, body2, true);
+WheelJoint = function(body1, body2, anchor1, anchor2) {
+	Joint.call(this, Joint.TYPE_WHEEL, body1, body2, true);
 
 	// Local anchor points
 	this.anchor1 = this.body1.getLocalPoint(anchor1);
@@ -47,41 +58,56 @@ LineJoint = function(body1, body2, anchor1, anchor2) {
 
 	var d = vec2.sub(anchor2, anchor1);
 
-	// Body1's local line normal
-	this.n_local = this.body1.getLocalVector(vec2.normalize(vec2.perp(d)));	
+	// Rest length
+	this.restLength = d.length();
+
+	// Body1's local axis
+	this.u_local = this.body1.getLocalVector(vec2.normalize(d));
+	this.n_local = vec2.perp(this.u_local);
 	
-   	// Accumulated impulse
+	// Accumulated impulse
 	this.lambda_acc = 0;
 	this.motorLambda_acc = 0;
+	this.springLambda_acc = 0;	
 
 	// Motor
 	this.motorEnabled = false;
 	this.motorSpeed = 0;
 	this.maxMotorTorque = 0;
+
+	// Soft constraint coefficients
+	this.gamma = 0;
+	this.beta_c = 0;
+
+	// Spring coefficients
+	this.frequencyHz = 0;
+	this.dampingRatio = 0;
 }
 
-LineJoint.prototype = new Joint;
-LineJoint.prototype.constructor = LineJoint;
+WheelJoint.prototype = new Joint;
+WheelJoint.prototype.constructor = WheelJoint;
 
-LineJoint.prototype.setWorldAnchor1 = function(anchor1) {
+WheelJoint.prototype.setWorldAnchor1 = function(anchor1) {
 	this.anchor1 = this.body1.getLocalPoint(anchor1);
 
 	var d = vec2.sub(this.getWorldAnchor2(), anchor1);
 
-	this.n_local = this.body1.getLocalVector(vec2.normalize(vec2.perp(d)));
+	this.u_local = this.body1.getLocalVector(vec2.normalize(d));	
+	this.n_local = vec2.perp(this.u_local);
 }
 
-LineJoint.prototype.setWorldAnchor2 = function(anchor2) {
+WheelJoint.prototype.setWorldAnchor2 = function(anchor2) {
 	this.anchor2 = this.body2.getLocalPoint(anchor2);
 
 	var d = vec2.sub(anchor2, this.getWorldAnchor1());
 
-	this.n_local = this.body1.getLocalVector(vec2.normalize(vec2.perp(d)));
+	this.u_local = this.body1.getLocalVector(vec2.normalize(d));	
+	this.n_local = vec2.perp(this.u_local);
 }
 
-LineJoint.prototype.serialize = function() {
+WheelJoint.prototype.serialize = function() {
 	return {
-		"type": "LineJoint",
+		"type": "WheelJoint",
 		"body1": this.body1.id, 
 		"body2": this.body2.id,
 		"anchor1": this.body1.getWorldPoint(this.anchor1),
@@ -91,23 +117,34 @@ LineJoint.prototype.serialize = function() {
 		"breakable": this.breakable,
 		"motorEnabled": this.motorEnabled,
 		"motorSpeed": this.motorSpeed,
-		"maxMotorTorque": this.maxMotorTorque
+		"maxMotorTorque": this.maxMotorTorque,
+		"frequencyHz": this.frequencyHz,
+		"dampingRatio": this.dampingRatio	
 	};
 }
 
-LineJoint.prototype.enableMotor = function(flag) {
+WheelJoint.prototype.setSpringFrequencyHz = function(frequencyHz) {
+	// NOTE: frequencyHz should be limited to under 4 times time steps
+	this.frequencyHz = frequencyHz;
+}
+
+WheelJoint.prototype.setSpringDampingRatio = function(dampingRatio) {
+	this.dampingRatio = dampingRatio;
+}
+
+WheelJoint.prototype.enableMotor = function(flag) {
 	this.motorEnabled = flag;
 }
 
-LineJoint.prototype.setMotorSpeed = function(speed) {
+WheelJoint.prototype.setMotorSpeed = function(speed) {
 	this.motorSpeed = speed;
 }
 
-LineJoint.prototype.setMaxMotorTorque = function(torque) {
+WheelJoint.prototype.setMaxMotorTorque = function(torque) {
 	this.maxMotorTorque = torque;
 }
 
-LineJoint.prototype.initSolver = function(dt, warmStarting) {
+WheelJoint.prototype.initSolver = function(dt, warmStarting) {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
@@ -129,15 +166,57 @@ LineJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.r1_d = vec2.add(this.r1, d);
 
 	// World line normal
-	this.n = vec2.normalize(vec2.perp(d));
+	this.n = vec2.rotate(this.n_local, body1.a);
 	
-	// s1, s2
-    this.s1 = vec2.cross(this.r1_d, this.n);
-    this.s2 = vec2.cross(this.r2, this.n);
+	// sn1, sn2
+	this.sn1 = vec2.cross(this.r1_d, this.n);
+	this.sn2 = vec2.cross(this.r2, this.n);
 
 	// invEM = J * invM * JT
-    var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;    
+	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.sn1 * this.sn1 + body2.i_inv * this.sn2 * this.sn2;    
 	this.em = em_inv > 0 ? 1 / em_inv : em_inv;
+
+	// Compute soft constraint parameters
+	if (this.frequencyHz > 0) {
+		// World delta axis
+		this.u = vec2.rotate(this.u_local, body1.a);
+
+		// su1, su2
+		this.su1 = vec2.cross(this.r1_d, this.u);
+		this.su2 = vec2.cross(this.r2, this.u);
+			
+		// invEM = J * invM * JT
+		var springEm_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.su1 * this.su1 + body2.i_inv * this.su2 * this.su2;
+		springEm = springEm_inv == 0 ? 0 : 1 / springEm_inv;
+
+		// Frequency
+		var omega = 2 * Math.PI * this.frequencyHz;
+
+		// Spring stiffness
+		var k = springEm * omega * omega;
+
+		// Damping coefficient
+		var c = springEm * 2 * this.dampingRatio * omega;
+
+		// Soft constraint formulas
+		// gamma and beta are divided by dt to reduce computation
+		this.gamma = (c + k * dt) * dt;
+		this.gamma = this.gamma == 0 ? 0 : 1 / this.gamma;
+		var beta = dt * k * this.gamma;
+
+		// Position constraint
+		var pc = vec2.dot(d, this.u) - this.restLength;
+		this.beta_c = beta * pc;
+
+		// invEM = invEM + gamma * I (to reduce calculation)
+		springEm_inv = springEm_inv + this.gamma;
+		this.springEm = springEm_inv == 0 ? 0 : 1 / springEm_inv;
+	}
+	else {
+		this.gamma = 0;
+		this.beta_c = 0;
+		this.springLambda_acc = 0;
+	}
 
 	if (this.motorEnabled) {
 		this.maxMotorImpulse = this.maxMotorTorque * dt;
@@ -147,31 +226,63 @@ LineJoint.prototype.initSolver = function(dt, warmStarting) {
 		this.motorEm = motorEm_inv > 0 ? 1 / motorEm_inv : motorEm_inv;
 	}
 	else {
-		this.motorLambda_acc = 0;
 		this.motorEm = 0;
+		this.motorLambda_acc = 0;
 	}
 	
 	if (warmStarting) {
-		// linearImpulse = JT * lambda
-		var impulse = vec2.scale(this.n, this.lambda_acc);
+		// impulse = JT * lambda
+		var linearImpulse = vec2.scale(this.n, this.lambda_acc);
+		var angularImpulse1 = this.sn1 * this.lambda_acc + this.motorLambda_acc;
+		var angularImpulse2 = this.sn2 * this.lambda_acc + this.motorLambda_acc;
+
+		if (this.frequencyHz > 0) {
+			linearImpulse.addself(vec2.scale(this.u, this.springLambda_acc));
+			angularImpulse1 += this.su1 * this.springLambda_acc;
+			angularImpulse2 += this.su2 * this.springLambda_acc;			
+		}
 
 		// Apply cached constraint impulses
-		// V += JT * lambda * invM		
-		body1.v.mad(impulse, -body1.m_inv);
-		body1.w -= (this.s1 * this.lambda_acc + this.motorLambda_acc) * body1.i_inv;
+		// V += JT * lambda * invM
+		body1.v.mad(linearImpulse, -body1.m_inv);
+		body1.w -= angularImpulse1 * body1.i_inv;
 
-		body2.v.mad(impulse, body2.m_inv);
-		body2.w += (this.s2 * this.lambda_acc + this.motorLambda_acc) * body2.i_inv;
+		body2.v.mad(linearImpulse, body2.m_inv);
+		body2.w += angularImpulse2 * body2.i_inv;
 	}
 	else {
 		this.lambda_acc = 0;
+		this.springLambda_acc = 0;
 		this.motorLambda_acc = 0;
 	}
 }
 
-LineJoint.prototype.solveVelocityConstraints = function() {
+WheelJoint.prototype.solveVelocityConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
+
+	// Solve spring constraint
+	if (this.frequencyHz > 0) {
+		// Compute lambda for velocity constraint
+		// Solve J * invM * JT * lambda = -(J * V + beta * C + gamma * (lambda_acc + lambda))
+		var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.su2 * body2.w - this.su1 * body1.w;
+		var soft = this.beta_c + this.gamma * this.springLambda_acc;
+		var lambda = -this.springEm * (cdot + soft);
+
+		// Accumulate lambda
+		this.springLambda_acc += lambda;
+
+		// linearImpulse = JT * lambda
+		var impulse = vec2.scale(this.u, lambda);
+
+		// Apply constraint impulses
+		// V += JT * lambda * invM
+		body1.v.mad(impulse, -body1.m_inv);
+		body1.w -= this.su1 * lambda * body1.i_inv;
+
+		body2.v.mad(impulse, body2.m_inv);
+		body2.w += this.su2 * lambda * body2.i_inv;
+	}
 
 	// Solve motor constraint
 	if (this.motorEnabled) {
@@ -190,7 +301,7 @@ LineJoint.prototype.solveVelocityConstraints = function() {
 
 	// Compute lambda for velocity constraint
 	// Solve J * invM * JT * lambda = -J * V
-   	var cdot = this.n.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
+	var cdot = this.n.dot(vec2.sub(body2.v, body1.v)) + this.sn2 * body2.w - this.sn1 * body1.w;
 	var lambda = -this.em * cdot;
 
 	// Accumulate lambda
@@ -202,13 +313,13 @@ LineJoint.prototype.solveVelocityConstraints = function() {
 	// Apply constraint impulses
 	// V += JT * lambda * invM
 	body1.v.mad(impulse, -body1.m_inv);
-	body1.w -= this.s1 * lambda * body1.i_inv;
+	body1.w -= this.sn1 * lambda * body1.i_inv;
 
 	body2.v.mad(impulse, body2.m_inv);
-	body2.w += this.s2 * lambda * body2.i_inv;
+	body2.w += this.sn2 * lambda * body2.i_inv;
 }
 
-LineJoint.prototype.solvePositionConstraints = function() {
+WheelJoint.prototype.solvePositionConstraints = function() {
 	var body1 = this.body1;
 	var body2 = this.body2;
 
@@ -235,9 +346,9 @@ LineJoint.prototype.solvePositionConstraints = function() {
 	
 	// Compute lambda for position constraint
 	// Solve J * invM * JT * lambda = -C / dt
-   	var s1 = vec2.cross(r1_d, n);
-   	var s2 = vec2.cross(r2, n);
-   	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;
+	var s1 = vec2.cross(r1_d, n);
+	var s2 = vec2.cross(r2, n);
+	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;
 	var k_inv = em_inv == 0 ? 0 : 1 / em_inv;
 	var lambda_dt = k_inv * (-correction);
 
@@ -255,11 +366,11 @@ LineJoint.prototype.solvePositionConstraints = function() {
 	return Math.abs(c) < Joint.LINEAR_SLOP;
 }
 
-LineJoint.prototype.getReactionForce = function(dt_inv) {
+WheelJoint.prototype.getReactionForce = function(dt_inv) {
 	return vec2.scale(this.n, this.lambda_acc * dt_inv);
 }
 
-LineJoint.prototype.getReactionTorque = function(dt_inv) {
+WheelJoint.prototype.getReactionTorque = function(dt_inv) {
 	return 0;
 }
 

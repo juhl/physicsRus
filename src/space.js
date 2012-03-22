@@ -128,8 +128,8 @@ Space.prototype.create = function(text) {
 			joint.setSpringFrequencyHz(config_joint.frequencyHz);
 			joint.setSpringDampingRatio(config_joint.dampingRatio);
 			break;
-		case "LineJoint":
-			joint = new LineJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
+		case "WheelJoint":
+			joint = new WheelJoint(body1, body2, config_joint.anchor1, config_joint.anchor2);
 			joint.enableMotor(config_joint.motorEnabled);
 			joint.setMotorSpeed(config_joint.motorSpeed);
 			joint.setMaxMotorTorque(config_joint.maxMotorTorque);

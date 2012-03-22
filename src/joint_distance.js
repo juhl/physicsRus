@@ -39,7 +39,7 @@ DistanceJoint = function(body1, body2, anchor1, anchor2) {
 	this.anchor2 = this.body2.getLocalPoint(anchor2);
 
 	// Rest length
-	this.restLength = vec2.dist(anchor1, anchor2);		
+	this.restLength = vec2.dist(anchor1, anchor2);
 
 	// Soft constraint coefficients
 	this.gamma = 0;
@@ -119,10 +119,10 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	
 	// s1, s2
 	this.s1 = vec2.cross(this.r1, this.u);
-   	this.s2 = vec2.cross(this.r2, this.u);
+	this.s2 = vec2.cross(this.r2, this.u);
 		
 	// invEM = J * invM * JT
-   	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
+	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
 	this.em = em_inv == 0 ? 0 : 1 / em_inv;	
 
 	// Compute soft constraint parameters
@@ -134,17 +134,17 @@ DistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 		var k = this.em * omega * omega;
 
 		// Damping coefficient
-		var d = this.em * 2 * this.dampingRatio * omega;
+		var c = this.em * 2 * this.dampingRatio * omega;
 
 		// Soft constraint formulas
 		// gamma and beta are divided by dt to reduce computation
-		this.gamma = (d + k * dt) * dt;
+		this.gamma = (c + k * dt) * dt;
 		this.gamma = this.gamma == 0 ? 0 : 1 / this.gamma;
 		var beta = dt * k * this.gamma;
 
 		// Position constraint
-		var c = dist - this.restLength;
-		this.beta_c = beta * c;
+		var pc = dist - this.restLength;
+		this.beta_c = beta * pc;
 
 		// invEM = invEM + gamma * I (to reduce calculation)
 		em_inv = em_inv + this.gamma;
@@ -178,8 +178,8 @@ DistanceJoint.prototype.solveVelocityConstraints = function() {
 
 	// Compute lambda for velocity constraint
 	// Solve J * invM * JT * lambda = -(J * V + beta * C + gamma * (lambda_acc + lambda))
-    var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
-    var soft = this.beta_c + this.gamma * this.lambda_acc;
+	var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
+	var soft = this.beta_c + this.gamma * this.lambda_acc;
 	var lambda = -this.em * (cdot + soft);
 
 	// Accumulate lambda
@@ -225,9 +225,9 @@ DistanceJoint.prototype.solvePositionConstraints = function() {
 
 	// Compute lambda for correction
 	// Solve J * invM * JT * lambda = -C / dt
-    var s1 = vec2.cross(r1, u);
-    var s2 = vec2.cross(r2, u);
-    var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;
+	var s1 = vec2.cross(r1, u);
+	var s2 = vec2.cross(r2, u);
+	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;
 	var lambda_dt = em_inv == 0 ? 0 : -correction / em_inv;
 	
 	// Apply constraint impulses
@@ -301,11 +301,11 @@ MaxDistanceJoint.prototype.initSolver = function(dt, warmStarting) {
 	this.u = vec2.scale(d, 1 / dist);
 
 	// s1, s2
-    this.s1 = vec2.cross(this.r1, this.u);
-    this.s2 = vec2.cross(this.r2, this.u);
+	this.s1 = vec2.cross(this.r1, this.u);
+	this.s2 = vec2.cross(this.r2, this.u);
 
 	// invEM = J * invM * JT
-    var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
+	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
 	this.em = em_inv == 0 ? 0 : 1 / em_inv;
 
 	// initial error
@@ -399,9 +399,9 @@ MaxDistanceJoint.prototype.solvePositionConstraints = function() {
 
 	// compute lambda for position constraint	
 	// solve J * invM * JT * lambda = -C / dt
-    var s1 = vec2.cross(r1, u);
-    var s2 = vec2.cross(r2, u);
-    var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;		
+	var s1 = vec2.cross(r1, u);
+	var s2 = vec2.cross(r2, u);
+	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * s1 * s1 + body2.i_inv * s2 * s2;		
 	var lambda_dt = em_inv == 0 ? 0 : -correction / em_inv;	
 
 	// apply impulses
@@ -459,10 +459,10 @@ SpringJoint.prototype.initSolver = function(dt, warmStarting) {
 
 	// s1, s2
 	this.s1 = vec2.cross(this.r1, this.u);
-    this.s2 = vec2.cross(this.r2, this.u);
+	this.s2 = vec2.cross(this.r2, this.u);
 	
 	// invEM = J * invM * JT
-    var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
+	var em_inv = body1.m_inv + body2.m_inv + body1.i_inv * this.s1 * this.s1 + body2.i_inv * this.s2 * this.s2;
 	this.em = em_inv == 0 ? 0 : 1 / em_inv;
 	
 	//
@@ -490,7 +490,7 @@ SpringJoint.prototype.solveVelocityConstraints = function() {
 	
 	// compute lambda for velocity constraint	
 	// solve J * invM * JT * lambda = -J * V
-    var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
+	var cdot = this.u.dot(vec2.sub(body2.v, body1.v)) + this.s2 * body2.w - this.s1 * body1.w;
 	var rnv = cdot + this.target_rnv;
 
 	// compute velocity loss from drag
