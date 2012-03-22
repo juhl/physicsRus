@@ -19,13 +19,6 @@ Todo
 - Broad phase collision detection
 - CCD (Continuous Collision Detection)
 
-Third Party Library
---------------
-
-- lib/add2home.js 
-- lib/color.js
-- lib/json2.js
-
 License
 --------------
 
