@@ -75,11 +75,12 @@ ShapePoly.prototype.finishVerts = function() {
 		this.tplanes[i].d = 0;		
 	}
 
-	for (var i = 0; i < this.planes.length; i++) {
-		var p1 = this.planes[i];
-		var p2 = this.planes[(i + 1) % this.planes.length];
+	for (var i = 0; i < this.verts.length; i++) {
+		var b = this.verts[(i + 2) % this.verts.length];
+		var n = this.planes[i].n;
+		var d = this.planes[i].d;
 
-		if (vec2.cross(p1.n, p2.n) < 0) {
+		if (vec2.dot(n, b) - d > 0) {
 			this.convexity = false;
 		}
 	}
