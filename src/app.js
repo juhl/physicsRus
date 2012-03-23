@@ -31,7 +31,7 @@ App = function() {
 	var EM_CREATE_TRIANGLE = 6;
 	var EM_CREATE_BOX = 7;
 	var EM_CREATE_HEXAGON = 8;
-	var EM_CREATE_POLY = 9;
+	var EM_CREATE_BRUSH = 9;
 	var EM_CREATE_ANGLE_JOINT = 10;
 	var EM_CREATE_REVOLUTE_JOINT = 11;
 	var EM_CREATE_WELD_JOINT = 12;
@@ -1415,14 +1415,14 @@ App = function() {
 		}
 		editModeEventArr[EM_CREATE_HEXAGON].keyDown = function(keyCode) {}
 
-		editModeEventArr[EM_CREATE_POLY] = {};
-		editModeEventArr[EM_CREATE_POLY].init = function() {
+		editModeEventArr[EM_CREATE_BRUSH] = {};
+		editModeEventArr[EM_CREATE_BRUSH].init = function() {
 			domCanvas.style.cursor = "crosshair";
 		}
-		editModeEventArr[EM_CREATE_POLY].shutdown = function() {
+		editModeEventArr[EM_CREATE_BRUSH].shutdown = function() {
 			creatingBody = null;
 		}
-		editModeEventArr[EM_CREATE_POLY].mouseDown = function(ev) {
+		editModeEventArr[EM_CREATE_BRUSH].mouseDown = function(ev) {
 			var p = canvasToWorld(mousePosition);
 			if (snapEnabled) {
 				p = snapPointByGrid(p);
@@ -1437,36 +1437,37 @@ App = function() {
 				creatingBody.addShape(shape);
 				creatingBody.resetMassData();
 				space.addBody(creatingBody);
-			}
-		
+			}				
+		}
+		editModeEventArr[EM_CREATE_BRUSH].mouseUp = function(ev) {			
 			var shape = creatingBody.shapeArr[0];
-			shape.verts.push(creatingBody.getLocalPoint(p));
-			shape.verts = createConvexHull(shape.verts);
-			shape.finishVerts();
-
-			var center = vec2.add(creatingBody.p, shape.centroid());
-			for (var i = 0; i < shape.verts.length; i++) {
-				shape.verts[i] = vec2.sub(creatingBody.getWorldPoint(shape.verts[i]), center);
+			if (shape.area() < 0.0001) {
+				space.removeBody(creatingBody);
+				delete shape;
+				delete creatingBody;
 			}
 
-			creatingBody.setTransform(center, 0);
-
-			shape.body.resetMassData();
-			shape.body.cacheData();
+			creatingBody = null;
 		}
-		editModeEventArr[EM_CREATE_POLY].mouseUp = function(ev) {			
-		}
-		editModeEventArr[EM_CREATE_POLY].mouseMove = function(ev) {
+		editModeEventArr[EM_CREATE_BRUSH].mouseMove = function(ev) {
 			if (mouseDown && creatingBody) {
 				var p = canvasToWorld(mousePosition);
 				
 				if (snapEnabled) {
 					p = snapPointByGrid(p);
-				}
+				}			
 
 				var shape = creatingBody.shapeArr[0];
-				var last_v = shape.verts[shape.verts.length - 1];
-				last_v.copy(creatingBody.getLocalPoint(p));
+				shape.verts.push(creatingBody.getLocalPoint(p));
+				shape.verts = createConvexHull(shape.verts);
+				shape.finishVerts();
+
+				var center = vec2.add(creatingBody.p, shape.centroid());
+				for (var i = 0; i < shape.verts.length; i++) {
+					shape.verts[i] = vec2.sub(creatingBody.getWorldPoint(shape.verts[i]), center);
+				}
+
+				creatingBody.setTransform(center, 0);
 
 				shape.finishVerts();
 				shape.body.resetMassData();
@@ -1475,7 +1476,7 @@ App = function() {
 				updateSidebar();
 			}
 		}
-		editModeEventArr[EM_CREATE_POLY].keyDown = function(keyCode) {
+		editModeEventArr[EM_CREATE_BRUSH].keyDown = function(keyCode) {
 			if (keyCode == 27) {
 				creatingBody = null;
 			}	
@@ -2009,7 +2010,7 @@ App = function() {
 
 			// edit mode buttons
 			var value = ["select", "move", "rotate", "scale", 
-				"create_circle", "create_segment", "create_triangle", "create_box", "create_hexagon", "create_poly",
+				"create_circle", "create_segment", "create_triangle", "create_box", "create_hexagon", "create_brush",
 				"create_angle_joint", "create_revolute_joint", "create_weld_joint", 
 				"create_wheel_joint", "create_prismatic_joint", "create_distance_joint", "create_rope_joint",
 				"collapse_bodies", "edge_slice"][editMode];
@@ -4247,7 +4248,7 @@ App = function() {
 	function onClickedEditMode(value) {
 		editModeEventArr[editMode].shutdown();
 
-		editMode = { create_circle: EM_CREATE_CIRCLE, create_segment: EM_CREATE_SEGMENT, create_triangle: EM_CREATE_TRIANGLE, create_box: EM_CREATE_BOX, create_hexagon: EM_CREATE_HEXAGON, create_poly: EM_CREATE_POLY,
+		editMode = { create_circle: EM_CREATE_CIRCLE, create_segment: EM_CREATE_SEGMENT, create_triangle: EM_CREATE_TRIANGLE, create_box: EM_CREATE_BOX, create_hexagon: EM_CREATE_HEXAGON, create_brush: EM_CREATE_BRUSH,
 			create_angle_joint: EM_CREATE_ANGLE_JOINT, create_revolute_joint: EM_CREATE_REVOLUTE_JOINT, create_weld_joint: EM_CREATE_WELD_JOINT, 
 			create_wheel_joint: EM_CREATE_WHEEL_JOINT, create_prismatic_joint: EM_CREATE_PRISMATIC_JOINT, create_distance_joint: EM_CREATE_DISTANCE_JOINT, create_rope_joint: EM_CREATE_ROPE_JOINT,
 			select: EM_SELECT, move: EM_MOVE, rotate: EM_ROTATE, scale: EM_SCALE,
