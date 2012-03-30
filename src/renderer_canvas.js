@@ -36,8 +36,6 @@ RendererCanvas = function() {
 		ctx.moveTo(p1.x, p1.y);
 		ctx.lineTo(p2.x, p2.y);
 
-		ctx.closePath();
-
 		ctx.lineWidth = lineWidth;
 		ctx.strokeStyle = strokeStyle;
 		ctx.stroke();
@@ -62,9 +60,7 @@ RendererCanvas = function() {
 			d = vec2.truncate(vec2.sub(p2, s2), dashSize);
 			s1 = s2;
 			s2 = vec2.add(s2, d);
-		} 
-
-		ctx.closePath();
+		}
 
 		ctx.lineWidth = lineWidth;
 		ctx.strokeStyle = strokeStyle;
@@ -77,8 +73,6 @@ RendererCanvas = function() {
 
 			ctx.moveTo(p1.x, p1.y);
 			ctx.lineTo(p2.x, p2.y);
-
-			ctx.closePath();
 
 			ctx.lineWidth = lineWidth;
 			ctx.strokeStyle = strokeStyle;
@@ -223,8 +217,6 @@ RendererCanvas = function() {
 
 		ctx.arc(center.x, center.y, radius, 0, Math.PI*2, false);
 
-		ctx.closePath();
-
 		if (fillStyle) {			
 			ctx.fillStyle = fillStyle;
 			ctx.fill();
@@ -249,7 +241,7 @@ RendererCanvas = function() {
 		ctx.moveTo(center.x, center.y);
 
 		var p = vec2.add(center, vec2.scale(vec2.rotation(startAngle), radius));
-		ctx.arc(center.x, center.y, radius, startAngle, endAngle, false);		
+		ctx.arc(center.x, center.y, radius, startAngle, endAngle, false);
 		ctx.lineTo(center.x, center.y);
 
 		ctx.closePath();
