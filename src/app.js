@@ -2640,10 +2640,11 @@ App = function() {
 					var offset = new vec2(PIXEL_UNIT * 2, PIXEL_UNIT * 2);
 					var mins = vec2.sub(con.p, offset);
 					var maxs = vec2.add(con.p, offset);
-					
+										
 					renderer.drawRect(fg.ctx, mins, maxs, PIXEL_UNIT, "", "#F00");
-					dirtyBounds.addBounds2(mins, maxs);					
-					//renderer.drawArrow(fg.ctx, con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), ARROW_TYPE_NONE, ARROW_TYPE_NORMAL, 8, 1, "#F00");
+					dirtyBounds.addBounds2(mins, maxs);
+					//renderer.drawLine(fg.ctx, con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), PIXEL_UNIT, "#F00");					
+					//renderer.drawArrow(fg.ctx, con.p, vec2.add(con.p, vec2.scale(con.n, con.d)), ARROW_TYPE_NONE, ARROW_TYPE_NORMAL, PIXEL_UNIT * 8, PIXEL_UNIT, "#F00", "#F00");
 					//dirtyBounds.addBounds2();
 				}
 			}
