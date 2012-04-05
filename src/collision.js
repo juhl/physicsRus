@@ -277,11 +277,11 @@ var collision = {};
 	// Find the minimum separating axis for the given poly and plane list.
 	function findMSA(poly, planes, num)	{
 		var min_dist = -999999;
-		var min_index  = -1;
+		var min_index = -1;
 
 		for (var i = 0; i < num; i++) {
 			var dist = poly.distanceOnPlane(planes[i].n, planes[i].d);
-			if (dist > 0) {
+			if (dist > 0) { // no collision
 				return { dist: 0, index: -1 };
 			} 
 			else if (dist > min_dist) {
@@ -298,7 +298,7 @@ var collision = {};
 
 		for (var i = 0; i < poly1.verts.length; i++) {
 			var v = poly1.tverts[i];
-			if (poly2.containPointPartial(v, vec2.neg(n))) {
+			if (poly2.containPointPartial(v, n)) {
 				contactArr.push(new Contact(v, n, dist, (poly1.id << 16) | i));
 
 				num++;
@@ -317,6 +317,7 @@ var collision = {};
 		return num;
 	}
 
+	// Find the overlapped vertices.
 	function findVerts(contactArr, poly1, poly2, n, dist) {
 		var num = 0;
 
@@ -342,21 +343,22 @@ var collision = {};
 	}
 
 	function poly2Poly(poly1, poly2, contactArr) {
-		var min1 = findMSA(poly2, poly1.tplanes, poly1.verts.length);
-		if (min1.index == -1) {
+		var msa1 = findMSA(poly2, poly1.tplanes, poly1.verts.length);
+		if (msa1.index == -1) {
 			return 0;
 		}
 
-		var min2 = findMSA(poly1, poly2.tplanes, poly2.verts.length);
-		if (min2.index == -1) {
+		var msa2 = findMSA(poly1, poly2.tplanes, poly2.verts.length);
+		if (msa2.index == -1) {
 			return 0;
 		}
 
-		if (min1.dist > min2.dist) {
-			return findVerts(contactArr, poly1, poly2, poly1.tplanes[min1.index].n, min1.dist);
+		// Penetration normal direction shoud be from poly1 to poly2
+		if (msa1.dist > msa2.dist) {
+			return findVerts(contactArr, poly1, poly2, poly1.tplanes[msa1.index].n, msa1.dist);
 		}
 
-		return findVerts(contactArr, poly1, poly2, vec2.neg(poly2.tplanes[min2.index].n), min2.dist);
+		return findVerts(contactArr, poly1, poly2, vec2.neg(poly2.tplanes[msa2.index].n), msa2.dist);
 	}
 	
 	collision.init = function() {

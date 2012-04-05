@@ -236,7 +236,7 @@ ShapePoly.prototype.containPoint = function(p) {
 ShapePoly.prototype.containPointPartial = function(p, n) {
 	for (var i = 0; i < this.verts.length; i++) {
 		var plane = this.tplanes[i];
-		if (vec2.dot(plane.n, n) < 0) {
+		if (vec2.dot(plane.n, n) < 0.0001) {
 			continue;
 		}
 
