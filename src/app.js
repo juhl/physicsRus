@@ -1930,16 +1930,16 @@ App = function() {
 		resetScene();
 
 		window.requestAnimFrame = window.requestAnimationFrame || 
-			window.webkitRequestAnimationFrame || 
+			//window.webkitRequestAnimationFrame || 
 			window.mozRequestAnimationFrame || 
 			window.oRequestAnimationFrame || 
-			window.msRequestAnimationFrame;
+			window.msRequestAnimationFrame;			
 
 		if (window.requestAnimFrame) {
 			window.requestAnimFrame(function() { window.requestAnimFrame(arguments.callee); runFrame(); });
 		}
 		else {
-			window.setInterval(runFrame, parseInt(1000 / 60));
+			window.setInterval(runFrame, 1000 / 60);
 		}
 	}
 
